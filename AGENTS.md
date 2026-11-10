@@ -1010,6 +1010,47 @@ la ruta, seguiría apuntando al archivo viejo.
 sitio aunque arrastre un JPEG de 8 MB. **Es el único JavaScript del proyecto y
 vive solo en el panel: el sitio público sigue enviando 0 KB.**
 
+## Poner el proyecto en otra máquina
+
+La guía paso a paso es `docs/puesta-en-marcha.md`. Lo que no se puede olvidar:
+
+**`schema.sql` NO es la base de datos entera.** Solo crea `paginas`, `leads` y
+`chat_logs`. Los bloques de la portada, el catálogo de imágenes, los usuarios
+del panel, las sesiones y el registro de publicaciones viven en las migraciones
+numeradas de `backend/db/`, y el contenedor no las aplica. El orden es
+**esquema → semilla → migraciones**, y el tercer paso es `npm run db:migrar`.
+Sin él, `astro build` falla pidiendo unos bloques que no existen.
+
+El corredor (`backend/scripts/migrar.js`) lleva registro en
+`migraciones_aplicadas` y **nunca repite una migración**: `003` inserta los
+bloques de la portada y `009` copia colores dentro de cada lámina, así que
+reejecutarlas duplica contenido o pisa lo que alguien editó desde el panel. Si
+encuentra una base con las tablas puestas pero sin registro, las marca como
+aplicadas **sin ejecutarlas** y lo dice; es lo único seguro que puede hacer.
+
+**Los dos puertos del frontend no son intercambiables.** El `4321` es
+`npm run dev`, para editar. El **`4340` es `npm run preview`**, el sitio ya
+compilado, y es al que apuntan las herramientas de captura, el previsualizador
+de fondos y las siete suites. Contra el servidor de desarrollo las medidas
+salen mal —Vite inyecta los estilos por JavaScript y al medir aún no están
+aplicados—, las láminas se ven apiladas y diez comprobaciones de maquetación
+fallan sin que haya nada roto. Pasó al fijar los puertos: si aparecen fallos de
+geometría en bloque, lo primero es mirar qué sirve el 4340.
+
+**Las suites de `.pruebas/` SÍ se versionan.** Estuvieron en `.gitignore` y eso
+las dejaba fuera del repositorio: en otra máquina no había forma de verificar
+nada. Son parte del proyecto, como el código que comprueban.
+
+**Lanzar las siete seguidas agota el limitador de acceso** (ocho intentos cada
+quince minutos, en memoria). Las últimas fallan con una redirección en vez de
+con un error claro. Se arregla reiniciando la API.
+
+**Lo que NO viaja por Git:** los `.env` y el contenido de la base. Las imágenes
+del sitio sí van (`frontend/public/img/`), así que hay que confirmar y subir
+después de sustituir fotos desde el panel. Para llevar el contenido de un
+equipo a otro hay un volcado documentado en la guía; **ese volcado no se
+versiona**, porque lleva los hashes de las contraseñas del panel.
+
 ## Convenciones del Proyecto
 - **Idioma:** identificadores de dominio, columnas y mensajes al usuario en
   español. Palabras clave y APIs del lenguaje en inglés.

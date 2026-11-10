@@ -1,9 +1,37 @@
 # ============================================================================
 #  .htaccess para public_html (sitio estático generado por Astro)
 #  Copiar junto al contenido de frontend/dist/
+#
+#  No sirve para la API: esa la monta Passenger en su propio subdominio y no
+#  pasa por aquí.
+#
+#  Cada bloque va envuelto en <IfModule> para que, si el hosting desactivara un
+#  módulo, el sitio siga en pie en vez de devolver un 500 en todas las páginas.
 # ============================================================================
 
+# ─── Lo que nunca se sirve ──────────────────────────────────────────────────
+# El `.env` del backend vive FUERA de public_html a propósito, pero esta es la
+# segunda red: si alguien copia la carpeta entera por error, las credenciales
+# de PostgreSQL y la clave de OpenAI no quedan descargables.
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+<FilesMatch "\.(env|sql|log|bak|old)$">
+  Require all denied
+</FilesMatch>
+
+# Listados de directorio: enseñan la estructura del sitio a quien la busque.
+Options -Indexes
+
+# Astro compila con `trailingSlash: 'always'` y `format: 'directory'`, así que
+# cada página es `/ruta/index.html` y `mod_dir` la resuelve sola. Se declara
+# por si el hosting trae otro orden por defecto.
+DirectoryIndex index.html
+
 # ─── HTTPS y dominio canónico ───────────────────────────────────────────────
+# Una sola dirección por página. Si el sitio responde en http:// y en www. a la
+# vez, Google reparte la autoridad entre las dos y el bufete pierde posición en
+# las búsquedas locales, que es de donde llegan los clientes.
 RewriteEngine On
 
 RewriteCond %{HTTPS} !=on
@@ -20,6 +48,8 @@ ErrorDocument 404 /404.html
   ExpiresActive On
 
   # HTML: siempre revalidar, así un cambio de contenido se ve al instante.
+  # Publicar desde el panel recompila el sitio; si el navegador se guardara el
+  # HTML, quien edita no vería su cambio y daría por hecho que el botón falló.
   ExpiresByType text/html "access plus 0 seconds"
 
   # Assets con hash en el nombre: inmutables durante un año.
@@ -27,11 +57,15 @@ ErrorDocument 404 /404.html
   ExpiresByType application/javascript "access plus 1 year"
   ExpiresByType font/woff2 "access plus 1 year"
 
-  ExpiresByType image/webp "access plus 6 months"
-  ExpiresByType image/avif "access plus 6 months"
-  ExpiresByType image/svg+xml "access plus 6 months"
-  ExpiresByType image/jpeg "access plus 6 months"
-  ExpiresByType image/png "access plus 6 months"
+  # Las imágenes NO son inmutables: el panel las sustituye CONSERVANDO el
+  # nombre del archivo. Con seis meses de caché, cambiar una foto desde el
+  # panel no se vería en medio año en los navegadores que ya la tuvieran.
+  # Una semana, y que revaliden.
+  ExpiresByType image/webp "access plus 1 week"
+  ExpiresByType image/avif "access plus 1 week"
+  ExpiresByType image/svg+xml "access plus 1 week"
+  ExpiresByType image/jpeg "access plus 1 week"
+  ExpiresByType image/png "access plus 1 week"
 </IfModule>
 
 <IfModule mod_headers.c>
@@ -41,13 +75,33 @@ ErrorDocument 404 /404.html
   <FilesMatch "\.html$">
     Header set Cache-Control "public, max-age=0, must-revalidate"
   </FilesMatch>
+  <FilesMatch "\.(png|jpe?g|webp|avif|gif|svg|ico)$">
+    Header set Cache-Control "public, max-age=604800, must-revalidate"
+  </FilesMatch>
 
+  # ─── Cabeceras de seguridad ───────────────────────────────────────────────
+  # No hay CSP aquí: el sitio público no ejecuta JavaScript propio, y una CSP
+  # mal puesta rompe las fuentes autoalojadas sin avisar. La del panel sí
+  # existe, y la pone `helmet` en Express.
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  # Un bufete no necesita cámara, micrófono ni ubicación.
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 </IfModule>
 
 # ─── Compresión ─────────────────────────────────────────────────────────────
+# Solo texto. Las imágenes y las woff2 ya vienen comprimidas y volver a pasarlas
+# por gzip solo gasta CPU.
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml \
     application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_mime.c>
+  # cPanel no siempre trae el tipo de AVIF ni el de WebP; sin esto el navegador
+  # los descarga en vez de pintarlos.
+  AddType image/avif .avif
+  AddType image/webp .webp
+  AddType font/woff2 .woff2
 </IfModule>

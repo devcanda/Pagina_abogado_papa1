@@ -7,6 +7,7 @@ pagina_papa1/
 ├── frontend/          Astro 5 + Tailwind 4 → se compila a archivos planos
 ├── backend/           Express + PostgreSQL + OpenAI → API REST
 ├── deploy/            .htaccess y guía de despliegue en cPanel
+├── herramientas/      composición de fondos, capturas y control visual
 ├── specs/             Flujo SDD: spec.md → plan.md → tasks.md por funcionalidad
 ├── docs/              Constitución arquitectónica
 ├── AGENTS.md          Reglas y stack para agentes de IA
@@ -15,34 +16,52 @@ pagina_papa1/
 
 ## Puesta en marcha local
 
-Necesitas Node.js 20+ (recomendado 22.19+) y PostgreSQL 15+.
+> **¿Primera vez en este equipo?** La guía completa, con los tropiezos
+> conocidos y sus causas, está en **[docs/puesta-en-marcha.md](docs/puesta-en-marcha.md)**.
+> Lo que sigue es el resumen.
+
+Hace falta **Node.js 20+** (el proyecto se prueba con 22.16.0, ver `.nvmrc`) y
+**Docker Desktop**. PostgreSQL no hace falta instalarlo: lo pone el contenedor.
+
+```bash
+cd backend  && npm ci && cd ..
+cd frontend && npm ci && cd ..
+```
 
 ### 1. Base de datos
 
-**Opción recomendada — contenedor desechable:**
-
 ```bash
 docker compose up -d        # PostgreSQL 17 en el puerto 5434
-                            # carga schema.sql y seed.sql automáticamente
+                            # carga schema.sql y seed.sql la PRIMERA vez
+
+cd backend
+cp .env.example .env        # ya trae la DATABASE_URL del contenedor
+npm run db:migrar           # aplica las migraciones de db/
 ```
 
-La `DATABASE_URL` correspondiente es:
-`postgresql://candamil_app:dev_local_2026@localhost:5434/candamil_db`
+**El `db:migrar` no es opcional.** `schema.sql` solo crea `paginas`, `leads` y
+`chat_logs`; los bloques de la portada, el catálogo de imágenes, los usuarios
+del panel y el registro de publicaciones viven en las migraciones numeradas.
+Sin ellas no hay portada que compilar. `npm run db:estado` dice qué hay puesto.
 
-**Opción alternativa — PostgreSQL ya instalado:**
+La `DATABASE_URL` del contenedor es
+`postgresql://candamil_app:dev_local_2026@localhost:5434/candamil_db`.
 
-```bash
-createdb candamil_db
-psql candamil_db -f backend/db/schema.sql
-psql candamil_db -f backend/db/seed.sql     # datos de ejemplo
-```
+### 2. Un usuario para el panel
 
-### 2. API
+La base recién creada no trae ninguno y no hay pantalla de registro:
 
 ```bash
 cd backend
-cp .env.example .env        # ajusta DATABASE_URL y OPENAI_API_KEY
-npm install
+npm run usuario:crear -- correo@ejemplo.com "Nombre Apellido" admin
+```
+
+Imprime la contraseña **una sola vez**.
+
+### 3. API
+
+```bash
+cd backend
 npm run dev                 # http://localhost:3000
 ```
 
@@ -53,19 +72,26 @@ curl http://localhost:3000/api/health
 curl http://localhost:3000/api/paginas/demanda-laboral
 ```
 
-### 3. Frontend
+### 4. Frontend
 
 Con la API ya corriendo, en otra terminal:
 
 ```bash
 cd frontend
 cp .env.example .env
-npm install
 npm run dev                 # http://localhost:4321
+```
+
+Para ver el sitio **tal y como se publica** —y para que funcionen las
+herramientas y las pruebas, que apuntan ahí— hace falta el compilado:
+
+```bash
+npm run build && npm run preview     # http://localhost:4340
 ```
 
 > El frontend consulta la API **durante el build**, no desde el navegador.
 > Si cambias contenido en PostgreSQL, hay que recompilar para verlo.
+> Por eso la API tiene que estar levantada **antes** que el frontend.
 
 ## Cambiar imágenes y textos
 

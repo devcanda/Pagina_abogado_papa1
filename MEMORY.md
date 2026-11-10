@@ -143,6 +143,20 @@
   **Un hueco de imagen es contenido igual que un titular.**
 - **El correo del panel es `publicidad@candamilabogados.com`**, no el de la
   cuenta del sistema. Las suites lo reciben en `CORREO`.
+- **El proyecto ya se puede clonar en otro equipo** (10-11-2026): guía en
+  `docs/puesta-en-marcha.md`. Lo que faltaba y se añadió: corredor de
+  migraciones (`npm run db:migrar`), `.nvmrc`, `.gitignore` de raíz y las
+  suites de `.pruebas/` dentro del repositorio. El `deploy/.htaccess` ya
+  existía y se endureció: bloqueo de punto-archivos y de `.env`, cabeceras de
+  seguridad y caché de imágenes bajada de 6 meses a 1 semana, porque el panel
+  las sustituye conservando el nombre y media caché larga dejaba la foto vieja
+  medio año.
+- **`schema.sql` no basta para levantar la base**: solo trae 3 tablas. Orden
+  obligatorio esquema → semilla → migraciones. El corredor nunca repite una
+  migración y adopta las bases que ya estaban migradas sin ejecutarlas.
+- **4321 = `npm run dev`; 4340 = `npm run preview`** (sitio compilado). Las
+  herramientas y las pruebas usan el 4340; contra el de desarrollo las medidas
+  salen mal porque Vite aún no ha aplicado los estilos.
 - **La capa de fondo del hero se ancla a la LÁMINA, no al contenedor**
   (06-11-2026): la lámina lleva `transform` para el relevo y eso crea bloque
   contenedor aunque no haya `position`. Dejaba los 4rem de la fila de mandos

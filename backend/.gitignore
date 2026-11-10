@@ -1,4 +1,8 @@
 node_modules/
 .env
 *.log
-.pruebas/
+
+# Las suites de `.pruebas/` SÍ se versionan: AGENTS.md las trata como parte
+# del proyecto y sin ellas no hay forma de verificar nada en otra máquina.
+# Lo que no se versiona son sus archivos temporales.
+.pruebas/tmp/

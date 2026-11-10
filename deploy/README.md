@@ -25,12 +25,32 @@ clave de OpenAI.
 1. Crea la base: `candamil_db` → queda como `cpuser_candamil_db`.
 2. Crea el usuario: `candamil_app` → queda como `cpuser_candamil_app`.
 3. Asigna el usuario a la base con todos los privilegios.
-4. Carga el esquema desde la terminal SSH:
+4. Carga el esquema, la semilla y las migraciones **en este orden**, desde la
+   terminal SSH:
 
 ```bash
 cd ~/candamil-api
-psql "postgresql://cpuser_candamil_app:CLAVE@localhost:5432/cpuser_candamil_db" -f db/schema.sql
+export DATABASE_URL="postgresql://cpuser_candamil_app:CLAVE@localhost:5432/cpuser_candamil_db"
+
+psql "$DATABASE_URL" -f db/schema.sql     # paginas, leads, chat_logs
+psql "$DATABASE_URL" -f db/seed.sql       # contenido inicial de las páginas
+npm run db:migrar                          # TODO lo demás
 ```
+
+**El tercer paso no se puede saltar.** `schema.sql` solo crea tres tablas. Los
+bloques de la portada, el catálogo de imágenes, los usuarios del panel, las
+sesiones y el registro de publicaciones viven en las migraciones numeradas de
+`db/`. Sin ellas la API arranca pero el sitio no se puede compilar: pide unos
+bloques que no existen.
+
+`npm run db:migrar` toma las variables del `.env` si lo hay y, si no, de las
+que ya estén exportadas: en cPanel sirven las que pone Passenger, así que no
+hace falta crear un `.env` solo para esto.
+
+El corredor lleva registro en `migraciones_aplicadas` y nunca repite una
+migración, así que es seguro volver a lanzarlo después de cada despliegue —de
+hecho **es lo que hay que hacer** cuando una versión nueva traiga migraciones
+nuevas. `npm run db:estado` dice qué hay aplicado sin tocar nada.
 
 > Los prefijos `cpuser_` los añade cPanel automáticamente. Usa los nombres
 > completos tal como los muestra el panel en la `DATABASE_URL`.
@@ -39,7 +59,7 @@ psql "postgresql://cpuser_candamil_app:CLAVE@localhost:5432/cpuser_candamil_db" 
 
 | Campo                     | Valor                                   |
 | ------------------------- | --------------------------------------- |
-| Node.js version           | 20.x o superior                         |
+| Node.js version           | 20.12 o superior (probado con 22.16)    |
 | Application mode          | Production                               |
 | Application root          | `candamil-api`                          |
 | Application URL           | `api.candamilabogados.com`              |
@@ -53,6 +73,17 @@ Después:
    `DATABASE_URL`, `CORS_ORIGINS`, `OPENAI_API_KEY`, `API_BASE_PATH=/api`.
 3. **Restart**.
 4. Comprueba: `curl https://api.candamilabogados.com/api/health` → `{"status":"ok","db":"ok"}`.
+5. Crea el usuario del panel. La base nueva **no trae ninguno** y no hay
+   pantalla de registro:
+
+   ```bash
+   cd ~/candamil-api
+   npm run usuario:crear -- publicidad@candamilabogados.com "Equipo de publicidad" admin
+   ```
+
+   Imprime una contraseña fuerte una sola vez. **Nunca reutilizar la de
+   desarrollo:** con `NODE_ENV=production` el script rechaza las de
+   diccionario, pero eso no cubre una que ya circuló por otro equipo.
 
 ### Sobre `API_BASE_PATH`
 
@@ -76,17 +107,27 @@ durante la compilación.
 
 ```bash
 cd frontend
+npm ci                      # ci, no install: respeta el package-lock
 echo "PUBLIC_API_URL=https://api.candamilabogados.com/api" > .env
 echo "PUBLIC_WHATSAPP=573000000000" >> .env
 echo "PUBLIC_TELEFONO=+576041234567" >> .env
 echo "PUBLIC_SITE_URL=https://candamilabogados.com" >> .env
 
-npm ci
 npm run build
 ```
 
 Sube **el contenido** de `frontend/dist/` a `public_html/` (no la carpeta
-`dist` en sí) y copia también `deploy/.htaccess`.
+`dist` en sí) y copia también `deploy/.htaccess`, que fuerza HTTPS y el host
+canónico, bloquea la descarga de `.env` y fija la caché.
+
+**Ojo con la caché del HTML.** El `.htaccess` lo deja en `max-age=0`, y es a
+propósito: publicar desde el panel recompila el sitio, y si el navegador se
+guarda el HTML, quien edita no ve su cambio y da por hecho que el botón no
+funcionó. Lo de `/_astro/` sí se cachea un año porque lleva hash en el nombre.
+
+Las imágenes del sitio viajan dentro del build: están en
+`frontend/public/img/`, que Astro copia a `dist/` tal cual. No hay que subirlas
+aparte.
 
 ## 4. Republicar contenido
 
@@ -99,6 +140,21 @@ necesita autonomía total, el siguiente paso sería un cron nocturno que ejecute
 el build, o pasar la ruta `[...slug]` a SSR bajo demanda.
 
 ---
+
+## Antes de publicar: lo que falta
+
+Pendientes conocidos, anotados para que no se descubran el día del despliegue:
+
+- [ ] **La clave del panel en desarrollo es `admin123`.** En el servidor se
+      genera una nueva con `npm run usuario:crear`; la de desarrollo no se
+      reutiliza. Con `NODE_ENV=production` el script rechaza las de
+      diccionario, pero no sabe cuáles han circulado ya.
+- [ ] **`/contacto/` y `/areas/` todavía no existen** y devuelven 404. Son el
+      destino de los botones de las tres láminas de la cabecera y del menú.
+      Publicar así deja los tres llamados a la acción rotos.
+- [ ] **La línea base visual de `docs/linea-base/` está desactualizada.** Hay
+      que regenerarla cuando el diseño esté aprobado y anotar qué cambió en
+      `docs/punto-de-control-visual.md`.
 
 ## Verificación posterior al despliegue
 

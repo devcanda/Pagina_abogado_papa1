@@ -1,0 +1,16 @@
+# Taller de las publicaciones: lo crea y lo borra el propio servidor.
+.publicacion/
+
+# Basura de sistema operativo y de editores.
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Nunca: credenciales. Cada subproyecto repite la regla en su .gitignore,
+# pero esta es la red por si alguien crea un .env en otro sitio.
+.env
+.env.*
+!.env.example

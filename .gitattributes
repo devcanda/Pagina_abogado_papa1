@@ -1,0 +1,30 @@
+# ============================================================================
+#  Finales de línea.
+#
+#  El proyecto se trabaja en varios equipos. Sin esto, cada uno confirma el
+#  archivo con sus propios finales de línea y Git enseña como «modificado»
+#  todo un archivo en el que no se cambió ni una palabra: las diferencias
+#  reales se pierden entre el ruido.
+#
+#  `text=auto` guarda SIEMPRE con LF en el repositorio y entrega al disco lo
+#  que use cada sistema.
+# ============================================================================
+* text=auto
+
+# Estos tienen que llegar al servidor con LF pase lo que pase: Apache y los
+# intérpretes de Unix no entienden el retorno de carro de Windows, y un
+# `.htaccess` con CRLF puede tumbar el sitio entero con un error 500.
+*.sh      text eol=lf
+.htaccess text eol=lf
+*.sql     text eol=lf
+
+# Binarios: que Git no intente convertir nada dentro.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.ico  binary
+*.woff  binary
+*.woff2 binary
+*.pdf  binary
