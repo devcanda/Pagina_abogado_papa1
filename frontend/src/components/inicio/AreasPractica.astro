@@ -1,0 +1,92 @@
+---
+/**
+ * Áreas de práctica sobre fondo navy, con tarjetas de imagen.
+ *
+ * La referencia usa un carrusel con JavaScript. Aquí es una tira con
+ * `scroll-snap` nativo: se arrastra igual en móvil, pasa a rejilla en
+ * escritorio y no añade ni un byte de script.
+ */
+const { areas } = Astro.props;
+---
+
+<section class="relative overflow-hidden bg-marino-900 py-20 lg:py-28">
+  <!-- Palabra de fondo: solo decorativa, recortada por la sección. -->
+  <span
+    class="palabra-fondo -bottom-6 left-1/2 -translate-x-1/2 text-[18vw] text-white/[0.04]"
+    aria-hidden="true"
+  >
+    Candamil
+  </span>
+
+  <div class="contenedor relative grid gap-12 lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-14">
+    <div class="lg:pt-6">
+      <p class="etiqueta-seccion-clara mb-4">Áreas de práctica</p>
+      <h2 class="titular-claro">
+        Cada caso exige un <span class="destacado-claro">abogado distinto.</span>
+      </h2>
+      <p class="mt-6 text-marino-100/75">
+        No llevamos todo. Llevamos lo que dominamos, y eso es lo que marca la
+        diferencia en estrados.
+      </p>
+      <a href="/areas/" class="btn-primario-oscuro mt-8">Ver todas las áreas</a>
+    </div>
+
+    <!-- Tira desplazable en móvil, rejilla en escritorio. -->
+    <ul
+      class="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4
+             sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0
+             xl:grid-cols-3"
+    >
+      {areas.map((area) => (
+        <li class="w-[70vw] shrink-0 snap-start sm:w-auto">
+          <a
+            href={area.href}
+            class="group relative flex aspect-4/5 flex-col justify-end overflow-hidden
+                   bg-marino-800 p-5 transition-transform hover:-translate-y-1"
+          >
+            <img
+              src={area.imagen}
+              alt=""
+              width="600"
+              height="800"
+              class="absolute inset-0 size-full object-cover opacity-45
+                     transition-all duration-500 group-hover:scale-105 group-hover:opacity-60"
+              loading="lazy"
+              decoding="async"
+            />
+            <span
+              class="absolute inset-0 bg-gradient-to-t from-marino-900 via-marino-900/55 to-transparent"
+              aria-hidden="true"
+            ></span>
+
+            <span
+              class="relative mb-auto inline-flex size-11 items-center justify-center
+                     rounded-full bg-white/10 text-white backdrop-blur-sm"
+            >
+              <svg class="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d={area.icono} />
+              </svg>
+            </span>
+
+            <span class="relative flex items-end justify-between gap-3">
+              <span class="font-display text-xl font-bold leading-tight text-white">
+                {area.nombre}
+              </span>
+              <span
+                class="inline-flex size-9 shrink-0 items-center justify-center rounded-full
+                       bg-white text-marino-900 transition-colors
+                       group-hover:bg-rojo-500 group-hover:text-white"
+                aria-hidden="true"
+              >
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.5" stroke-linecap="round">
+                  <path d="M5 12h14m-6-6 6 6-6 6" />
+                </svg>
+              </span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

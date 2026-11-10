@@ -1,0 +1,34 @@
+---
+/**
+ * Último empujón antes del pie: una sola pregunta y un solo botón.
+ * Cuantas más salidas tenga esta franja, menos convierte.
+ */
+const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
+---
+
+<section class="bg-marino-800" data-superficie="oscura">
+  <div
+    class="contenedor flex flex-col items-center gap-7 py-12
+           text-center lg:flex-row lg:justify-between lg:py-14 lg:text-left"
+  >
+    <div class="flex items-center gap-5">
+      <svg class="hidden size-12 shrink-0 text-rojo-300 sm:block" viewBox="0 0 24 24"
+           fill="currentColor" aria-hidden="true">
+        <path d="M16 2 9.2 8.8l1.4 1.4-1.4 1.4-1.4-1.4-5.7 5.7 1.4 1.4-1.4 1.4L0 17l1.4-1.4 1.4 1.4 5.7-5.7-1.4-1.4 1.4-1.4 1.4 1.4L17 3zM3 20h11v2H3z" />
+      </svg>
+      <h2 class="font-display text-2xl font-bold leading-snug text-white sm:text-3xl">
+        ¿Evaluamos su caso <span class="destacado-claro">sin costo?</span>
+      </h2>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-center gap-4">
+      <a href="/contacto/" class="btn-primario-oscuro">Agendar consulta</a>
+      <a
+        href={`tel:${telefono}`}
+        class="text-sm font-bold text-marino-100 underline underline-offset-4 hover:text-white"
+      >
+        o llámenos: {telefono}
+      </a>
+    </div>
+  </div>
+</section>

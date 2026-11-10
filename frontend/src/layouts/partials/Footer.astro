@@ -1,0 +1,90 @@
+---
+/** Footer corporativo "pesado": enlaces internos que reparten autoridad SEO. */
+import Logo from '../../components/Logo.astro';
+
+const anio = new Date().getFullYear();
+
+const columnas = [
+  {
+    titulo: 'Áreas de práctica',
+    enlaces: [
+      { href: '/areas/derecho-laboral/', texto: 'Derecho laboral' },
+      { href: '/areas/derecho-civil/', texto: 'Derecho civil' },
+      { href: '/areas/derecho-familia/', texto: 'Derecho de familia' },
+      { href: '/areas/derecho-administrativo/', texto: 'Derecho administrativo' },
+    ],
+  },
+  {
+    titulo: 'Bufete',
+    enlaces: [
+      { href: '/quienes-somos/', texto: 'Quiénes somos' },
+      { href: '/equipo/', texto: 'Equipo' },
+      { href: '/blog/', texto: 'Blog jurídico' },
+      { href: '/contacto/', texto: 'Contacto' },
+    ],
+  },
+  {
+    titulo: 'Legal',
+    enlaces: [
+      { href: '/politica-de-privacidad/', texto: 'Política de privacidad' },
+      { href: '/tratamiento-de-datos/', texto: 'Tratamiento de datos' },
+      { href: '/terminos-y-condiciones/', texto: 'Términos y condiciones' },
+    ],
+  },
+];
+
+import { telefono, telefonoMarcable, direccion, mapa } from '../../data/contacto.js';
+---
+
+<footer class="mt-20 bg-marino-900 text-marino-100" data-superficie="oscura">
+  <div class="mx-auto max-w-6xl px-4 py-14">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <Logo alto="h-12 sm:h-14" />
+        <p class="mt-3 text-sm leading-relaxed text-marino-100/80">
+          Defensa jurídica con atención directa del abogado titular.
+        </p>
+        <address class="mt-4 not-italic text-sm leading-relaxed text-marino-100/80">
+          <a
+            href={mapa}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline-offset-2 hover:text-white hover:underline"
+            aria-label={`Ver la oficina en Google Maps: ${direccion} (se abre en otra pestaña)`}
+          >
+            {direccion}
+          </a>
+          <br />
+          <a href={`tel:${telefonoMarcable}`} class="mt-1 inline-block font-semibold text-rojo-300">
+            {telefono}
+          </a>
+        </address>
+      </div>
+
+      {columnas.map((columna) => (
+        <nav aria-label={columna.titulo}>
+          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-white">
+            {columna.titulo}
+          </h2>
+          <ul class="space-y-2">
+            {columna.enlaces.map((enlace) => (
+              <li>
+                <a href={enlace.href} class="text-sm text-marino-100/80 hover:text-white">
+                  {enlace.texto}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))}
+    </div>
+
+    <div class="mt-12 border-t border-white/10 pt-6 text-xs text-marino-100/60">
+      <p>© {anio} Candamil Abogados. Todos los derechos reservados.</p>
+      <p class="mt-2">
+        La información de este sitio es divulgativa y no constituye asesoría jurídica
+        ni crea una relación abogado-cliente.
+      </p>
+    </div>
+  </div>
+</footer>

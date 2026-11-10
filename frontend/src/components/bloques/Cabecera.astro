@@ -1,0 +1,954 @@
+---
+/**
+ * BLOQUE «cabecera» — fondo navy con una cuña en diagonal y la foto recortada.
+ *
+ * Admite hasta TRES LÁMINAS que el visitante va pasando. Con una sola —o con
+ * ninguna, usando los campos sueltos— se comporta exactamente como antes: sin
+ * controles y sin carrusel.
+ *
+ * ── Por qué no hay JavaScript ──────────────────────────────────────────────
+ * El proyecto envía 0 KB de JS al visitante y un carrusel no es motivo para
+ * romperlo. El cambio de lámina lo hacen tres `<input type="radio">` y una
+ * regla `:has()`. De paso se gana la navegación con las flechas del teclado,
+ * que es nativa de un grupo de radios y que un carrusel hecho a mano casi
+ * nunca implementa bien.
+ *
+ * ── Gira solo, y no lleva botón de pausa ───────────────────────────────────
+ * El botón de pausa se retiró a petición del cliente (27-10-2026). Esto deja
+ * el bloque POR DEBAJO del AA que se ha fijado el proyecto: la WCAG 2.2.2
+ * pide un mecanismo para parar cualquier cosa que se mueva sola más de cinco
+ * segundos, y un pase de diapositivas lo es.
+ *
+ * Lo que queda cumpliendo esa función, sin ser un control rotulado como tal:
+ *
+ *   · Pulsar cualquier punto o flecha detiene el pase PARA SIEMPRE. Es un
+ *     mecanismo de parada real, pero nadie puede saberlo antes de pulsarlo.
+ *   · `prefers-reduced-motion: reduce` apaga el pase del todo.
+ *   · El pase se congela mientras el foco esté dentro de la cabecera.
+ *
+ * Si algún día hay que volver a cumplirlo, el botón era una casilla (sin
+ * JavaScript solo un `:checked` recuerda un estado) con su regla de
+ * `animation-play-state: paused`; está en el historial de este archivo.
+ *
+ * Ver `specs/003-cabecera-slider/`.
+ */
+const { datos = {} } = Astro.props;
+
+const {
+  etiqueta = '',
+  titulo = '',
+  subtitulo = '',
+  imagen = '',
+  textoBoton = '',
+  enlaceBoton = '/contacto/',
+  textoBoton2 = '',
+  enlaceBoton2 = '/areas/',
+  laminas = [],
+  colorTitulo = '',
+  colorTexto = '',
+  colorEtiqueta = '',
+  colorFondo = '',
+  colorCuna = '',
+} = datos;
+
+/*
+ * Colores elegidos desde el panel. Van en línea porque tienen que ganar a la
+ * clase de utilidad; si no se han tocado llegan vacíos y no se emite ningún
+ * `style`, así que el bloque se ve exactamente como antes.
+ *
+ * El panel enseña el contraste medido al elegirlos, pero NO lo impone: es
+ * decisión del cliente (D4 de la spec 002). Un color ilegible aquí es un color
+ * ilegible en la página.
+ */
+const color = (valor) => (valor ? { color: valor } : undefined);
+const fondo = (valor) => (valor ? { backgroundColor: valor } : undefined);
+
+/*
+ * Velo sobre la imagen de fondo.
+ *
+ * Una foto cualquiera detrás de un titular blanco es una moneda al aire: el
+ * contraste depende de la zona de la foto que caiga bajo cada letra y no hay
+ * forma de medirlo desde el panel. El velo es lo único que lo arregla sin
+ * tocar la foto, y por eso el campo existe.
+ *
+ * `ninguno` es el valor por defecto y no pinta capa, así que una lámina sin
+ * velo no paga ni un nodo de más.
+ */
+const OPACIDAD_VELO = {
+  ninguno: 0, ligero: 0.3, medio: 0.5, fuerte: 0.7, opaco: 0.85,
+};
+
+// El velo toma el color de la franja: así el fondo de la lámina y el del resto
+// de la sección son el mismo color y no se ve una costura entre los dos.
+const colorVelo = colorFondo || '#0a2443';
+
+/*
+ * El velo se pasa a CSS en COMPONENTES, no en hexadecimal.
+ *
+ * En escritorio es un degradado que se desvanece hacia la derecha, y para eso
+ * hace falta el mismo color con alfa 0 en el otro extremo. Con un hexadecimal
+ * habría que escribir `transparent`, que varias máquinas interpolan pasando
+ * por negro transparente y deja una banda gris por el medio.
+ */
+const componentes = (hex) => {
+  const v = /^#([0-9a-f]{6})$/i.exec(hex ?? '');
+  if (!v) return '10, 36, 67';
+  const n = parseInt(v[1], 16);
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+};
+const veloRGB = componentes(colorVelo);
+
+/**
+ * Prioridad de descarga de la figura recortada.
+ *
+ * La prioridad alta es de UNA sola imagen por pantalla. Si la primera lámina
+ * lleva fondo, el candidato a LCP es el fondo —ocupa toda la franja— y la
+ * figura cede: con las dos en `high` compiten entre ellas y la medida empeora
+ * para ambas. Las láminas 2 y 3 van siempre en `low`, o le quitan ancho de
+ * banda a la primera.
+ */
+const prioridadFoto = (lamina, i) => {
+  if (i !== 0) return 'low';
+  return lamina.imagenFondo ? 'auto' : 'high';
+};
+
+// Sin láminas, los campos sueltos SON la lámina —colores incluidos—. Es lo que
+// hace que una cabecera anterior a esta versión siga pintando lo mismo.
+const aPintar = laminas.length
+  ? laminas
+  : [{
+    etiqueta, titulo, subtitulo, imagen,
+    textoBoton, enlaceBoton, textoBoton2, enlaceBoton2,
+    colorTitulo, colorTexto, colorEtiqueta,
+  }];
+
+const esCarrusel = aPintar.length > 1;
+
+/**
+ * Sufijo de los `id`, derivado del contenido.
+ *
+ * Los `id` tienen que ser únicos en el documento por si algún día hay dos
+ * cabeceras en una página. Se calcula a partir de los titulares en vez de
+ * sortearlo para que dos compilaciones del mismo contenido den el mismo HTML:
+ * un `id` aleatorio ensuciaría cada diff y cada caché.
+ */
+const sufijo = Math.abs(
+  aPintar
+    .map((l) => l.titulo)
+    .join('|')
+    .split('')
+    .reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0),
+).toString(36);
+
+const idLamina = (i) => `lamina-${sufijo}-${i}`;
+---
+
+<section
+  class="cabecera relative overflow-hidden bg-marino-900"
+  style={fondo(colorFondo)}
+  data-superficie="oscura"
+  data-laminas={esCarrusel ? String(aPintar.length) : undefined}
+  role={esCarrusel ? 'region' : undefined}
+  aria-roledescription={esCarrusel ? 'carrusel' : undefined}
+  aria-label={esCarrusel ? 'Presentación del bufete' : undefined}
+>
+  <!-- Cuña. Oculta en móvil: ahí la columna de texto ocupa todo. -->
+  <div
+    class="pointer-events-none absolute inset-y-0 right-0 hidden w-[55%] bg-marino-700 md:block"
+    style={`clip-path: polygon(28% 0, 100% 0, 100% 100%, 0 100%);${
+      colorCuna ? ` background-color: ${colorCuna};` : ''}`}
+    aria-hidden="true"
+  >
+  </div>
+
+  <!-- Textura sutil de líneas, como en el diseño de referencia. -->
+  <div
+    class="pointer-events-none absolute inset-0 opacity-[0.07]"
+    style="background-image: repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 14px);"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div class="contenedor relative">
+    <!--
+      Las láminas se apilan en UNA celda de rejilla: así la altura de la
+      sección es la de la más alta y no pega un salto al cambiar.
+    -->
+    <div class="cabecera-pila grid">
+      {aPintar.map((lamina, i) => (
+        <div
+          class="cabecera-lamina grid items-center gap-8 py-14 md:grid-cols-2 md:py-20 lg:py-24"
+          role={esCarrusel ? 'group' : undefined}
+          aria-roledescription={esCarrusel ? 'lámina' : undefined}
+          aria-label={esCarrusel
+            ? `${i + 1} de ${aPintar.length}${lamina.rotulo ? `: ${lamina.rotulo}` : ''}`
+            : undefined}
+        >
+          {/*
+            Imagen de fondo de ESTA lámina, a sangre.
+
+            Va DENTRO de la lámina a propósito: así hereda el fundido y el
+            `visibility: hidden` que el carrusel ya aplica a la lámina entera,
+            sin una sola regla `:has()` nueva. Montarla como una segunda pila
+            de capas al nivel de la sección habría significado duplicar toda
+            esa maquinaria, que es la parte más frágil del componente.
+
+            El truco de `100vw` con `translateX(-50%)` la saca del contenedor
+            centrado y la lleva de borde a borde; la sección recorta el
+            sobrante porque lleva `overflow-hidden`.
+          */}
+          {lamina.imagenFondo && (
+            <div class="cabecera-fondo" aria-hidden="true">
+              {/*
+                `<picture>` y no dos `<img>`: el navegador elige UNA fuente y
+                descarga solo esa. Con dos imágenes y CSS se bajarían las dos,
+                y esta es la que decide el LCP de la portada.
+
+                La fuente de móvil solo se emite si la lámina la tiene. Sin
+                ella el teléfono usa la de escritorio, que es como funcionaba
+                antes: añadir el campo no cambió ninguna lámina.
+              */}
+              <picture>
+                {lamina.imagenFondoMovil && (
+                  <source media="(max-width: 767px)" srcset={lamina.imagenFondoMovil} />
+                )}
+                <img
+                  src={lamina.imagenFondo}
+                  alt=""
+                  width="1920"
+                  height="1080"
+                  class="h-full w-full object-cover"
+                  fetchpriority={i === 0 ? 'high' : 'low'}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+              </picture>
+              {OPACIDAD_VELO[lamina.velo] > 0 && (
+                <div
+                  class="cabecera-velo"
+                  style={`--velo-rgb: ${veloRGB}; opacity: ${OPACIDAD_VELO[lamina.velo]};`}
+                >
+                </div>
+              )}
+            </div>
+          )}
+
+          {/*
+            El bloque de texto se sale un poco de la rejilla del contenedor
+            hacia la izquierda, para ocupar el espacio que el fondo deja en
+            penumbra en vez de dejarlo muerto.
+
+            Solo desde `xl`, y con dos escalones. Por debajo de 1280 px el
+            contenedor ya está a su ancho máximo y el texto pegado al margen:
+            tirar de él ahí lo sacaría de la pantalla. Medido: a 1024 y a 768
+            el texto arranca a 24 px del borde, y a 390 a 16 px.
+
+            El precio es que en pantallas anchas el titular deja de alinearse
+            con el logotipo de la cabecera y con las secciones de abajo. Es una
+            decisión de diseño pedida, no un descuido.
+          */}
+          <div class="relative z-10 max-w-xl xl:-ml-12 2xl:-ml-20">
+            {lamina.etiqueta && (
+              <p
+                class="mb-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-rojo-300"
+                style={color(lamina.colorEtiqueta)}
+              >
+                {/*
+                  El filete toma el MISMO color que el rótulo. Separados, al
+                  aclarar el texto sobre una foto quedaría un guion rojo suelto
+                  al lado de unas letras claras, que es peor que cualquiera de
+                  las dos opciones enteras.
+                */}
+                <span
+                  class="h-px w-10 bg-rojo-400"
+                  style={lamina.colorEtiqueta ? `background-color: ${lamina.colorEtiqueta};` : undefined}
+                  aria-hidden="true"
+                >
+                </span>
+                {lamina.etiqueta}
+              </p>
+            )}
+
+            <h1
+              class="font-display text-[2.6rem] font-bold leading-[1.08] tracking-tight
+                     text-white sm:text-6xl lg:text-7xl"
+              style={color(lamina.colorTitulo)}
+            >
+              {lamina.titulo}
+            </h1>
+
+            <p class="mt-6 text-base leading-relaxed text-marino-100/85 sm:text-lg"
+               style={color(lamina.colorTexto)}>
+              {lamina.subtitulo}
+            </p>
+
+            <div class="mt-9 flex flex-wrap gap-3">
+              {lamina.textoBoton && (
+                <a href={lamina.enlaceBoton || '/contacto/'} class="btn-primario-oscuro">
+                  {lamina.textoBoton}
+                </a>
+              )}
+              {lamina.textoBoton2 && (
+                <a
+                  href={lamina.enlaceBoton2 || '/areas/'}
+                  class="btn border-2 border-white/35 px-6 text-white hover:border-rojo-300 hover:text-rojo-300"
+                >
+                  {lamina.textoBoton2}
+                </a>
+              )}
+            </div>
+          </div>
+
+          <!-- La foto es decorativa: el titular de al lado comunica lo mismo. -->
+          <div class="relative z-10 hidden justify-center md:flex">
+            {lamina.imagen && (
+              <img
+                src={lamina.imagen}
+                alt=""
+                width="900"
+                height="1100"
+                class="h-[26rem] w-auto object-contain drop-shadow-2xl lg:h-[32rem]"
+                fetchpriority={prioridadFoto(lamina, i)}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+              />
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {esCarrusel && (
+      <div class="cabecera-mandos">
+        <!--
+          Las flechas son `<label>`, no botones: sin JavaScript, la única forma
+          de cambiar de lámina es marcar un radio, y eso lo hace un `for`.
+
+          Se pintan las SEIS (una «anterior» y una «siguiente» por cada lámina
+          posible) y el CSS deja ver solo las dos que corresponden al estado
+          actual. Un `<label>` apunta a un `id` fijo, así que no hay forma de
+          que una sola flecha sepa a dónde ir.
+
+          Van `aria-hidden` a propósito. No son enfocables, de modo que quien
+          navega con teclado o lector de pantalla usa el grupo de radios y sus
+          flechas nativas. Si no estuvieran ocultas, sus textos se sumarían al
+          nombre accesible de cada radio —tres etiquetas apuntando al mismo
+          control se concatenan— y el lector diría «Perito avaluador lámina
+          siguiente lámina anterior».
+        -->
+        <div class="cabecera-flechas">
+          {aPintar.map((_, i) => (
+            <label
+              class="cabecera-flecha"
+              data-estado={i + 1}
+              for={idLamina(((i - 1 + aPintar.length) % aPintar.length) + 1)}
+              aria-hidden="true"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 5 8 12l7 7" />
+              </svg>
+            </label>
+          ))}
+        </div>
+
+        <!--
+          Los radios van JUNTO a su punto, no agrupados aparte: así el selector
+          `:focus-visible + label` puede marcar el punto enfocado, que de otro
+          modo no tendría ninguna señal visible al navegar con el teclado.
+
+          El nombre accesible lo pone `aria-label` sobre el radio, no el texto
+          de la etiqueta, por lo explicado arriba sobre las flechas.
+        -->
+        <div class="cabecera-puntos" role="radiogroup" aria-label="Elegir lámina">
+          {aPintar.map((lamina, i) => (
+            <>
+              <!--
+                NINGÚN radio nace marcado, y es lo que hace posible el pase
+                automático sin JavaScript: mientras no haya ninguno marcado, el
+                CSS sabe que el visitante no ha tomado el mando y deja correr la
+                animación. En cuanto pulsa un punto o una flecha, se marca uno y
+                el pase se detiene.
+
+                No hay forma en CSS de distinguir «marcado por defecto» de
+                «marcado por el visitante», así que el estado inicial tiene que
+                ser ninguno.
+              -->
+              <input
+                class="cabecera-radio"
+                type="radio"
+                name={`cabecera-${sufijo}`}
+                id={idLamina(i + 1)}
+                aria-label={lamina.rotulo || `Lámina ${i + 1} de ${aPintar.length}`}
+              />
+              <label class="cabecera-punto" for={idLamina(i + 1)} aria-hidden="true"></label>
+            </>
+          ))}
+        </div>
+
+        <div class="cabecera-flechas">
+          {aPintar.map((_, i) => (
+            <label
+              class="cabecera-flecha"
+              data-estado={i + 1}
+              for={idLamina(((i + 1) % aPintar.length) + 1)}
+              aria-hidden="true"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="m9 5 7 7-7 7" />
+              </svg>
+            </label>
+          ))}
+        </div>
+
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  /*
+   * Todo el ocultamiento vive dentro de `@supports selector(:has(*))`.
+   *
+   * Si el navegador no entiende `:has()` no puede cambiar de lámina, así que
+   * tampoco debe ocultarlas: fuera de este bloque las tres se pintan una
+   * debajo de otra y todos los enlaces siguen alcanzables. Degrada hacia el
+   * contenido, no hacia una página en blanco.
+   */
+  /*
+   * Oculto por defecto y visible solo dentro del `@supports` de abajo.
+   *
+   * El orden importa y es la razón de que esté aquí arriba: las dos reglas
+   * tienen la misma especificidad, así que gana la última del archivo. Con el
+   * `display: none` detrás del `@supports`, los puntos no se veían nunca y el
+   * carrusel no se podía cambiar con el ratón.
+   */
+  /*
+   * Capa de fondo de una lámina, de borde a borde.
+   *
+   * Va FUERA del `@supports` de abajo porque no tiene nada que ver con el
+   * cambio de lámina: es decoración de la lámina y se oculta con ella, por
+   * estar dentro.
+   *
+   * El contenedor de la cabecera está centrado y con margen lateral, así que
+   * una capa `inset-0` solo cubriría la columna de texto. `100vw` con
+   * `translateX(-50%)` la lleva de borde a borde; el sobrante lo recorta la
+   * sección, que lleva `overflow-hidden`.
+   *
+   * `z-index: 0` y no `-1`: con `-1` la capa se iría por detrás del fondo de
+   * la propia sección y no se vería. Las dos columnas de contenido van en
+   * `z-10` para quedar por encima.
+   *
+   * ── Hasta dónde llega por abajo ──────────────────────────────────────────
+   * Esta capa se ancla a la LÁMINA, se quiera o no: la lámina lleva
+   * `transform` para el relevo, y un `transform` crea bloque contenedor para
+   * los descendientes absolutos aunque no haya `position: relative`. Quitarle
+   * el `position` a la lámina no cambia nada; ya se intentó.
+   *
+   * La lámina acaba donde acaba el texto, así que la capa dejaba los 4rem de
+   * la fila de mandos sin foto y debajo asomaba la franja de la sección: una
+   * banda de otro color justo bajo las flechas. Por eso la capa se ESTIRA
+   * hacia abajo exactamente lo que miden los mandos. El sobrante lo recorta
+   * la sección, que lleva `overflow-hidden`.
+   *
+   * Tiene que ser EXACTO, no un número generoso: la imagen va con
+   * `object-fit: cover`, así que alargar la capa cambia el recorte y mueve el
+   * encuadre que se ajustó mirando.
+   */
+  /*
+   * `display: contents` para que el `<picture>` no cuente como caja.
+   *
+   * La imagen lleva `h-full w-full`, que se miden contra su padre. Metida
+   * dentro de un `<picture>` —que es `inline` por defecto— ese padre pasa a
+   * tener alto automático y la foto se queda en su tamaño natural en vez de
+   * llenar la franja. Con `contents`, el `<picture>` desaparece a efectos de
+   * maquetación y la imagen vuelve a medirse contra la capa de fondo.
+   */
+  .cabecera-fondo picture {
+    display: contents;
+  }
+
+  .cabecera {
+    /* Alto de la fila de flechas y puntos. Lo usan los mandos y la capa de
+       fondo, que se estira exactamente esto para cubrirla. */
+    --cabecera-mandos: 4rem;
+  }
+
+  .cabecera-fondo {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  /*
+   * Velo sobre la imagen de fondo.
+   *
+   * En MÓVIL es plano: ahí el texto ocupa todo el ancho, así que toda la foto
+   * está debajo de algo y oscurecerla entera es lo correcto.
+   *
+   * Desde `md` el texto solo ocupa la mitad izquierda. Un velo plano apagaría
+   * también la mitad derecha, que es justo donde está lo que la foto quiere
+   * contar. Por eso ahí es un degradado: tapa de verdad donde hay letras y se
+   * retira donde no las hay.
+   *
+   * Los cortes (38 % y 82 %) no son redondos por gusto: el texto llega hasta
+   * el 49 % del ancho, así que el velo va a plena fuerza hasta antes de ese
+   * punto y termina de irse bastante después.
+   */
+  .cabecera-velo {
+    position: absolute;
+    inset: 0;
+    background-color: rgb(var(--velo-rgb));
+  }
+
+  @media (min-width: 768px) {
+    .cabecera-velo {
+      background-color: transparent;
+      background-image: linear-gradient(
+        to right,
+        rgb(var(--velo-rgb)) 0%,
+        rgb(var(--velo-rgb)) 38%,
+        rgba(var(--velo-rgb), 0) 82%
+      );
+    }
+  }
+
+  .cabecera-mandos {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-bottom: 1.25rem;
+    /*
+     * El alto se DECLARA en vez de dejarlo al contenido, porque la capa de
+     * fondo tiene que estirarse exactamente esto para cubrir la franja. Si
+     * dependiera del tamaño de los botones, cualquier retoque en ellos
+     * reabriría la banda de color sin que nadie lo relacionara.
+     */
+    height: var(--cabecera-mandos);
+    /*
+     * Por encima de la capa de fondo, igual que las dos columnas de contenido.
+     *
+     * Desde que la capa de fondo se estira para cubrir esta franja, pasa por
+     * debajo de los mandos; y una capa posicionada se pinta por encima de un
+     * hermano estático aunque vaya antes en el documento. Sin esto, las
+     * flechas y los puntos desaparecían bajo el fondo. Pasó al arreglar la
+     * costura de color bajo los mandos.
+     */
+    position: relative;
+    z-index: 10;
+  }
+
+  .cabecera-puntos {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .cabecera-flechas {
+    display: flex;
+  }
+
+  /* Solo se ve la flecha del estado actual; el CSS de abajo destapa la suya. */
+  .cabecera-flecha {
+    display: none;
+  }
+
+  @supports selector(:has(*)) {
+    /*
+     * El relevo entre láminas es SECUENCIAL, no un fundido cruzado.
+     *
+     * Las tres láminas ocupan la misma celda, así que un fundido cruzado
+     * largo dejaría dos titulares superpuestos más de un segundo: ilegible.
+     * Aquí la saliente se va en 0,5 s y la entrante empieza a los 0,45 s y
+     * tarda 0,95 s, con solo 0,05 s de solape para que no quede un hueco en
+     * negro por el medio.
+     *
+     * Suma 1,4 s nominales, no 1,2, y es a propósito: con una curva `ease` la
+     * opacidad llega a su destino antes del tiempo declarado —medido, 1,13 s
+     * para 1,2 s nominales—, así que para que el relevo dure 1,2 s de verdad
+     * hay que declarar algo más.
+     *
+     * El desplazamiento lateral de 1,5rem acompaña al fundido. Sin él, un
+     * cambio de más de un segundo parece que la página se ha quedado colgada
+     * en vez de que algo está pasando.
+     */
+    .cabecera-pila > .cabecera-lamina {
+      grid-area: 1 / 1;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-1.5rem);
+      /*
+       * `visibility` se retrasa hasta el final del fundido. Si cambiara al
+       * instante, la lámina saliente desaparecería de golpe en vez de
+       * desvanecerse y el efecto sería un corte seco.
+       */
+      transition:
+        opacity 0.5s ease,
+        transform 0.5s ease,
+        visibility 0s linear 0.5s;
+    }
+
+    /*
+     * `visibility: hidden`, no solo `opacity: 0`.
+     *
+     * Saca la lámina del orden de tabulación Y del árbol de accesibilidad: sus
+     * botones no se pueden enfocar a ciegas y el lector de pantalla anuncia un
+     * solo <h1>, no tres.
+     */
+    .cabecera:has(.cabecera-radio:nth-of-type(1):checked) .cabecera-lamina:nth-child(1),
+    .cabecera:has(.cabecera-radio:nth-of-type(2):checked) .cabecera-lamina:nth-child(2),
+    .cabecera:has(.cabecera-radio:nth-of-type(3):checked) .cabecera-lamina:nth-child(3) {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      /* Entra con 0,45 s de retraso: deja irse a la saliente antes de llegar. */
+      transition:
+        opacity 0.95s ease 0.45s,
+        transform 0.95s ease 0.45s,
+        visibility 0s linear 0s;
+    }
+
+    /*
+     * «Menos movimiento»: el relevo es instantáneo.
+     *
+     * Se repiten aquí los selectores completos a propósito. Una `@media` no
+     * añade especificidad, así que una regla escrita más abajo con el selector
+     * corto pierde contra la de `:has()` de arriba y la animación seguía
+     * ocurriendo. Ya pasó.
+     */
+    @media (prefers-reduced-motion: reduce) {
+      .cabecera-pila > .cabecera-lamina,
+      .cabecera:has(.cabecera-radio:nth-of-type(1):checked) .cabecera-lamina:nth-child(1),
+      .cabecera:has(.cabecera-radio:nth-of-type(2):checked) .cabecera-lamina:nth-child(2),
+      .cabecera:has(.cabecera-radio:nth-of-type(3):checked) .cabecera-lamina:nth-child(3) {
+        transform: none;
+        transition: none;
+      }
+    }
+
+    /* ─── Pase automático ──────────────────────────────────────────────────
+     *
+     * Mientras NINGÚN radio esté marcado, el visitante no ha tomado el mando y
+     * las láminas se pasan solas. En cuanto pulsa un punto o una flecha se
+     * marca uno, estas reglas dejan de aplicar y mandan las de `:checked`.
+     * El pase ya no vuelve: sin JavaScript no hay forma de reanudarlo, y
+     * tampoco conviene: devolverle el mando a la máquina después de que la
+     * persona lo haya tomado es justo lo que molesta de estos carruseles.
+     *
+     * Tiempos: cada lámina está quieta 3,6 s y el relevo tarda 1,4 s (0,45 s
+     * de espera + 0,95 s de entrada), o sea 5 s por lámina y 15 s de vuelta
+     * completa. Los 3,6 s quietos son para que dé tiempo a LEER el titular;
+     * el relevo mantiene el 1,2 s largo que se pidió.
+     */
+
+    /* Sin animación —o con «menos movimiento»— se ve la primera. Sin esto, en
+     * cuanto el pase se apaga no se vería NINGUNA lámina. */
+    .cabecera:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(1) {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+    }
+
+    .cabecera:not(:has(.cabecera-radio:checked)) .cabecera-punto:first-of-type::before {
+      width: 28px;
+      background: rgb(255 255 255 / 1);
+    }
+
+    /*
+     * Se usan las propiedades LARGAS, nunca la forma corta `animation:`.
+     *
+     * La forma corta reinicia TODAS las subpropiedades, incluida
+     * `animation-play-state: running`. Como esta regla tiene más especificidad
+     * que la del congelado, quien intentara pausar no conseguía nada: marcaba
+     * `paused` y la forma corta lo devolvía a `running`. Con propiedades
+     * largas, `animation-play-state` no se toca aquí y el congelado manda.
+     *
+     * Pasó con el botón de pausa, que ya no existe. Sigue importando: el
+     * congelado por `:focus-within` depende de lo mismo, y volvería a romperse
+     * en silencio si alguien abrevia estas declaraciones.
+     */
+    .cabecera[data-laminas]:not(:has(.cabecera-radio:checked)) .cabecera-lamina {
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+    }
+
+    .cabecera[data-laminas]:not(:has(.cabecera-radio:checked)) .cabecera-punto::before {
+      /* `step-end` y no un suavizado: el punto cambia de golpe al cambiar la
+         lámina, no se desliza entre dos estados. */
+      animation-timing-function: step-end;
+      animation-iteration-count: infinite;
+    }
+
+    /*
+     * El retraso de la primera es NEGATIVO (-0,95 s) para que arranque ya
+     * opaca. Con retraso cero entraría con un fundido de casi un segundo al
+     * cargar la página, y el titular es el elemento que marca el LCP.
+     */
+    .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-lamina {
+      animation-name: cabecera-pase-3;
+      animation-duration: 15s;
+      animation-delay: -0.95s;
+    }
+    .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-punto::before {
+      animation-name: cabecera-punto-3;
+      animation-duration: 15s;
+      animation-delay: -0.95s;
+    }
+    .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(2),
+    .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-punto:nth-of-type(2)::before {
+      animation-delay: 4.05s;
+    }
+    .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(3),
+    .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-punto:nth-of-type(3)::before {
+      animation-delay: 9.05s;
+    }
+
+    /* Dos láminas: mismo paso de 5 s, vuelta de 10 s. */
+    .cabecera[data-laminas='2']:not(:has(.cabecera-radio:checked)) .cabecera-lamina {
+      animation-name: cabecera-pase-2;
+      animation-duration: 10s;
+      animation-delay: -0.95s;
+    }
+    .cabecera[data-laminas='2']:not(:has(.cabecera-radio:checked)) .cabecera-punto::before {
+      animation-name: cabecera-punto-2;
+      animation-duration: 10s;
+      animation-delay: -0.95s;
+    }
+    .cabecera[data-laminas='2']:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(2),
+    .cabecera[data-laminas='2']:not(:has(.cabecera-radio:checked)) .cabecera-punto:nth-of-type(2)::before {
+      animation-delay: 4.05s;
+    }
+
+    /*
+     * El pase se congela mientras el foco esté dentro.
+     *
+     * Congela láminas y puntos a la vez, o el punto marcaría una lámina que no
+     * es la que se está viendo.
+     *
+     * Era la segunda mitad del congelado; la primera era el botón de pausa,
+     * retirado a petición del cliente. Esta se queda porque no es un control
+     * visible: evita que la lámina cambie bajo los pies de quien está tabulando
+     * por los botones de la cabecera, que es un problema de uso, no de gusto.
+     */
+    .cabecera:focus-within .cabecera-lamina,
+    .cabecera:focus-within .cabecera-punto::before {
+      animation-play-state: paused;
+    }
+
+    .cabecera-mandos {
+      display: flex;
+    }
+
+    /*
+     * La capa de fondo cubre también la fila de mandos.
+     *
+     * Va aquí y no fuera a propósito: sin `:has()` los mandos no se pintan
+     * —no hay forma de cambiar de lámina— y entonces no hay franja que
+     * cubrir. Estirar la capa ahí la sacaría 4rem por debajo del contenido
+     * sin motivo y movería el encuadre de la foto.
+     */
+    .cabecera-fondo {
+      bottom: calc(-1 * var(--cabecera-mandos));
+    }
+
+    /* Cada estado destapa su «anterior» y su «siguiente». */
+    .cabecera:has(.cabecera-radio:nth-of-type(1):checked) .cabecera-flecha[data-estado='1'],
+    .cabecera:has(.cabecera-radio:nth-of-type(2):checked) .cabecera-flecha[data-estado='2'],
+    .cabecera:has(.cabecera-radio:nth-of-type(3):checked) .cabecera-flecha[data-estado='3'],
+    /*
+     * Durante el pase automático se enseña el par de la primera lámina. El CSS
+     * no puede saber por cuál va la animación, así que pulsar «siguiente» a
+     * mitad del pase lleva a la segunda, venga de donde venga. Detiene el pase
+     * y deja al visitante en una lámina concreta, que es lo que buscaba.
+     */
+    .cabecera:not(:has(.cabecera-radio:checked)) .cabecera-flecha[data-estado='1'] {
+      display: grid;
+    }
+
+    /*
+     * «Menos movimiento»: nada se mueve solo. Es justo el caso que la
+     * preferencia existe para cubrir, así que el pase no se ralentiza: se
+     * apaga, y queda la primera lámina con sus mandos.
+     */
+    @media (prefers-reduced-motion: reduce) {
+      .cabecera[data-laminas]:not(:has(.cabecera-radio:checked)) .cabecera-lamina,
+      .cabecera[data-laminas]:not(:has(.cabecera-radio:checked)) .cabecera-punto::before {
+        animation-name: none;
+      }
+    }
+  }
+
+  /* ─── Fotogramas del pase ───────────────────────────────────────────────
+   *
+   * Los porcentajes salen de los tiempos, no al revés:
+   *   entrada 0,95 s · quieta 3,6 s · salida 0,5 s · paso 5 s
+   *   3 láminas -> ciclo 15 s:  6,333% / 30,333% / 33,667%
+   *   2 láminas -> ciclo 10 s:  9,5%   / 45,5%   / 50,5%
+   *
+   * `visibility` se declara en DOS fotogramas pegados (33,667% y 33,767%)
+   * porque es una propiedad discreta: si solo se pusiera en uno, el navegador
+   * la cambiaría a mitad del tramo anterior y la lámina desaparecería de golpe
+   * en plena salida.
+   */
+  @keyframes cabecera-pase-3 {
+    0% { opacity: 0; visibility: visible; transform: translateX(1.5rem); }
+    6.333% { opacity: 1; visibility: visible; transform: none; }
+    30.333% { opacity: 1; visibility: visible; transform: none; }
+    33.667% { opacity: 0; visibility: visible; transform: translateX(-1.5rem); }
+    33.767% { opacity: 0; visibility: hidden; transform: translateX(1.5rem); }
+    100% { opacity: 0; visibility: hidden; transform: translateX(1.5rem); }
+  }
+
+  @keyframes cabecera-pase-2 {
+    0% { opacity: 0; visibility: visible; transform: translateX(1.5rem); }
+    9.5% { opacity: 1; visibility: visible; transform: none; }
+    45.5% { opacity: 1; visibility: visible; transform: none; }
+    50.5% { opacity: 0; visibility: visible; transform: translateX(-1.5rem); }
+    50.6% { opacity: 0; visibility: hidden; transform: translateX(1.5rem); }
+    100% { opacity: 0; visibility: hidden; transform: translateX(1.5rem); }
+  }
+
+  /*
+   * El punto se enciende el tramo entero de SU lámina (un tercio, o la mitad
+   * con dos). Así siempre hay exactamente uno encendido: el siguiente empieza
+   * su ciclo justo cuando este termina el suyo.
+   */
+  @keyframes cabecera-punto-3 {
+    0% { width: 28px; background: rgb(255 255 255 / 1); }
+    33.333% { width: 10px; background: rgb(255 255 255 / 0.45); }
+    100% { width: 10px; background: rgb(255 255 255 / 0.45); }
+  }
+
+  @keyframes cabecera-punto-2 {
+    0% { width: 28px; background: rgb(255 255 255 / 1); }
+    50% { width: 10px; background: rgb(255 255 255 / 0.45); }
+    100% { width: 10px; background: rgb(255 255 255 / 0.45); }
+  }
+
+  /* Fuera de la vista pero enfocable: hace falta para las flechas del teclado. */
+  .cabecera-radio {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* 44px de objetivo táctil aunque el punto visible mida 10. */
+  .cabecera-punto {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+  }
+
+  .cabecera-punto::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    /*
+     * Blanco, no rojo. El rojo de marca significa «acción» y cada vez que
+     * decora algo, el botón de conversión deja de ser lo más saliente de la
+     * pantalla. Un punto de navegación no es una conversión.
+     */
+    background: rgb(255 255 255 / 0.55);
+    /*
+     * Aro y sombra oscuros: el punto tiene que leerse también sobre una foto.
+     *
+     * Antes bastaba el blanco al 45 % porque debajo siempre había navy. Desde
+     * que una lámina puede llevar imagen de fondo, debajo puede haber un papel
+     * blanco —pasó con el contrato de la foto del ingenio— y el punto
+     * desaparecía. El halo lo lleva el propio punto en vez de oscurecer la
+     * franja entera, que volvería a meter una banda de otro color.
+     */
+    box-shadow:
+      0 0 0 1px rgb(10 36 67 / 0.5),
+      0 1px 3px rgb(10 36 67 / 0.65);
+    transition: width 0.25s ease, background-color 0.25s ease;
+  }
+
+  .cabecera-radio:checked + .cabecera-punto::before {
+    width: 28px;
+    background: rgb(255 255 255 / 1);
+  }
+
+  .cabecera-punto:hover::before {
+    background: rgb(255 255 255 / 0.75);
+  }
+
+  /* El anillo lo pinta el punto porque el radio es invisible. */
+  .cabecera-radio:focus-visible + .cabecera-punto::before {
+    outline: 2px solid #fff;
+    outline-offset: 4px;
+  }
+
+  /*
+   * Flechas.
+   *
+   * 44px de objetivo táctil con un círculo visible de 40: el mínimo de la
+   * WCAG se cumple con el área, no con lo que se ve.
+   *
+   * Llevan un disco de navy translúcido DEBAJO. No es decoración: sin él, el
+   * contraste dependía de lo que hubiera detrás, y detrás puede haber una foto
+   * —con el fondo del ingenio, la flecha derecha caía sobre un papel blanco y
+   * se perdía—. Con el disco, el aro y el glifo tienen siempre algo oscuro
+   * contra lo que recortarse, sea cual sea la imagen que suba el editor.
+   *
+   * El disco es navy fijo, no `colorFondo`: lo que tiene que tapar es la
+   * imagen, no igualar el color de la franja.
+   */
+  .cabecera-flecha {
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 9999px;
+    color: rgb(255 255 255 / 0.75);
+    background-color: rgb(10 36 67 / 0.55);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.6);
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .cabecera-flecha svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cabecera-flecha:hover {
+    color: #fff;
+    background-color: rgb(10 36 67 / 0.75);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9);
+  }
+
+  /*
+   * Sin `:active` la flecha no da ninguna señal al pulsarla, y con un relevo
+   * de 1,2 s eso se nota: durante casi un segundo nada parece responder.
+   */
+  .cabecera-flecha:active {
+    transform: scale(0.92);
+  }
+
+  /* Las láminas se anulan arriba, dentro del `@supports`, por especificidad. */
+  @media (prefers-reduced-motion: reduce) {
+    .cabecera-punto::before,
+    .cabecera-flecha {
+      transition: none;
+    }
+
+    .cabecera-flecha:active {
+      transform: none;
+    }
+  }
+</style>

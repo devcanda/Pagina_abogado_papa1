@@ -1,0 +1,77 @@
+---
+/**
+ * Cifras en cuadrícula a la izquierda, preguntas frecuentes a la derecha.
+ *
+ * Las preguntas usan el componente de acordeón, que ya existía para los textos
+ * legales: <details> nativo, accesible por teclado y sin JavaScript.
+ */
+import Acordeon from '../Acordeon.astro';
+
+const cifras = [
+  { valor: '20+', texto: 'Años de ejercicio' },
+  { valor: '850', texto: 'Casos resueltos' },
+  { valor: '92%', texto: 'Fallos favorables' },
+  { valor: '48h', texto: 'Respuesta inicial' },
+];
+---
+
+<section class="contenedor py-20 lg:py-28">
+  <div class="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+    <!-- Cuadrícula de cifras: los bordes compartidos la mantienen unida. -->
+    <dl class="grid grid-cols-2 border border-humo-200 bg-white shadow-sm">
+      {cifras.map((c, i) => (
+        <div
+          class:list={[
+            'px-6 py-10 text-center sm:px-8 sm:py-12',
+            i % 2 === 0 && 'border-r border-humo-200',
+            i < 2 && 'border-b border-humo-200',
+          ]}
+        >
+          <dt class="font-display text-4xl font-bold text-marino-900 sm:text-5xl">
+            {c.valor}
+          </dt>
+          <dd class="mt-2 text-xs font-semibold uppercase tracking-wider text-tinta-suave">
+            {c.texto}
+          </dd>
+        </div>
+      ))}
+    </dl>
+
+    <div>
+      <p class="etiqueta-seccion mb-4">Lo que suelen preguntarnos</p>
+      <h2 class="titular">
+        Respuestas claras <span class="destacado">antes de contratar.</span>
+      </h2>
+
+      <div class="mt-8 border-t border-humo-200">
+        <Acordeon titulo="¿Cuánto cuesta la primera consulta?" abierto>
+          <p>
+            Nada. Evaluamos su caso sin costo y le decimos con franqueza si es
+            viable. Si no lo es, se lo decimos igual: no cobramos por abrir un
+            proceso que no va a prosperar.
+          </p>
+        </Acordeon>
+        <Acordeon titulo="¿Cómo se acuerdan los honorarios?">
+          <p>
+            Por escrito y antes de iniciar cualquier trámite. Según el caso,
+            puede ser una suma fija, un porcentaje del resultado o una
+            combinación. Usted sabe desde el primer día qué va a pagar.
+          </p>
+        </Acordeon>
+        <Acordeon titulo="¿Quién lleva mi proceso?">
+          <p>
+            Un abogado titular, de principio a fin. No delegamos audiencias ni
+            la relación con el cliente en practicantes.
+          </p>
+        </Acordeon>
+        <Acordeon titulo="¿Cuánto puede tardar?">
+          <p>
+            Depende del despacho y de la contraparte, y desconfíe de quien le dé
+            una fecha exacta. Lo que sí podemos darle es el rango realista para
+            casos como el suyo y mantenerle informado de cada actuación.
+          </p>
+        </Acordeon>
+      </div>
+    </div>
+  </div>
+</section>

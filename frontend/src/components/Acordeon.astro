@@ -1,0 +1,32 @@
+---
+/**
+ * Acordeón para textos legales largos (habeas data, términos, honorarios).
+ * Usa <details>/<summary> nativos: accesible por teclado, buscable por Ctrl+F
+ * en navegadores modernos y con cero JavaScript, lo que no cuesta nada al INP.
+ */
+const { titulo, abierto = false } = Astro.props;
+---
+
+<details
+  class="group border-b border-marino-100 last:border-b-0"
+  open={abierto}
+>
+  <summary
+    class="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4
+           py-4 text-left font-semibold text-marino-900 marker:content-none
+           [&::-webkit-details-marker]:hidden"
+  >
+    <span>{titulo}</span>
+    <svg
+      class="size-5 shrink-0 text-marino-600 transition-transform group-open:rotate-180"
+      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+      stroke-linecap="round" aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  </summary>
+
+  <div class="prosa pb-5 text-[0.9375rem]">
+    <slot />
+  </div>
+</details>

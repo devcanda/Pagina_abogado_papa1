@@ -1,0 +1,59 @@
+---
+/** Casos cerrados recientemente, en tarjetas. */
+const { casos } = Astro.props;
+---
+
+<section class="contenedor py-20 lg:py-28">
+  <div class="mx-auto max-w-2xl text-center">
+    <p class="etiqueta-seccion">Nuestro trabajo</p>
+    <h2 class="titular mt-3">
+      Casos <span class="destacado">resueltos.</span>
+    </h2>
+    <p class="mt-5 text-tinta-suave">
+      Una muestra de procesos cerrados en los últimos meses. Los nombres se
+      omiten por reserva profesional.
+    </p>
+  </div>
+
+  <ul class="mt-14 grid gap-7 md:grid-cols-2 lg:grid-cols-3">
+    {casos.slice(0, 3).map((caso) => (
+      <li class="group border border-humo-200 bg-white transition-shadow hover:shadow-xl">
+        <div class="relative aspect-16/10 overflow-hidden">
+          <img
+            src={caso.imagen}
+            alt=""
+            width="600"
+            height="375"
+            class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
+          />
+          <span
+            class="absolute left-4 top-4 bg-white px-3 py-1 text-[0.65rem] font-bold
+                   uppercase tracking-[0.15em] text-marino-900"
+          >
+            {caso.area}
+          </span>
+        </div>
+
+        <div class="p-6">
+          <h3 class="font-display text-xl font-bold leading-snug text-marino-900">
+            {caso.titulo}
+          </h3>
+          <p class="mt-3 text-sm leading-relaxed text-tinta-suave">{caso.resumen}</p>
+          <p class="mt-5 flex items-center gap-2 border-t border-humo-200 pt-4
+                    text-xs font-semibold uppercase tracking-wider text-tinta-suave">
+            <svg class="size-4 text-rojo-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m-1.2 14.2-4-4 1.6-1.6 2.4 2.4 5.2-5.2 1.6 1.7z" />
+            </svg>
+            {caso.desenlace}
+          </p>
+        </div>
+      </li>
+    ))}
+  </ul>
+
+  <div class="mt-12 text-center">
+    <a href="/casos/" class="btn-secundario">Ver todos los casos</a>
+  </div>
+</section>

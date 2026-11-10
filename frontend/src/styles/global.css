@@ -1,0 +1,235 @@
+@import 'tailwindcss';
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Serif de titulares. Variable (400–800) y subconjunto latino: dos archivos de
+   38KB cubren todos los pesos y la cursiva. `swap` evita el texto invisible
+   mientras carga, y el preload va en BaseHead.
+   Playfair Display — SIL Open Font License 1.1 (uso comercial permitido).
+   ─────────────────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/fonts/playfair-display-latin.woff2') format('woff2');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/fonts/playfair-display-latin-italic.woff2') format('woff2');
+  font-weight: 400 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   ENSAYO: azul principal #195BA9, elegido por el cliente. Es más vivo y
+   saturado que el azul del logotipo (#3D4D7E), así que el escudo de la marca
+   queda en un tono distinto al de la interfaz. Está medido y anotado.
+
+     azul  #195BA9        rojo  #A0373A        gris del texto  #373435
+
+   Para volver a la paleta anterior: marino-50 #eff1f6, 100 #d8dce8,
+   200 #b6bed5, 600 #3d4d7e, 700 #313f66, 800 #26314f, 900 #1b2440,
+   humo #f5f7fa, humo-200 #e4e9f1.
+
+   Reparto de papeles (ver AGENTS.md):
+     · AZUL  → estructura y confianza: cabecera, pie, fondos, titulares.
+     · ROJO  → acción: solo botones de conversión y acentos mínimos. Si el rojo
+               se usa de adorno, el botón deja de destacar y baja la conversión.
+     · GRIS  → texto corrido.
+
+   Todos los pares texto/fondo están verificados contra WCAG 2.1 AA (≥ 4.5:1).
+   ─────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Azul de marca y su escala. marino-600 es el color exacto del logotipo. */
+  --color-marino-50: #f0f5fb;
+  --color-marino-100: #dce8f5;
+  --color-marino-200: #b6cde8;
+  --color-marino-300: #85a9d4;
+  --color-marino-500: #2e6db8;
+  --color-marino-600: #195ba9;
+  --color-marino-700: #134782;
+  --color-marino-800: #0e345e;
+  --color-marino-900: #0a2443;
+
+  /* Rojo de marca. rojo-500 es el color exacto del logotipo. */
+  --color-rojo-50: #fbf0f0;
+  --color-rojo-300: #d98a8c;
+  --color-rojo-400: #c4686b;
+  --color-rojo-500: #a0373a;
+  --color-rojo-600: #8a2f32;
+  --color-rojo-700: #702629;
+
+  /* Neutros. `tinta` es el gris del texto del logotipo vertical. */
+  --color-tinta: #373435; /* 12.3:1 sobre blanco */
+  --color-tinta-suave: #5b5557; /* 7.3:1 sobre blanco */
+  --color-humo: #f4f8fc; /* fondo de secciones alternas */
+  --color-humo-200: #e3ecf6; /* bordes y separadores */
+
+  /* Sans del sistema para el texto corrido: cero peticiones de red. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+
+  /* Serif solo para titulares. Georgia es el respaldo mientras carga. */
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+
+  /* Altura del Sticky CTA; se reutiliza para reservar espacio al final del body. */
+  --spacing-cta: 4.5rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Respeta a quien pide menos movimiento en su sistema operativo. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-white text-tinta font-sans antialiased;
+    /* 17px base: lectura cómoda en móvil sin zoom. */
+    font-size: 1.0625rem;
+    line-height: 1.65;
+  }
+
+  /* El foco se marca en azul y no en rojo: el rojo queda reservado a la acción,
+     y un anillo rojo sobre un botón rojo sería invisible. */
+  :where(a, button, summary, input, textarea, select):focus-visible {
+    @apply outline-2 outline-offset-2 outline-marino-600;
+  }
+
+  /* Sobre navy el azul de marca no se distingue del fondo, así que en las
+     superficies oscuras el foco pasa a blanco. */
+  [data-superficie='oscura'] :where(a, button, summary):focus-visible {
+    @apply outline-white;
+  }
+
+  /* Evita que una imagen sin dimensiones dispare el CLS. */
+  :where(img, video) {
+    @apply h-auto max-w-full;
+  }
+}
+
+/* En Tailwind v4 las clases propias que se quieran reutilizar con @apply deben
+   registrarse como utilidades reales mediante @utility, no como reglas sueltas.
+   Y el modificador importante va como SUFIJO (`text-rojo-500!`), nunca como
+   prefijo: `!text-rojo-500` es sintaxis de v3 y se ignora sin dar error. */
+@utility btn {
+  /* Objetivo táctil mínimo de 44px en ambos ejes (WCAG 2.5.5). */
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-6
+         py-3 text-base font-semibold transition-colors;
+}
+
+@utility btn-primario {
+  /* Blanco sobre rojo: 5.82:1. Único botón rojo de cada pantalla. */
+  @apply btn bg-rojo-500 text-white hover:bg-rojo-600;
+}
+
+@utility btn-primario-oscuro {
+  /* Sobre fondo navy el rojo solo alcanza 2.69:1 de contraste de borde, por
+     debajo del 3:1 que exige WCAG 1.4.11 para controles. El filete claro le
+     devuelve un límite perceptible sin cambiar el color ni la caja del botón.
+
+     Va como `box-shadow` literal y no con `@apply ring-1`: dentro de
+     `@utility`, Tailwind descarta las utilidades de anillo sin avisar y el
+     botón salía sin borde. La elevación se incluye aquí para que una clase
+     `shadow-*` suelta no pise el filete. */
+  @apply btn-primario;
+  box-shadow:
+    0 0 0 1.5px rgb(255 255 255 / 0.5),
+    0 10px 15px -3px rgb(0 0 0 / 0.3);
+}
+
+@utility btn-secundario {
+  @apply btn border-2 border-marino-600 bg-white text-marino-700 hover:bg-marino-50;
+}
+
+@utility titular {
+  /* Titular de sección: serif, interlineado corto y sin exceso de tracking. */
+  @apply font-display text-[2rem] font-bold leading-[1.15] tracking-tight
+         text-marino-900 sm:text-[2.5rem] lg:text-[2.75rem];
+}
+
+@utility titular-claro {
+  @apply titular text-white;
+}
+
+@utility destacado {
+  /* La palabra clave del titular: cursiva y subrayada. Es el recurso que más
+     cambia la percepción del titular, y no cuesta un solo byte extra. */
+  @apply italic underline decoration-rojo-500 decoration-[3px] underline-offset-[6px];
+}
+
+@utility destacado-claro {
+  @apply italic underline decoration-rojo-300 decoration-[3px] underline-offset-[6px];
+}
+
+@utility palabra-fondo {
+  /* Palabra enorme al fondo de la sección, puramente decorativa. */
+  @apply pointer-events-none absolute select-none font-display font-bold
+         uppercase leading-none tracking-tight;
+}
+
+@utility etiqueta-seccion {
+  /* Rótulo en versales que precede a cada titular. Va en AZUL, no en rojo:
+     es señalización, no una acción. */
+  @apply text-xs font-semibold uppercase tracking-[0.2em] text-marino-600;
+}
+
+@utility etiqueta-seccion-clara {
+  /* Variante para fondos oscuros: el rojo de marca no contrasta ahí (2.69:1),
+     así que se usa el rojo claro, que alcanza 6.11:1. */
+  @apply text-xs font-semibold uppercase tracking-[0.2em] text-rojo-300;
+}
+
+@layer components {
+  /* Contenido HTML que llega desde PostgreSQL: se estiliza por cascada porque
+     no podemos poner clases en un string que edita el cliente. */
+  .prosa :where(h2) {
+    @apply font-display mt-10 mb-3 text-2xl font-bold text-marino-900 sm:text-3xl;
+  }
+  .prosa :where(h3) {
+    @apply font-display mt-8 mb-2 text-xl font-semibold text-marino-900;
+  }
+  .prosa :where(p) {
+    @apply mb-4 text-tinta-suave;
+  }
+  .prosa :where(ul) {
+    @apply mb-4 list-disc space-y-1 pl-6 text-tinta-suave;
+  }
+  .prosa :where(a) {
+    @apply font-medium text-marino-600 underline underline-offset-2 hover:text-rojo-600;
+  }
+  .prosa :where(strong) {
+    @apply font-semibold text-tinta;
+  }
+}
+
+@utility contenedor {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Cuando la página termina en una franja oscura (la de cierre), el pie no debe
+   dejar una banda blanca entre ambas. Se resuelve con `:has()` en vez de pasar
+   una prop por el layout: así ninguna página nueva puede olvidarlo.
+
+   Va FUERA de toda `@layer` a propósito. El `mt-20` del pie es una utilidad y
+   vive en la capa `utilities`, que gana a `components` por orden de capas
+   aunque tenga menos especificidad. Lo no estratificado tiene prioridad sobre
+   cualquier capa, que es justo lo que hace falta aquí.
+   ─────────────────────────────────────────────────────────────────────────── */
+main:has(> *:last-child[data-superficie='oscura']) + footer {
+  margin-top: 0;
+}

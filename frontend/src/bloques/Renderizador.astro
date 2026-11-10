@@ -1,0 +1,42 @@
+---
+/**
+ * Pinta una lista de bloques tal como vienen de la base de datos.
+ *
+ * El registro dice qué componente corresponde a cada tipo; aquí solo se busca
+ * y se invoca. Ningún dato del editor llega al componente sin pasar por el
+ * registro, así que no puede inyectar propiedades que el bloque no declare.
+ */
+import { BLOQUES, resolverMedios } from './registro.js';
+
+const { bloques = [], medios = {} } = Astro.props;
+
+// `eager` carga los componentes en el build: se necesita el módulo resuelto en
+// el momento de pintar, no una promesa.
+const componentes = import.meta.glob('../components/bloques/*.astro', { eager: true });
+
+function resolver(tipo) {
+  const def = BLOQUES[tipo];
+  if (!def) return null;
+  const mod = componentes[`../components/bloques/${def.componente}`];
+  return mod?.default ?? null;
+}
+
+// Un tipo desconocido no debe tumbar la página entera: se avisa en el log del
+// build y ese bloque simplemente no se pinta.
+const aPintar = bloques
+  .map((b) => ({
+    ...b,
+    Componente: resolver(b.tipo),
+    // Las claves de imagen se cambian por su ruta actual aquí, no en el
+    // componente: así cada bloque recibe rutas listas para pintar.
+    datos: resolverMedios(b.tipo, b.datos, medios),
+  }))
+  .filter((b) => {
+    if (!b.Componente) console.warn(`[bloques] Tipo sin componente: ${b.tipo}`);
+    return Boolean(b.Componente);
+  });
+---
+
+{aPintar.map(({ Componente, datos, variantes }) => (
+  <Componente datos={datos} variantes={variantes} />
+))}

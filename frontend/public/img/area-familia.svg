@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800" role="img" aria-label="Derecho de familia">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#134782"/>
+      <stop offset="100%" stop-color="#0a2443"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#g)"/>
+  <g opacity="0.16" fill="none" stroke="#b6cde8" stroke-width="1.5">
+    <circle cx="300" cy="400" r="200"/>
+    <circle cx="300" cy="400" r="150"/>
+  </g>
+  <g transform="translate(300 386)" opacity="0.5" fill="#b6cde8">
+    <path d="M-18-21h36v3h-16v28h13v3h-30v-3h13v-28h-16z"/>
+    <circle cx="0" cy="-26" r="4"/>
+  </g>
+  <g transform="translate(300 422)">
+    <rect x="-24" y="0" width="24" height="3" fill="#195ba9"/>
+    <rect x="0" y="0" width="24" height="3" fill="#a0373a"/>
+  </g>
+  <text x="300" y="462" fill="#ffffff" fill-opacity="0.8" font-family="system-ui,sans-serif"
+        font-size="23" font-weight="600" text-anchor="middle">Derecho de familia</text>
+  <text x="300" y="486" fill="#b6cde8" fill-opacity="0.55" font-family="system-ui,sans-serif"
+        font-size="15" text-anchor="middle">Reemplazar · 600×800</text>
+</svg>

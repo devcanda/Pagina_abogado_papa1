@@ -1,0 +1,39 @@
+---
+/**
+ * BLOQUE «textoLibre» — párrafos y subtítulos sueltos.
+ *
+ * Es el único bloque que acepta HTML, para contenido que no encaja en ningún
+ * otro. Por eso se **sanea contra una lista blanca** antes de pintarlo: el
+ * editor puede poner negritas y listas, no un `<script>`.
+ */
+import { sanearHtml } from '../../bloques/sanear.js';
+
+const { datos = {}, variantes = {} } = Astro.props;
+const { titulo = '', destacado = '', contenido = '', colorTitulo = '', colorTexto = '' } = datos;
+
+/*
+ * Colores del texto, elegidos desde el panel. Van en línea porque tienen que
+ * ganar a la clase de utilidad; si no se han tocado llegan vacíos y no se
+ * emite ningún `style`, así que el bloque se ve exactamente como antes.
+ *
+ * El panel enseña el contraste medido al elegirlos, pero NO lo impone: es
+ * decisión del cliente (D4 de la spec 002). Un color ilegible aquí es un color
+ * ilegible en la página.
+ */
+const estiloTitulo = colorTitulo ? { color: colorTitulo } : undefined;
+const estiloTexto = colorTexto ? { color: colorTexto } : undefined;
+const { ancho = 'estrecho' } = variantes;
+
+const html = sanearHtml(contenido);
+---
+
+<section class="contenedor py-16 lg:py-24">
+  <div class:list={['mx-auto', ancho === 'ancho' ? 'max-w-4xl' : 'max-w-2xl']}>
+    {titulo && (
+      <h2 class="titular mb-6" style={estiloTitulo}>
+        {titulo} {destacado && <span class="destacado">{destacado}</span>}
+      </h2>
+    )}
+    <div class="prosa" set:html={html} />
+  </div>
+</section>

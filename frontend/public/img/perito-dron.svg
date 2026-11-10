@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 680" role="img" aria-labelledby="tituloPerito descPerito">
+  <title id="tituloPerito">Perito avaluador con casco de seguridad blanco operando un dron</title>
+  <desc id="descPerito">Ilustración de un profesional con traje y casco blanco que pilota un dron sobre un predio en avalúo.</desc>
+
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eff1f6"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="suelo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e4e9f1"/>
+      <stop offset="100%" stop-color="#d8dce8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="680" fill="url(#cielo)"/>
+
+  <!-- Ruta de vuelo del levantamiento -->
+  <path d="M96 236 C 240 120 430 112 560 168" fill="none" stroke="#b6cde8"
+        stroke-width="4" stroke-dasharray="2 18" stroke-linecap="round" opacity=".75"/>
+  <circle cx="96" cy="236" r="8" fill="#b6cde8" opacity=".75"/>
+
+  <!-- ── Predio en avalúo: edificaciones al fondo ─────────────────────── -->
+  <g fill="#b6cde8">
+    <rect x="556" y="398" width="96" height="164" opacity=".55"/>
+    <rect x="664" y="440" width="74" height="122" opacity=".40"/>
+    <rect x="750" y="366" width="114" height="196" opacity=".50"/>
+    <path d="M750 366h114l-57-38z" opacity=".50"/>
+  </g>
+  <g fill="#ffffff" opacity=".55">
+    <rect x="572" y="416" width="18" height="22"/><rect x="604" y="416" width="18" height="22"/>
+    <rect x="572" y="456" width="18" height="22"/><rect x="604" y="456" width="18" height="22"/>
+    <rect x="768" y="388" width="20" height="24"/><rect x="806" y="388" width="20" height="24"/>
+    <rect x="768" y="430" width="20" height="24"/><rect x="806" y="430" width="20" height="24"/>
+  </g>
+
+  <rect x="0" y="560" width="900" height="120" fill="url(#suelo)"/>
+
+  <!-- Linderos levantados en campo -->
+  <g fill="none" stroke="#195ba9" stroke-width="3" stroke-dasharray="14 10" opacity=".45">
+    <path d="M470 626 L606 580 L836 598 L714 650 Z"/>
+  </g>
+  <g fill="#a0373a" opacity=".65">
+    <circle cx="470" cy="626" r="7"/><circle cx="606" cy="580" r="7"/>
+    <circle cx="836" cy="598" r="7"/><circle cx="714" cy="650" r="7"/>
+  </g>
+
+  <!-- ── Dron ────────────────────────────────────────────────────────── -->
+  <g>
+    <g stroke="#134782" stroke-width="9" stroke-linecap="round">
+      <path d="M636 168 L582 140"/><path d="M684 168 L738 140"/>
+      <path d="M636 186 L586 212"/><path d="M684 186 L734 212"/>
+    </g>
+    <g fill="#0a2443">
+      <circle cx="582" cy="140" r="9"/><circle cx="738" cy="140" r="9"/>
+      <circle cx="586" cy="212" r="9"/><circle cx="734" cy="212" r="9"/>
+    </g>
+    <g fill="#195ba9" opacity=".32">
+      <ellipse cx="582" cy="136" rx="48" ry="7"/><ellipse cx="738" cy="136" rx="48" ry="7"/>
+      <ellipse cx="586" cy="208" rx="48" ry="7"/><ellipse cx="734" cy="208" rx="48" ry="7"/>
+    </g>
+    <rect x="618" y="154" width="84" height="44" rx="14" fill="#0a2443"/>
+    <rect x="628" y="162" width="36" height="12" rx="6" fill="#ffffff" opacity=".35"/>
+    <circle cx="660" cy="206" r="15" fill="#134782"/>
+    <circle cx="660" cy="206" r="8" fill="#a0373a"/>
+    <circle cx="657" cy="203" r="3" fill="#ffffff" opacity=".8"/>
+  </g>
+
+  <!-- ── Perito ──────────────────────────────────────────────────────── -->
+  <ellipse cx="300" cy="566" rx="86" ry="14" fill="#0a2443" opacity=".10"/>
+
+  <!-- Piernas y calzado -->
+  <path d="M260 446h36l-6 106h-32z" fill="#134782"/>
+  <path d="M304 446h36l4 106h-32z" fill="#195ba9"/>
+  <ellipse cx="274" cy="556" rx="28" ry="11" fill="#0a2443"/>
+  <ellipse cx="326" cy="556" rx="28" ry="11" fill="#0a2443"/>
+
+  <!-- Torso -->
+  <path d="M258 352 C246 384 250 420 256 452 L344 452 C350 420 354 384 342 352 Z" fill="#195ba9"/>
+  <path d="M282 348 L300 344 L318 348 L300 410 Z" fill="#ffffff"/>
+  <path d="M292 352 L308 352 L312 390 L300 404 L288 390 Z" fill="#a0373a"/>
+  <path d="M282 348 L300 344 L296 364 Z" fill="#eef1f6"/>
+  <path d="M318 348 L300 344 L304 364 Z" fill="#eef1f6"/>
+
+  <!-- Cuello y cabeza -->
+  <path d="M288 322h24v26h-24z" fill="#e0a883"/>
+  <ellipse cx="300" cy="300" rx="31" ry="35" fill="#edbe9b"/>
+  <ellipse cx="275" cy="304" rx="7" ry="9" fill="#e0a883"/>
+  <circle cx="313" cy="296" r="3.5" fill="#0a2443"/>
+  <circle cx="292" cy="296" r="3.5" fill="#0a2443"/>
+  <path d="M328 300 q5 6 -2 10" fill="none" stroke="#d99f78" stroke-width="3" stroke-linecap="round"/>
+  <path d="M294 318 q8 6 17 -1" fill="none" stroke="#c98d68" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Casco de seguridad blanco -->
+  <ellipse cx="300" cy="286" rx="34" ry="6" fill="#0a2443" opacity=".12"/>
+  <path d="M265 284 C265 240 335 240 335 284 Z" fill="#ffffff"/>
+  <path d="M300 243 C318 245 332 260 335 284 L322 284 C320 262 312 249 300 243 Z" fill="#eef1f6"/>
+  <path d="M300 244 v40" stroke="#dde2ec" stroke-width="4" stroke-linecap="round"/>
+  <ellipse cx="300" cy="286" rx="54" ry="11" fill="#ffffff"/>
+  <path d="M246 286 a54 11 0 0 0 108 0" fill="#e4e9f1"/>
+
+  <!-- Brazos: codos recogidos y antebrazos al frente, sujetando el control -->
+  <path d="M264 370 L250 408 L280 416" fill="none" stroke="#134782"
+        stroke-width="23" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M336 370 L350 408 L320 416" fill="none" stroke="#195ba9"
+        stroke-width="23" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Control remoto -->
+  <rect x="268" y="398" width="64" height="32" rx="8" fill="#0a2443"/>
+  <rect x="286" y="405" width="28" height="14" rx="3" fill="#b6cde8"/>
+  <circle cx="278" cy="412" r="4.5" fill="#6b7694"/>
+  <circle cx="322" cy="412" r="4.5" fill="#6b7694"/>
+  <path d="M330 398 L352 366" stroke="#0a2443" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="353" cy="363" r="5" fill="#0a2443"/>
+
+  <!-- Manos sujetando los extremos -->
+  <circle cx="272" cy="416" r="12" fill="#edbe9b"/>
+  <circle cx="328" cy="416" r="12" fill="#edbe9b"/>
+
+  <!-- Enlace de radio hacia el dron -->
+  <g fill="none" stroke="#195ba9" stroke-width="4" stroke-linecap="round" opacity=".45">
+    <path d="M364 356 A 36 36 0 0 1 390 334"/>
+    <path d="M374 374 A 66 66 0 0 1 424 338"/>
+    <path d="M384 392 A 96 96 0 0 1 458 344"/>
+  </g>
+</svg>

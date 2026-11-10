@@ -1,0 +1,88 @@
+---
+/**
+ * Bloque promocional del servicio de peritaje y avalúos.
+ *
+ * Va con fondo claro entre "Reconocimientos" (blanco) y "Casos recientes"
+ * (navy), de modo que el salto de tono lo separe sin necesidad de más adornos.
+ *
+ * El contenido llega por props para que se pueda ajustar sin tocar el marcado;
+ * cuando el bufete necesite editarlo por su cuenta, le corresponde una fila
+ * propia en la base de datos.
+ */
+const {
+  etiqueta = 'Servicio destacado',
+  titulo = 'Perito avaluador',
+  texto = 'Determinamos el valor real de un inmueble y lo sustentamos donde haga '
+    + 'falta: ante un juez, una entidad pública o una contraparte en negociación. '
+    + 'Levantamos la información en campo —con dron cuando el predio lo exige— y '
+    + 'entregamos un dictamen pericial que resiste la contradicción.',
+  puntos = [
+    'Avalúos comerciales de inmuebles urbanos y rurales',
+    'Dictamen pericial para procesos judiciales y sucesiones',
+    'Levantamiento con dron en predios extensos o de difícil acceso',
+  ],
+  imagen = '/img/perito-dron.svg',
+  textoCTA = 'Solicitar un avalúo',
+  enlaceCTA = '/contacto/',
+} = Astro.props;
+---
+
+<section class="relative overflow-hidden bg-marino-900 py-20 lg:py-28" data-superficie="oscura">
+  <span
+    class="palabra-fondo -bottom-6 left-0 text-[16vw] text-white/[0.04] lg:text-[9rem]"
+    aria-hidden="true"
+  >
+    Avalúos
+  </span>
+
+  <div class="contenedor relative grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+    <!-- Ilustración. Es decorativa: el titular de al lado ya nombra el servicio. -->
+    <div class="relative">
+      <div
+        class="absolute -bottom-4 -left-4 size-full border-4 border-rojo-500/60"
+        aria-hidden="true"
+      >
+      </div>
+      <img
+        src={imagen}
+        alt=""
+        width="900"
+        height="680"
+        class="relative w-full rounded-sm object-cover shadow-sm"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+
+    <div>
+      <p class="etiqueta-seccion-clara mb-3 flex items-center gap-3">
+        <span class="inline-flex size-9 items-center justify-center rounded-full bg-white/10">
+          <svg class="size-4.5 text-rojo-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2 2 7l10 5 10-5zM2 12l10 5 10-5-2.2-1.1L12 14.8 4.2 10.9zm0 5 10 5 10-5-2.2-1.1L12 19.8 4.2 15.9z" />
+          </svg>
+        </span>
+        {etiqueta}
+      </p>
+
+      <h2 class="titular-claro">
+        Perito <span class="destacado-claro">avaluador.</span>
+      </h2>
+
+      <p class="mt-6 text-marino-100/75">{texto}</p>
+
+      <ul class="mt-7 space-y-3">
+        {puntos.map((punto) => (
+          <li class="flex items-start gap-3 text-sm font-medium text-marino-100">
+            <svg class="mt-0.5 size-5 shrink-0 text-rojo-300" viewBox="0 0 24 24"
+                 fill="currentColor" aria-hidden="true">
+              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m-1.2 14.2-4-4 1.6-1.6 2.4 2.4 5.2-5.2 1.6 1.7z" />
+            </svg>
+            {punto}
+          </li>
+        ))}
+      </ul>
+
+      <a href={enlaceCTA} class="btn-primario-oscuro mt-9">{textoCTA}</a>
+    </div>
+  </div>
+</section>

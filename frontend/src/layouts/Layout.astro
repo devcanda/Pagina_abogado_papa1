@@ -1,0 +1,124 @@
+---
+/**
+ * Layout principal — decide en tiempo de build qué envoltorio renderizar.
+ *
+ *   es_landing_page = FALSE → Corporativo: Navbar + contenido + Footer pesado.
+ *   es_landing_page = TRUE  → Landing:     sin Navbar ni Footer (cero fugas),
+ *                                          solo marca sin enlace y aviso legal.
+ *
+ * La decisión viene del campo `es_landing_page` de PostgreSQL, así que el
+ * equipo del bufete cambia el modo de una página desde la base de datos sin
+ * tocar código. `esLanding` permite forzarlo para páginas que no vienen de la BD.
+ *
+ * Uso típico:
+ *   <Layout pagina={pagina}> … </Layout>
+ *   <Layout titulo="Gracias" esLanding noIndex> … </Layout>
+ */
+import '../styles/global.css';
+import BaseHead from '../components/BaseHead.astro';
+import StickyCTA from '../components/StickyCTA.astro';
+import BotonWhatsApp from '../components/BotonWhatsApp.astro';
+import Logo from '../components/Logo.astro';
+import Navbar from './partials/Navbar.astro';
+import Footer from './partials/Footer.astro';
+
+const {
+  // Registro de la tabla `paginas`. Si llega, rellena todo lo demás.
+  pagina = null,
+
+  // Overrides explícitos: ganan siempre sobre lo que traiga `pagina`.
+  titulo: tituloProp,
+  descripcion: descripcionProp,
+  imagen: imagenProp,
+  esLanding: esLandingProp,
+
+  noIndex = false,
+  mostrarCTA = true,
+  textoCTA,
+  clase = '',
+} = Astro.props;
+
+// ── Resolución de datos: prop explícita → campo de la BD → valor por defecto ──
+const titulo = tituloProp ?? pagina?.titulo ?? 'Candamil Abogados';
+const descripcion = descripcionProp ?? pagina?.meta_descripcion ?? undefined;
+const imagen = imagenProp ?? pagina?.imagen_hero ?? undefined;
+
+// `??` y no `||`: respeta un `false` explícito y solo cae al valor de la BD
+// cuando la prop no se pasó.
+const esLanding = esLandingProp ?? pagina?.es_landing_page ?? false;
+
+// En una landing el CTA es el único camino, así que lo mostramos también en
+// escritorio. En corporativo basta con móvil, donde no hay botón en la navbar.
+const ctaSoloMovil = !esLanding;
+
+// Las landings de campaña no deben competir en el índice con las páginas
+// corporativas por los mismos términos: se excluyen salvo orden contraria.
+const excluirDeIndice = noIndex || esLanding;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'LegalService',
+  name: 'Candamil Abogados',
+  url: Astro.site?.href,
+  areaServed: 'CO',
+  telephone: import.meta.env.PUBLIC_TELEFONO,
+};
+---
+
+<!doctype html>
+<html lang="es-CO">
+  <head>
+    <BaseHead
+      titulo={titulo}
+      descripcion={descripcion}
+      imagen={imagen}
+      noIndex={excluirDeIndice}
+    />
+    <slot name="head" />
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  </head>
+
+  <body class="flex min-h-dvh flex-col">
+    <a
+      href="#contenido"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50
+             focus:rounded-lg focus:bg-marino-900 focus:px-4 focus:py-2 focus:text-white"
+    >
+      Saltar al contenido
+    </a>
+
+    {!esLanding && <Navbar />}
+
+    {esLanding && (
+      /* Marca sin enlace: identifica al bufete sin ofrecer una salida. */
+      <div class="flex justify-center bg-marino-800 px-4 py-2.5" data-superficie="oscura">
+        <Logo alto="h-11 sm:h-14" />
+      </div>
+    )}
+
+    <main id="contenido" class={`flex-1 ${clase}`}>
+      <slot />
+    </main>
+
+    {esLanding ? (
+      /* Pie mínimo: solo lo que la ley obliga, con rel="nofollow" para no
+         repartir autoridad desde una página de campaña. */
+      <div class="border-t border-marino-100 px-4 py-6 text-center text-xs text-tinta-suave">
+        <p>© {new Date().getFullYear()} Candamil Abogados</p>
+        <p class="mt-1">
+          <a href="/politica-de-privacidad/" rel="nofollow" class="underline underline-offset-2">
+            Política de tratamiento de datos
+          </a>
+        </p>
+      </div>
+    ) : (
+      <Footer />
+    )}
+
+    {mostrarCTA && <StickyCTA soloMovil={ctaSoloMovil} texto={textoCTA} />}
+
+    {/* La burbuja solo donde la barra inferior no llega: en escritorio de las
+        corporativas. En una landing la barra se ve siempre y sobraría. */}
+    {mostrarCTA && ctaSoloMovil && <BotonWhatsApp />}
+  </body>
+</html>

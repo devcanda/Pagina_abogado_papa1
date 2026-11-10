@@ -1,0 +1,95 @@
+---
+/**
+ * Bloque promocional del servicio de peritaje y avalúos.
+ *
+ * Va con fondo claro entre "Reconocimientos" (blanco) y "Casos recientes"
+ * (navy), de modo que el salto de tono lo separe sin necesidad de más adornos.
+ *
+ * El contenido llega por props para que se pueda ajustar sin tocar el marcado;
+ * cuando el bufete necesite editarlo por su cuenta, le corresponde una fila
+ * propia en la base de datos.
+ */
+const { datos = {}, variantes = {} } = Astro.props;
+const {
+  etiqueta = '', titulo = '', destacado = '', texto = '',
+  puntos = [], imagen = '', palabraFondo = '',
+  textoBoton = '', enlaceBoton = '/contacto/',
+  colorTitulo = '',
+  colorTexto = '',
+} = datos;
+
+/*
+ * Colores del texto, elegidos desde el panel. Van en línea porque tienen que
+ * ganar a la clase de utilidad; si no se han tocado llegan vacíos y no se
+ * emite ningún `style`, así que el bloque se ve exactamente como antes.
+ *
+ * El panel enseña el contraste medido al elegirlos, pero NO lo impone: es
+ * decisión del cliente (D4 de la spec 002). Un color ilegible aquí es un color
+ * ilegible en la página.
+ */
+const estiloTitulo = colorTitulo ? { color: colorTitulo } : undefined;
+const estiloTexto = colorTexto ? { color: colorTexto } : undefined;
+const { ladoImagen = 'izquierda' } = variantes;
+---
+
+<section class="relative overflow-hidden bg-marino-900 py-20 lg:py-28" data-superficie="oscura">
+  <span
+    class="palabra-fondo -bottom-6 left-0 text-[16vw] text-white/[0.04] lg:text-[9rem]"
+    aria-hidden="true"
+  >
+    {palabraFondo}
+  </span>
+
+  <div class="contenedor relative grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+    <!-- Ilustración. Es decorativa: el titular de al lado ya nombra el servicio. -->
+    <div class:list={['relative', ladoImagen === 'derecha' && 'lg:order-last']}>
+      <div
+        class="absolute -bottom-4 -left-4 size-full border-4 border-rojo-500/60"
+        aria-hidden="true"
+      >
+      </div>
+      <img
+        src={imagen}
+        alt=""
+        width="900"
+        height="680"
+        class="relative w-full rounded-sm object-cover shadow-sm"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+
+    <div>
+      <p class="etiqueta-seccion-clara mb-3 flex items-center gap-3">
+        <span class="inline-flex size-9 items-center justify-center rounded-full bg-white/10">
+          <svg class="size-4.5 text-rojo-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2 2 7l10 5 10-5zM2 12l10 5 10-5-2.2-1.1L12 14.8 4.2 10.9zm0 5 10 5 10-5-2.2-1.1L12 19.8 4.2 15.9z" />
+          </svg>
+        </span>
+        {etiqueta}
+      </p>
+
+      <h2 class="titular-claro" style={estiloTitulo}>
+        {titulo} {destacado && <span class="destacado-claro">{destacado}</span>}
+      </h2>
+
+      <p class="mt-6 text-marino-100/75" style={estiloTexto}>{texto}</p>
+
+      <ul class="mt-7 space-y-3">
+        {puntos.map((punto) => (
+          <li class="flex items-start gap-3 text-sm font-medium text-marino-100">
+            <svg class="mt-0.5 size-5 shrink-0 text-rojo-300" viewBox="0 0 24 24"
+                 fill="currentColor" aria-hidden="true">
+              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m-1.2 14.2-4-4 1.6-1.6 2.4 2.4 5.2-5.2 1.6 1.7z" />
+            </svg>
+            {punto}
+          </li>
+        ))}
+      </ul>
+
+      {textoBoton && (
+        <a href={enlaceBoton} class="btn-primario-oscuro mt-9">{textoBoton}</a>
+      )}
+    </div>
+  </div>
+</section>

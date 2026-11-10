@@ -1,0 +1,15 @@
+{
+  "name": "Candamil Asociados Abogados",
+  "short_name": "Candamil",
+  "description": "Bufete de abogados en Medellín: derecho laboral, civil, familia y administrativo.",
+  "lang": "es-CO",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0a2443",
+  "icons": [
+    { "src": "/favicon-48.png", "sizes": "48x48", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/img/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

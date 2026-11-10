@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" width="1600" height="700" role="img" aria-label="Imagen de cabecera">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#134782"/>
+      <stop offset="100%" stop-color="#0a2443"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="700" fill="url(#g)"/>
+  <g opacity="0.16" fill="none" stroke="#b6cde8" stroke-width="1.5">
+    <circle cx="800" cy="350" r="233"/>
+    <circle cx="800" cy="350" r="175"/>
+    <path d="M800 117 L800 583"/>
+  </g>
+  <rect x="14" y="14" width="1572" height="672" fill="none" stroke="#b6cde8" stroke-opacity="0.3" stroke-width="2"/>
+  <g transform="translate(800 330)" opacity="0.55" fill="#b6cde8">
+    <path d="M-22-26h44v4h-20v34h16v4h-36v-4h16v-34h-20z"/>
+    <circle cx="0" cy="-32" r="5"/>
+  </g>
+  <g transform="translate(800 372)">
+    <rect x="-30" y="0" width="30" height="3" fill="#195ba9"/>
+    <rect x="0" y="0" width="30" height="3" fill="#a0373a"/>
+  </g>
+  <text x="800" y="422" fill="#ffffff" fill-opacity="0.82" font-family="system-ui,sans-serif"
+        font-size="50" font-weight="600" text-anchor="middle" letter-spacing="1">Imagen de cabecera</text>
+  <text x="800" y="452" fill="#b6cde8" fill-opacity="0.6" font-family="system-ui,sans-serif"
+        font-size="35" text-anchor="middle">Reemplazar · 1600×700</text>
+</svg>

@@ -1,0 +1,5 @@
+Playfair Display — Claus Eggers Sørensen
+SIL Open Font License 1.1 — https://openfontlicense.org
+
+Permite uso comercial, incrustación en web y redistribución.
+Origen: Google Fonts (subconjunto "latin", eje de peso variable 400–800).

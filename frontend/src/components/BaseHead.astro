@@ -1,0 +1,63 @@
+---
+/**
+ * Etiquetas de <head> comunes. Centralizarlas evita que una landing nueva
+ * salga sin canonical, sin Open Graph o sin favicon.
+ */
+const { titulo, descripcion, imagen, noIndex = false } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+// Facebook, LinkedIn, X y WhatsApp no renderizan SVG en las tarjetas de enlace:
+// si la imagen de la página es vectorial (hoy lo son los marcadores), se cae a
+// `og-imagen.png`, que es el logotipo sobre navy en la proporción 1200×630 que
+// esperan esas plataformas.
+const esRaster = imagen && !imagen.toLowerCase().endsWith('.svg');
+const imagenAbsoluta = new URL(esRaster ? imagen : '/img/og-imagen.png', Astro.site).href;
+
+const origenApi = new URL(import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000').origin;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{titulo}</title>
+{descripcion && <meta name="description" content={descripcion} />}
+<link rel="canonical" href={canonical} />
+{noIndex && <meta name="robots" content="noindex, nofollow" />}
+
+<!-- Navy de marca para la barra del navegador en Android y PWA. -->
+<meta name="theme-color" content="#0a2443" />
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="es_CO" />
+<meta property="og:site_name" content="Candamil Asociados Abogados" />
+<meta property="og:title" content={titulo} />
+{descripcion && <meta property="og:description" content={descripcion} />}
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={imagenAbsoluta} />
+<meta property="og:image:alt" content="Candamil Asociados Abogados" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<!-- Iconos: salen de `marca/favicon-original.png`, la imagen que el cliente
+     entregó exclusivamente para esto. No se recorta ni se recolorea; solo se
+     centra en un lienzo cuadrado (un favicon rectangular lo deforma el
+     navegador) y se reduce a cada tamaño. Se declaran los tres tamaños en vez
+     de dejar que el navegador reescale uno solo: a 16px el reescalado
+     automático emborrona los laureles. -->
+<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+<link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+
+<!-- La serif de titulares se precarga: sin esto el navegador la descubre al
+     parsear el CSS y el titular salta de Georgia a Playfair a medio renderizar. -->
+<link
+  rel="preload"
+  href="/fonts/playfair-display-latin.woff2"
+  as="font"
+  type="font/woff2"
+  crossorigin
+/>
+
+<!-- Abre la conexión con la API antes de que el navegador la necesite. -->
+<link rel="preconnect" href={origenApi} crossorigin />

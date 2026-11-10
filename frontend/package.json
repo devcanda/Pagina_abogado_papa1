@@ -1,0 +1,19 @@
+{
+  "name": "candamil-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "visual:capturar": "node ../herramientas/visual.mjs capturar http://localhost:4340",
+    "visual:comparar": "node ../herramientas/visual.mjs comparar ../docs/linea-base"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "astro": "^5.2.0",
+    "tailwindcss": "^4.0.0"
+  }
+}

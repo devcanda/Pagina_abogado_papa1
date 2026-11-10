@@ -1,0 +1,68 @@
+---
+/**
+ * Cifras en cuadrícula a la izquierda, preguntas frecuentes a la derecha.
+ *
+ * Las preguntas usan el componente de acordeón, que ya existía para los textos
+ * legales: <details> nativo, accesible por teclado y sin JavaScript.
+ */
+import Acordeon from '../Acordeon.astro';
+
+const { datos = {} } = Astro.props;
+const {
+  etiqueta = '', titulo = '', destacado = '',
+  cifras = [], preguntas = [],
+  colorTitulo = '',
+  colorTexto = '',
+} = datos;
+
+/*
+ * Colores del texto, elegidos desde el panel. Van en línea porque tienen que
+ * ganar a la clase de utilidad; si no se han tocado llegan vacíos y no se
+ * emite ningún `style`, así que el bloque se ve exactamente como antes.
+ *
+ * El panel enseña el contraste medido al elegirlos, pero NO lo impone: es
+ * decisión del cliente (D4 de la spec 002). Un color ilegible aquí es un color
+ * ilegible en la página.
+ */
+const estiloTitulo = colorTitulo ? { color: colorTitulo } : undefined;
+const estiloTexto = colorTexto ? { color: colorTexto } : undefined;
+---
+
+<section class="contenedor py-20 lg:py-28">
+  <div class="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+    <!-- Cuadrícula de cifras: los bordes compartidos la mantienen unida. -->
+    <dl class="grid grid-cols-2 border border-humo-200 bg-white shadow-sm">
+      {cifras.map((c, i) => (
+        <div
+          class:list={[
+            'px-6 py-10 text-center sm:px-8 sm:py-12',
+            i % 2 === 0 && 'border-r border-humo-200',
+            i < 2 && 'border-b border-humo-200',
+          ]}
+        >
+          <dt class="font-display text-4xl font-bold text-marino-900 sm:text-5xl">
+            {c.valor}
+          </dt>
+          <dd class="mt-2 text-xs font-semibold uppercase tracking-wider text-tinta-suave">
+            {c.texto}
+          </dd>
+        </div>
+      ))}
+    </dl>
+
+    <div>
+      <p class="etiqueta-seccion mb-4">{etiqueta}</p>
+      <h2 class="titular" style={estiloTitulo}>
+        {titulo} {destacado && <span class="destacado">{destacado}</span>}
+      </h2>
+
+      <div class="mt-8 border-t border-humo-200">
+        {preguntas.map((p, i) => (
+          <Acordeon titulo={p.pregunta} abierto={i === 0}>
+            <p>{p.respuesta}</p>
+          </Acordeon>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

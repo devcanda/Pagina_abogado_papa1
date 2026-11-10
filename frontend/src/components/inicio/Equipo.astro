@@ -1,0 +1,57 @@
+---
+/** Tarjetas del equipo con retrato circular. */
+const { equipo } = Astro.props;
+---
+
+<section class="border-y border-humo-200 bg-humo py-20 lg:py-28">
+  <div class="contenedor">
+    <div class="mx-auto max-w-2xl text-center">
+      <p class="etiqueta-seccion">Quiénes lo atienden</p>
+      <h2 class="titular mt-3">
+        Conozca a <span class="destacado">nuestros abogados.</span>
+      </h2>
+      <p class="mt-5 text-tinta-suave">
+        Un equipo pequeño y especializado. Sabrá desde el primer día quién lleva
+        su proceso y cómo contactarlo.
+      </p>
+    </div>
+
+    <ul class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {equipo.map((persona) => (
+        <li
+          class="group border border-humo-200 bg-white px-6 py-9 text-center
+                 transition-all hover:-translate-y-1 hover:border-marino-600 hover:shadow-lg"
+        >
+          <img
+            src={persona.foto}
+            alt=""
+            width="320"
+            height="320"
+            class="mx-auto size-28 rounded-full border-4 border-humo object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+          <h3 class="font-display mt-5 text-lg font-bold text-marino-900">
+            {persona.nombre}
+          </h3>
+          <p class="mt-1 text-sm text-tinta-suave">
+            Especialista en <span class="font-semibold text-rojo-600">{persona.area}</span>
+          </p>
+          <p class="mt-3 text-xs leading-relaxed text-tinta-suave">{persona.tarjeta}</p>
+
+          <a
+            href={persona.href}
+            class="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase
+                   tracking-wider text-marino-900 group-hover:text-rojo-600"
+          >
+            Ver perfil
+            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="3" stroke-linecap="round" aria-hidden="true">
+              <path d="M5 12h14m-6-6 6 6-6 6" />
+            </svg>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

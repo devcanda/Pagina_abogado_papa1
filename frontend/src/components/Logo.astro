@@ -1,0 +1,29 @@
+---
+/**
+ * Logotipo horizontal de Candamil Asociados — archivo definitivo del cliente.
+ *
+ * Se usa su arte tal cual: no se recorta, no se recolorea, no se redibuja.
+ * Lo único que se hizo fue quitar los metadatos del PNG y generar copias a
+ * menor resolución; el master íntegro queda en `frontend/marca/`.
+ *
+ * IMPORTANTE: el texto de este archivo es BLANCO. Solo sirve sobre fondo
+ * oscuro; sobre blanco desaparece (1.00:1 de contraste). Por eso la cabecera,
+ * el pie y la franja de las landings van en navy.
+ */
+const { alto = 'h-12 sm:h-16', clase = '' } = Astro.props;
+---
+
+<img
+  src="/img/logo-horizontal-240.png"
+  srcset="
+    /img/logo-horizontal-240.png 240w,
+    /img/logo-horizontal-480.png 480w,
+    /img/logo-horizontal-720.png 720w
+  "
+  sizes="(min-width: 640px) 232px, 176px"
+  alt="Candamil Asociados Abogados"
+  width="240"
+  height="67"
+  class={`w-auto ${alto} ${clase}`}
+  decoding="async"
+/>

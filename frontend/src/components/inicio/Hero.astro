@@ -1,0 +1,77 @@
+---
+/**
+ * Cabecera principal: fondo navy con una cuña dorada en diagonal y la foto
+ * del abogado recortada contra ella.
+ *
+ * La cuña se dibuja con clip-path sobre un div, no como imagen: escala a
+ * cualquier ancho sin pesar un solo byte extra y no afecta al LCP.
+ */
+const {
+  titulo = 'Nuestra independencia marca la diferencia',
+  subtitulo = 'Experiencia reconocida en derecho laboral, civil y de familia',
+  imagen = '/img/hero-abogado.svg',
+} = Astro.props;
+---
+
+<section class="relative overflow-hidden bg-marino-900">
+  <!-- Cuña dorada. Oculta en móvil: ahí la columna de texto ocupa todo. -->
+  <div
+    class="pointer-events-none absolute inset-y-0 right-0 hidden w-[55%] bg-marino-700 md:block"
+    style="clip-path: polygon(28% 0, 100% 0, 100% 100%, 0 100%);"
+    aria-hidden="true"
+  >
+  </div>
+
+  <!-- Textura sutil de líneas, como en el diseño de referencia. -->
+  <div
+    class="pointer-events-none absolute inset-0 opacity-[0.07]"
+    style="background-image: repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 14px);"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div class="contenedor relative grid items-center gap-8 py-14 md:grid-cols-2 md:py-20 lg:py-24">
+    <div class="max-w-xl">
+      <p class="mb-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-rojo-300">
+        <span class="h-px w-10 bg-rojo-400" aria-hidden="true"></span>
+        Bufete en Tuluá
+      </p>
+
+      <h1
+        class="font-display text-[2.6rem] font-bold leading-[1.08] tracking-tight
+               text-white sm:text-6xl lg:text-7xl"
+      >
+        {titulo}
+      </h1>
+
+      <p class="mt-6 text-base leading-relaxed text-marino-100/85 sm:text-lg">
+        {subtitulo}
+      </p>
+
+      <div class="mt-9 flex flex-wrap gap-3">
+        <a href="/contacto/" class="btn-primario-oscuro">
+          Consulta ahora
+        </a>
+        <a
+          href="/areas/"
+          class="btn border-2 border-white/35 px-6 text-white hover:border-rojo-300 hover:text-rojo-300"
+        >
+          Ver áreas de práctica
+        </a>
+      </div>
+    </div>
+
+    <!-- La foto ya es decorativa: el <h1> de al lado comunica lo mismo. -->
+    <div class="relative hidden justify-center md:flex">
+      <img
+        src={imagen}
+        alt=""
+        width="900"
+        height="1100"
+        class="h-[26rem] w-auto object-contain drop-shadow-2xl lg:h-[32rem]"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
+  </div>
+</section>

@@ -1,0 +1,93 @@
+---
+/**
+ * Primer bloque bajo el hero: foto con insignia flotante a la izquierda,
+ * argumento del bufete a la derecha.
+ *
+ * La insignia montada sobre la esquina de la foto rompe la rejilla y es lo que
+ * evita que el bloque se lea como dos columnas planas.
+ */
+const { datos = {}, variantes = {} } = Astro.props;
+const {
+  etiqueta = '', titulo = '', destacado = '', texto = '',
+  puntos = [], imagen = '', cifra = '', cifraPie = '',
+  textoBoton = '', enlaceBoton = '/quienes-somos/',
+  colorTitulo = '',
+  colorTexto = '',
+} = datos;
+
+/*
+ * Colores del texto, elegidos desde el panel. Van en línea porque tienen que
+ * ganar a la clase de utilidad; si no se han tocado llegan vacíos y no se
+ * emite ningún `style`, así que el bloque se ve exactamente como antes.
+ *
+ * El panel enseña el contraste medido al elegirlos, pero NO lo impone: es
+ * decisión del cliente (D4 de la spec 002). Un color ilegible aquí es un color
+ * ilegible en la página.
+ */
+const estiloTitulo = colorTitulo ? { color: colorTitulo } : undefined;
+const estiloTexto = colorTexto ? { color: colorTexto } : undefined;
+const { ladoImagen = 'izquierda' } = variantes;
+const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
+---
+
+<section class="contenedor py-20 lg:py-28">
+  <div class="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+    <div class:list={['relative pb-14 pl-14 sm:pb-16 sm:pl-16',
+                      ladoImagen === 'derecha' && 'lg:order-last']}>
+      <img
+        src={imagen}
+        alt=""
+        width="700"
+        height="900"
+        class="w-full object-cover"
+        loading="lazy"
+        decoding="async"
+      />
+
+      <!-- Insignia: monta sobre la esquina inferior izquierda de la foto. -->
+      <div class="absolute bottom-0 left-0 flex items-end gap-3 bg-white p-5 shadow-xl sm:p-6">
+        <span class="font-display text-6xl font-bold leading-none text-rojo-500 sm:text-7xl">
+          {cifra}
+        </span>
+        <span class="max-w-[5.5rem] pb-1.5 text-sm font-semibold leading-tight text-tinta-suave">
+          {cifraPie}
+        </span>
+      </div>
+    </div>
+
+    <div>
+      <p class="etiqueta-seccion mb-4">{etiqueta}</p>
+
+      <h2 class="titular" style={estiloTitulo}>
+        {titulo} {destacado && <span class="destacado">{destacado}</span>}
+      </h2>
+
+      <p class="mt-6 text-tinta-suave" style={estiloTexto}>{texto}</p>
+
+      <ul class="mt-7 space-y-3">
+        {puntos.map((punto) => (
+          <li class="flex items-start gap-3 text-sm font-medium text-tinta">
+            <svg class="mt-0.5 size-5 shrink-0 text-rojo-500" viewBox="0 0 24 24"
+                 fill="currentColor" aria-hidden="true">
+              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m-1.2 14.2-4-4 1.6-1.6 2.4 2.4 5.2-5.2 1.6 1.7z" />
+            </svg>
+            {punto}
+          </li>
+        ))}
+      </ul>
+
+      <div class="mt-9 flex flex-wrap items-center gap-6">
+        {textoBoton && <a href={enlaceBoton} class="btn-primario">{textoBoton}</a>}
+        <a
+          href={`tel:${telefono}`}
+          class="flex items-center gap-2 text-sm font-bold text-marino-900 hover:text-rojo-600"
+        >
+          <svg class="size-5 text-rojo-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z" />
+          </svg>
+          {telefono}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

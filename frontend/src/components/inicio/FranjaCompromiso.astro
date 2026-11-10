@@ -1,0 +1,43 @@
+---
+/**
+ * Franja de una línea entre bloques. Las áreas rotan con una animación de CSS
+ * puro: la referencia usa JavaScript para esto, pero con `steps()` sobre una
+ * lista apilada sale igual y no cuesta un solo byte de script.
+ */
+const areas = ['derecho laboral', 'derecho civil', 'derecho de familia', 'peritajes'];
+---
+
+<div class="overflow-hidden border-y border-humo-200 bg-humo py-7">
+  <p class="contenedor flex items-center justify-center gap-5 text-center">
+    <span class="hidden h-px w-10 bg-marino-200 sm:block" aria-hidden="true"></span>
+
+    <span class="font-display text-lg text-tinta-suave sm:text-2xl">
+      Comprometidos con su caso en
+      <!-- Ventana de una línea; la lista interior se desplaza por pasos. -->
+      <span class="relative inline-block h-[1.35em] w-[9.5em] overflow-hidden align-bottom">
+        <span class="absolute inset-x-0 top-0 animate-[rotarAreas_12s_steps(1)_infinite]">
+          {areas.map((area) => (
+            <span class="block h-[1.35em] font-bold italic text-marino-900">{area}</span>
+          ))}
+        </span>
+      </span>
+    </span>
+
+    <span class="hidden h-px w-10 bg-marino-200 sm:block" aria-hidden="true"></span>
+  </p>
+</div>
+
+<style>
+  @keyframes rotarAreas {
+    0%, 24% { transform: translateY(0); }
+    25%, 49% { transform: translateY(-1.35em); }
+    50%, 74% { transform: translateY(-2.7em); }
+    75%, 99% { transform: translateY(-4.05em); }
+    100% { transform: translateY(0); }
+  }
+
+  /* Quien pide menos movimiento ve solo la primera área, sin rotación. */
+  @media (prefers-reduced-motion: reduce) {
+    span[class*='animate-'] { animation: none !important; }
+  }
+</style>

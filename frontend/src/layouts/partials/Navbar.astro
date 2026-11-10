@@ -1,0 +1,95 @@
+---
+/**
+ * Cabecera corporativa. No se renderiza nunca en una landing page.
+ *
+ * Va en navy porque el logotipo horizontal del cliente tiene el texto en
+ * blanco. De paso resuelve el problema que tenía la versión anterior: con el
+ * logotipo vertical la barra necesitaba ~104px de alto para que el texto se
+ * leyera; con el horizontal baja a ~68px.
+ */
+import BarraContacto from '../../components/BarraContacto.astro';
+import Logo from '../../components/Logo.astro';
+
+const enlaces = [
+  { href: '/quienes-somos/', texto: 'Quiénes somos' },
+  { href: '/areas/', texto: 'Áreas de práctica' },
+  { href: '/casos/', texto: 'Casos' },
+  { href: '/blog/', texto: 'Blog jurídico' },
+  { href: '/contacto/', texto: 'Contacto' },
+];
+
+const rutaActual = Astro.url.pathname;
+const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
+---
+
+<BarraContacto />
+
+<header
+  class="sticky top-0 z-40 border-b border-white/10 bg-marino-800 shadow-md"
+  data-superficie="oscura"
+>
+  <nav
+    class="contenedor flex items-center justify-between gap-4 py-2.5"
+    aria-label="Navegación principal"
+  >
+    <a href="/" aria-label="Candamil Asociados Abogados — ir al inicio" class="shrink-0">
+      <Logo />
+    </a>
+
+    <ul class="hidden items-center gap-7 lg:flex">
+      {enlaces.map((enlace) => (
+        <li>
+          <a
+            href={enlace.href}
+            class="relative py-2 text-sm font-semibold text-marino-100 transition-colors
+                   hover:text-white
+                   aria-[current=page]:text-white
+                   after:absolute after:inset-x-0 after:-bottom-px after:h-0.5
+                   after:origin-left after:scale-x-0 after:bg-rojo-500 after:transition-transform
+                   hover:after:scale-x-100 aria-[current=page]:after:scale-x-100"
+            aria-current={rutaActual.startsWith(enlace.href) ? 'page' : undefined}
+          >
+            {enlace.texto}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <a href={`tel:${telefono}`} class="btn-primario-oscuro hidden px-5 py-2.5 text-sm lg:inline-flex">
+      Agendar consulta
+    </a>
+
+    <!-- En móvil el menú se abre con el <details>: sin JS y sin bloquear el hilo. -->
+    <details class="relative lg:hidden">
+      <summary
+        class="flex size-11 cursor-pointer items-center justify-center rounded-lg
+               border border-white/25 marker:content-none
+               [&::-webkit-details-marker]:hidden"
+        aria-label="Abrir menú"
+      >
+        <svg class="size-6 text-white" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </summary>
+
+      <ul
+        class="absolute right-0 top-full mt-2 w-60 rounded-xl border border-humo-200
+               bg-white py-2 shadow-xl"
+      >
+        {enlaces.map((enlace) => (
+          <li>
+            <a href={enlace.href} class="block px-4 py-3 text-sm font-semibold text-tinta">
+              {enlace.texto}
+            </a>
+          </li>
+        ))}
+        <li class="mt-1 border-t border-humo-200 px-4 pt-3">
+          <a href={`tel:${telefono}`} class="btn-primario w-full py-2.5 text-sm">
+            Agendar consulta
+          </a>
+        </li>
+      </ul>
+    </details>
+  </nav>
+</header>

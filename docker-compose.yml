@@ -1,0 +1,38 @@
+# ============================================================================
+#  PostgreSQL de desarrollo local.
+#
+#    docker compose up -d        levanta la base y carga schema.sql + seed.sql
+#    docker compose down -v      la elimina por completo, datos incluidos
+#
+#  Usa el puerto 5434 para no chocar con instancias de PostgreSQL ya
+#  instaladas en la máquina (5432 y 5433 suelen estar ocupados).
+#  Esto es SOLO para desarrollo: en producción la base la provee cPanel.
+# ============================================================================
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: candamil-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: candamil_db
+      POSTGRES_USER: candamil_app
+      POSTGRES_PASSWORD: dev_local_2026
+      # El contenedor es desechable y solo escucha en localhost.
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      - '127.0.0.1:5434:5432'
+    volumes:
+      # Los scripts de esta carpeta se ejecutan en orden alfabético la primera
+      # vez que se crea el volumen de datos.
+      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - candamil_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U candamil_app -d candamil_db']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  candamil_pgdata:

@@ -1,0 +1,34 @@
+---
+/**
+ * Página principal — ya no describe su contenido, lo pinta.
+ *
+ * Los bloques, su orden y todo su texto viven en la base de datos. Cambiarlos
+ * no exige tocar este archivo: eso es lo que permite que la persona de
+ * publicidad componga la página desde el panel.
+ *
+ * El catálogo de bloques está en `src/bloques/registro.js`.
+ */
+import Layout from '../layouts/Layout.astro';
+import Renderizador from '../bloques/Renderizador.astro';
+import { obtenerPaginaConBloques } from '../lib/api.js';
+
+let pagina = null;
+try {
+  pagina = await obtenerPaginaConBloques('inicio');
+} catch (error) {
+  // Un fallo de la API no debe impedir que se genere la portada.
+  console.error(`[build] Portada sin datos: ${error.message}`);
+}
+
+const bloques = pagina?.bloques ?? [];
+const medios = pagina?.medios ?? {};
+---
+
+<Layout
+  pagina={pagina}
+  titulo={pagina?.titulo ?? 'Candamil Asociados | Defensa jurídica con resultados'}
+  esLanding={false}
+  textoCTA="Consulta ahora"
+>
+  <Renderizador bloques={bloques} medios={medios} />
+</Layout>

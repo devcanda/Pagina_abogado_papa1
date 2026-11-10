@@ -1,0 +1,68 @@
+---
+/**
+ * Ruta dinámica: una página estática por cada registro publicado en `paginas`.
+ * El layout (corporativo o landing) lo decide el propio dato.
+ */
+import Layout from '../layouts/Layout.astro';
+import Acordeon from '../components/Acordeon.astro';
+import { listarPaginas, obtenerPagina } from '../lib/api.js';
+
+export async function getStaticPaths() {
+  const paginas = await listarPaginas();
+
+  // "inicio" queda fuera: la portada tiene su propio diseño en index.astro y
+  // ambas rutas generarían el mismo /index.html.
+  const resto = paginas.filter((resumen) => resumen.slug !== 'inicio');
+
+  // Pedimos el contenido completo de cada una en el build; son pocas páginas
+  // y así el HTML sale listo sin una segunda ronda de peticiones.
+  const rutas = await Promise.all(
+    resto.map(async (resumen) => ({
+      params: { slug: resumen.slug },
+      props: { pagina: await obtenerPagina(resumen.slug) },
+    })),
+  );
+
+  return rutas.filter((ruta) => ruta.props.pagina);
+}
+
+const { pagina } = Astro.props;
+---
+
+<Layout pagina={pagina}>
+  <article>
+    {pagina.imagen_hero && (
+      <img
+        src={pagina.imagen_hero}
+        alt=""
+        width="1600"
+        height="700"
+        class="h-56 w-full object-cover sm:h-80 lg:h-96"
+        fetchpriority="high"
+        decoding="async"
+      />
+    )}
+
+    <div class="mx-auto max-w-3xl px-4 py-10 sm:py-14">
+      <h1 class="text-3xl font-bold leading-tight text-marino-900 sm:text-4xl">
+        {pagina.titulo}
+      </h1>
+
+      <div class="prosa mt-6" set:html={pagina.contenido} />
+
+      {pagina.es_landing_page && (
+        <section class="mt-12 rounded-2xl border border-marino-100 p-5 sm:p-6">
+          <h2 class="mb-2 text-xl font-bold text-marino-900">Antes de continuar</h2>
+          <Acordeon titulo="¿Cuánto cuesta la primera consulta?">
+            <p>La evaluación inicial de tu caso no tiene costo. Si decides avanzar,
+            acordamos los honorarios por escrito antes de iniciar cualquier trámite.</p>
+          </Acordeon>
+          <Acordeon titulo="¿Qué pasa con mis datos personales?">
+            <p>Tratamos tus datos conforme a la Ley 1581 de 2012 únicamente para
+            contactarte sobre tu consulta. Puedes pedir su eliminación cuando quieras.</p>
+          </Acordeon>
+        </section>
+      )}
+    </div>
+  </article>
+</Layout>
