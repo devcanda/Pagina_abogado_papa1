@@ -1,0 +1,112 @@
+---
+/**
+ * Página corporativa: Áreas de práctica.
+ *
+ * Presenta el catálogo de especialidades del bufete y del perito avaluador
+ * en una cuadrícula moderna de 3 columnas (patrón LawyerBase Modern Style),
+ * garantizando cero JavaScript de cliente y cumplimiento estricto de accesibilidad.
+ */
+import Layout from '../../layouts/Layout.astro';
+import TarjetaAreaModerna from '../../components/areas/TarjetaAreaModerna.astro';
+import { areasPractica } from '../../data/areas.js';
+import { telefonoMarcable, enlaceWhatsApp } from '../../data/contacto.js';
+
+const metadata = {
+  titulo: 'Áreas de Práctica Jurídica | Candamil Abogados Tuluá',
+  descripcion:
+    'Especialidades legales y dictámenes periciales en Tuluá y el Valle del Cauca. Defensa experta en derecho laboral, civil, familia, penal, administrativo y avalúos certificados.',
+};
+---
+
+<Layout titulo={metadata.titulo} descripcion={metadata.descripcion}>
+  <!-- Encabezado de página (Banner estilo LawyerBase con estética Navy) -->
+  <section class="relative overflow-hidden bg-marino-900 py-16 text-white sm:py-20 lg:py-24" data-superficie="oscura">
+    <!-- Palabra decorativa tenue de fondo -->
+    <span
+      class="palabra-fondo -bottom-6 left-1/2 -translate-x-1/2 text-[16vw] text-white/[0.03]"
+      aria-hidden="true"
+    >
+      Especialidades
+    </span>
+
+    <div class="contenedor relative text-center">
+      <!-- Migas de pan (Breadcrumbs) accesibles -->
+      <nav aria-label="Migas de pan" class="mb-5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-marino-200/80">
+        <a href="/" class="transition-colors hover:text-white">Inicio</a>
+        <span aria-hidden="true" class="text-marino-400">/</span>
+        <span class="text-white" aria-current="page">Áreas de práctica</span>
+      </nav>
+
+      <p class="etiqueta-seccion-clara mb-3">Defensa jurídica y peritajes</p>
+
+      <h1 class="titular-claro max-w-3xl mx-auto text-3xl sm:text-4xl lg:text-5xl">
+        Áreas de <span class="destacado-claro">práctica</span>
+      </h1>
+
+      <p class="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-marino-100/85 sm:text-lg">
+        No llevamos todo. Llevamos lo que dominamos a fondo. Cada proceso es atendido
+        directamente por un abogado titular o perito certificado, sin intermediarios.
+      </p>
+    </div>
+  </section>
+
+  <!-- Sección principal: Cuadrícula moderna de 3 columnas -->
+  <section class="bg-white py-16 sm:py-20 lg:py-24" aria-labelledby="titulo-cuadricula">
+    <div class="contenedor">
+      <div class="mx-auto mb-12 max-w-2xl text-center sm:mb-16">
+        <h2 id="titulo-cuadricula" class="titular text-2xl sm:text-3xl">
+          Especialidades a su <span class="destacado">servicio</span>
+        </h2>
+        <p class="mt-4 text-tinta-suave text-base">
+          Seleccione un área para iniciar una consulta directa o conocer los trámites jurídicos que adelantamos.
+        </p>
+      </div>
+
+      <!-- Cuadrícula 3x3 de áreas de práctica -->
+      <ul
+        class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8"
+        aria-label="Listado de áreas de práctica jurídica"
+      >
+        {areasPractica.map((area) => (
+          <TarjetaAreaModerna area={area} />
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- Franja de cierre y conversión (Fondo claro respetando alternancia) -->
+  <section class="border-t border-marino-100 bg-marino-50 py-16 sm:py-20">
+    <div class="contenedor text-center">
+      <p class="etiqueta-seccion mb-3">Evaluación preliminar</p>
+
+      <h2 class="titular mx-auto max-w-2xl text-2xl sm:text-3xl">
+        ¿Tiene dudas sobre en qué área encaja <span class="destacado">su caso?</span>
+      </h2>
+
+      <p class="mx-auto mt-4 max-w-xl text-tinta-suave text-base sm:text-lg">
+        Escríbanos o llámenos directamente. Un profesional del bufete revisará los detalles
+        de su situación y le orientará con total claridad sobre las alternativas legales viables.
+      </p>
+
+      <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <a
+          href={enlaceWhatsApp('Hola, quisiera orientarme sobre qué área legal corresponde a mi caso.')}
+          class="btn-primario w-full sm:w-auto"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Consultar por WhatsApp
+        </a>
+
+        {telefonoMarcable && (
+          <a
+            href={`tel:${telefonoMarcable}`}
+            class="btn-secundario w-full sm:w-auto"
+          >
+            Llamar al despacho
+          </a>
+        )}
+      </div>
+    </div>
+  </section>
+</Layout>
