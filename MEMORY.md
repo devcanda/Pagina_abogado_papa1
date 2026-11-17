@@ -3,7 +3,7 @@
 ## Estado Actual
 - Arquitectura base completa y probada de extremo a extremo (spec `001`).
 - `backend/`: Express + PostgreSQL por capas (health, paginas, leads, chat).
-- `frontend/`: Astro 5 + Tailwind 4. 5 páginas, 44KB CSS, **0KB de JS**.
+- `frontend/`: Astro 5 + Tailwind 4. 6 páginas, 44KB CSS, **0KB de JS**.
 - `Layout.astro` elige Corporativo o Landing según `pagina.es_landing_page`.
 - **Portada**: hero, bufete, franja, áreas, cifras, perito, casos y cierre.
 - **Serif de titulares** (Playfair autoalojada); utilidades en `AGENTS.md`.
@@ -11,14 +11,96 @@
 - Base de desarrollo en Docker (`docker compose up -d`, puerto 5434).
 
 ## Decisiones y Aprendizajes
-- **Página `/areas/` implementada** (17-11-2026, spec `010`): cuadrícula
-  moderna de 3 columnas inspirada en LawyerBase (`practice-areas-modern-3-columns.html`),
-  con 9 especialidades simétricas, velo interactivo Navy, 0 KB de JS y botones
-  de contacto directos. Resuelve el 404 de la barra de navegación y del botón
-  «Ver todas las áreas» de la portada.
+- **Página `/contacto/` implementada** (17-11-2026, spec `011`): rescata el
+  contenido humano, horarios (`8:00 a. m. – 6:00 p. m.`, lunes a viernes),
+  teléfono fijo (`602 226 1303`), celular/WhatsApp, correo y mapa oficial de
+  Google Maps de la web anterior, centralizados en `contacto.js` y con 0 KB JS.
+  Resuelve el 404 del menú principal, pie, Sticky CTA y botón del hero.
+- **Página `/areas/` implementada con catálogo completo** (17-11-2026, spec `010`):
+  cuadrícula moderna de 3 columnas (patrón editorial de dos niveles: cabecera
+  visual + cuerpo blanco de alta legibilidad sin truncar el texto descriptivo)
+  con 15 servicios jurídicos y periciales (5×3), 3 planes de asesoría con
+  tarifa ($100k, $120k, $150k), hero limpio sin migas de pan ni rótulo de
+  sección, 0 KB de JS y enlaces directos de WhatsApp. Resuelve el 404 de la
+  barra de navegación y del botón «Ver todas las áreas».
 - **La portada se pinta desde la base**: `bloques` + `bloques/registro.js` +
   `Renderizador.astro`.
 - **Los bloques guardan la CLAVE de la imagen, no la ruta** (ver `AGENTS.md`).
+- **`/contacto/` existe desde el 17-11-2026** (spec `011`). La empezo otro
+  agente y la termino Claude por decision del cliente; se comprobo que el
+  archivo llevaba 11 min sin escrituras antes de tocarlo. **Ya no da 404.**
+- **El correo del sitio es `contacto@candamilabogados.com`, DECIDIDO.** La web
+  antigua publicaba `info@`; el cliente confirmo el 17-11-2026 que se queda
+  `contacto@`. No volver a cambiarlo sin preguntarselo.
+- **El mapa de `/contacto/` NO esta en la pagina de referencia**: lo anadio
+  este proyecto y el cliente decidio conservarlo, **a sangre, al 100% del
+  ancho**. Por eso va sin `.contenedor`, sin marco y sin esquinas redondeadas.
+  **Sigue pendiente** nombrar a Google en la politica de privacidad: es un
+  marco de terceros que carga sus scripts y sus cookies.
+- **El parrafo de reputacion se RETIRO de `/contacto/`** el 17-11-2026, el
+  mismo dia que se puso, a peticion del cliente. Era el de «Nuestra mejor
+  carta de recomendacion...», con lo de auxiliar de la justicia y conciliador
+  de las camaras de comercio de Tulua y Cali. **No es un descuido ni una falta
+  de la calca: esta quitado a proposito.** El texto esta en el historial del
+  archivo y en la web publicada.
+- **La regla que pega el pie al contenido mira `[data-superficie]` con
+  CUALQUIER valor**, no solo `oscura` (17-11-2026). En `/contacto/` la ultima
+  seccion es gris humo y el `mt-20` del pie dejaba 80px de blanco. Marcar una
+  seccion con `data-superficie` no es decorativo: ademas de cambiar el anillo
+  de foco, pega el pie. Comprobado: solo cambio `/contacto/`.
+- **El horario y el telefono de `/contacto/` van DEBAJO DE LOS BOTONES**, en
+  la segunda columna, no al final de la tercera como en el original
+  (17-11-2026, peticion del cliente). Llena el hueco de esa columna y junta las
+  cuatro vias de contacto. La tercera sigue dando los datos en su lista.
+- **Cuando un texto «se ve apagado» pero el contraste PASA, el problema es el
+  tamano y la jerarquia, no el color** (17-11-2026, `/contacto/`). El parrafo
+  del abogado daba 6,83:1 sobre el fondo humo —muy por encima del 4,5:1— y aun
+  asi se perdia: iba a 15px (por calcar el original) y en el gris secundario
+  siendo el texto principal de su columna. Se subio a 16px y a `tinta`
+  (11,54:1). El gris suave queda para lo accesorio.
+- **Las tres columnas de `/contacto/` van PLANAS, sin tarjeta** (17-11-2026).
+  Marco, sombra y esquinas redondeadas eran una interpretacion; el original las
+  pinta sobre el fondo gris. Rotulo en versales+negrita, botones al ancho de la
+  columna (`boton-contacto`, no `btn`), etiquetas en tinta y valores en azul
+  enlazados.
+- **Los subtitulos de `/contacto/` NO van en cursiva** (17-11-2026). Estuvieron
+  en Playfair cursiva calcando el original y se cambiaron a la sans del texto
+  corrido, peso medio, azul de marca. Es la SEGUNDA vez que el proyecto tropieza
+  con lo mismo (la primera, los titulares, el 13-11): la cursiva de Playfair es
+  otro diseno, no la redonda inclinada, y debajo de un rotulo en versales y sans
+  se lee como adorno. Lo que separa un rotulo de su linea de apoyo es el COLOR
+  y el PESO, no una segunda familia tipografica.
+- **En `/contacto/` solo UNO de los dos botones va relleno** (17-11-2026).
+  WhatsApp lleno, correo PERFILADO (`boton-contacto-perfil`: blanco, filete y
+  letra en `marino-600`). Con los dos llenos nada decia cual pulsar primero.
+  El filete va en `box-shadow`, no en `border`: un borde real suma 3px al alto
+  y los dos botones dejarian de medir lo mismo.
+- **La sombra del boton de WhatsApp va en el MISMO `box-shadow` que su aro.**
+  La propiedad es una sola: declararla dos veces pisa la primera y el boton se
+  queda sin contorno.
+- **El azul del original (`#2582f5`) NO se usa**: con texto blanco da 3,4:1 y no
+  llega al 4,5:1 del AA del proyecto. Se usa `marino-600`.
+- **`contacto.js` gano `departamento`, `pais`, `telefonoLegible` y
+  `horario.horasCompactas`.** `direccion` YA termina en «Tulua», asi que
+  pegarle `ciudad` detras repetia la ciudad. `horasCompactas` («8:00-18:00») es
+  el MISMO horario en la notacion del original: si cambia el horario, cambian
+  las dos lineas.
+- **`/contacto/` es una CALCA de la pagina publicada**, no una version libre
+  (peticion del cliente, 17-11-2026). Lo que se anada ahi tiene que estar en el
+  original o ser una decision explicita suya: se retiro una frase de cierre
+  inventada en la columna de WhatsApp por no estar en la referencia, y el
+  titular volvio al tuteo («Contactanos»), que es el que usa el original.
+- **Los avales del perito SE SALEN del ancho de la pagina por la derecha**
+  (17-11-2026, decision del cliente tras exponerle las tres salidas). Margen
+  derecho negativo `max(0px, (100vw - 72rem)/2 - 1rem)`. El logotipo pasa de
+  90x45 a **114x57** —llego a 164 y el cliente pidio un 30% menos, topado con
+  `max-width: 40rem` en la FRANJA, no en la pastilla—, pero **por debajo de
+  1280 no gana nada** y la
+  franja queda mas ancha que el resto del contenido. El borde izquierdo sigue
+  a ras del titular y del boton.
+- **Dentro del `.contenedor` solo hay 24 px libres a la derecha, a cualquier
+  ancho.** El aire que se ve sobrar en pantallas grandes esta FUERA del
+  contenedor. Es el numero que decide si una fila puede crecer o no.
 - **La franja de clientes es una CINTA que se mueve sola, sin JavaScript**
   (17-11-2026). Grupo repetido 3 veces y desplazamiento de un tercio exacto;
   el hueco va en `margin-inline-end`, **nunca en `gap`**, o los tercios no
@@ -490,8 +572,8 @@
       Facebook). Se cierra llevando los datos de contacto a la base.
 - [ ] **Ver el bloque con las incrustaciones montadas** en una red que no
       filtre TikTok ni Meta, y medir si mueven el LCP de la portada.
-- [ ] **`/contacto/` NO existe**: los botones de la cabecera, el
-      pie y el Sticky CTA apuntan ahí y dan 404 (`/areas/` ya está resuelto en spec 010).
+- [x] **`/contacto/` y `/areas/` IMPLEMENTADAS** (17-11-2026, specs `010` y `011`):
+      ya no dan 404 desde el menú, pie, Sticky CTA ni botones del hero.
 - [ ] **El botón principal del hero apunta a `/contacto/`, que NO existe**: la
       llamada a la acción más visible del sitio da 404. Es el mismo pendiente
       de siempre, pero ahora está en la primera lámina.

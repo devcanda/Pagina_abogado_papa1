@@ -1,0 +1,358 @@
+---
+/**
+ * Página corporativa: Contacto (`/contacto/`).
+ *
+ * Replica la estructura y contenido íntegro de https://candamilabogados.com/contacto/
+ * con un lavado de cara moderno acorde al sistema de diseño de Candamil Abogados:
+ * 1. Encabezado Navy (`Contáctanos`).
+ * 2. Mapa de Google Maps oficial en Tuluá.
+ * 3. Tres columnas: Nuestra oficina (con foto de Tuluá), Contáctanos (WhatsApp y Correo),
+ *    y Contáctanos ahora (texto cercano del abogado, datos, horario 8:00-18:00 y 3165325335).
+ */
+import Layout from '../../layouts/Layout.astro';
+import {
+  telefono,
+  telefonoLegible,
+  telefonoMarcable,
+  telefonoFijo,
+  telefonoFijoMarcable,
+  email,
+  direccion,
+  ciudad,
+  departamento,
+  pais,
+  horario,
+  mapa,
+  enlaceWhatsApp,
+} from '../../data/contacto.js';
+
+/*
+ * La descripcion se COMPONE de la fuente unica, no se escribe a mano.
+ *
+ * Tenia la direccion y los dos telefonos copiados en el texto. Es exactamente
+ * el agujero del NAP incoherente que este proyecto ya cerro una vez: el dia
+ * que cambie un telefono, la etiqueta que lee Google seguiria diciendo el
+ * viejo, y en un bufete eso cuesta posicion en las busquedas locales.
+ */
+const metadata = {
+  titulo: 'Contacto | Candamil Asociados Abogados',
+  descripcion:
+    `Nuestra oficina en ${ciudad}: ${direccion}. Contáctenos por WhatsApp, `
+    + `teléfono (${telefono} / ${telefonoFijo}) o correo electrónico. `
+    + `${horario.dias}, de ${horario.horas}.`,
+};
+
+/* Sin numero de reserva escrito a mano: seria un segundo NAP. */
+const telefonoCorto = telefono.replace(/^\+57\s?/, '');
+---
+
+<Layout titulo={metadata.titulo} descripcion={metadata.descripcion}>
+  {/*
+      Mapa de Google Maps, A SANGRE.
+
+      La página de referencia NO lleva mapa: lo añadió este proyecto y el
+      cliente decidió conservarlo (17-11-2026), al ancho completo de la
+      pantalla. Por eso va sin `.contenedor`, sin marco y sin esquinas
+      redondeadas: un marco centrado lo volvería a meter dentro de la rejilla
+      del sitio, que es justo lo contrario de lo que se pidió.
+
+      El precio sigue en pie y está anotado en la spec: es un marco de Google
+      que carga sus scripts y sus cookies en el navegador del visitante, así
+      que hay que nombrarlo en la política de privacidad.
+  */}
+  <section class="bg-humo" aria-label="Mapa de ubicación en Tuluá">
+    <div class="w-full">
+      <div class="overflow-hidden">
+        <iframe
+          title="Ubicación de Candamil y Asociados Abogados en Tuluá"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3979.6782098708823!2d-76.1938101!3d4.0857749!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e39c5a2d482e3f1%3A0xf8f3ab36998cfe39!2sCandamil%20y%20Asociados%20Abogados!5e0!3m2!1ses-419!2sco!4v1744226433914!5m2!1ses-419!2sco"
+          width="100%"
+          height="420"
+          class="block w-full border-0"
+          allowfullscreen
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- Bloque principal de 3 columnas fiel al contenido original -->
+  {/*
+      `data-superficie="clara"` no es decorativo: es lo que le dice al pie que
+      esta franja trae FONDO PROPIO y que no debe dejar su `mt-20` por delante.
+      Sin él quedaban 80px de blanco entre el contenido y el pie, que se veían
+      como una costura. La regla está al final de `global.css`.
+  */}
+  <section
+    class="border-t border-humo-200 bg-humo py-14 sm:py-20"
+    data-superficie="clara"
+    aria-labelledby="titulo-bloques-contacto"
+  >
+    <div class="contenedor">
+      {/*
+          El `h1` de la página, INVISIBLE pero presente.
+
+          La franja navy con el titular grande se retiró a petición del
+          cliente (17-11-2026), y de paso acerca la página al original,
+          que tampoco lo tiene. Pero una página sin `h1` es un defecto
+          doble: quien usa lector de pantalla no sabe dónde ha entrado, y
+          el buscador se queda sin el rótulo con el que clasificarla. Lo
+          que se quitó es el BLOQUE, no el encabezado: aquí sigue, en
+          `sr-only`, y además es el que nombra la sección vía
+          `aria-labelledby`.
+      */}
+      <h1 id="titulo-bloques-contacto" class="sr-only">Contacto</h1>
+
+      {/*
+          Las tres columnas, CALCADAS del original.
+
+          No son tarjetas. La página de referencia las pinta planas sobre el
+          fondo gris, sin marco, sin sombra y sin esquinas redondeadas, y cada
+          una se separa de la de al lado solo por el aire. Las tarjetas que
+          había aquí eran una interpretación, no el diseño del cliente.
+
+          Lo que da el carácter son tres cosas, y las tres vienen del original:
+           · El rótulo en VERSALES y en negrita, en tinta.
+           · El subtítulo justo debajo, en la MISMA SANS del texto corrido,
+             en peso medio y en azul de marca.
+
+             Estuvo en Playfair cursiva, calcando el original, y se cambió el
+             17-11-2026 a petición del cliente. El motivo es el mismo que llevó
+             a quitar la cursiva de los titulares el 13-11: en Playfair la
+             cursiva no es la redonda inclinada, es un diseño aparte, así que
+             debajo de un rótulo en versales y sans se lee como un adorno y no
+             como un subtítulo. El par estándar es rótulo fuerte arriba y línea
+             de apoyo tranquila debajo; lo que las separa es el COLOR y el
+             peso, no una segunda familia tipográfica.
+
+             De paso, la página deja de pedir la cursiva de Playfair: aquí era
+             el único sitio que la usaba fuera de la portada.
+           · Los valores de los datos en AZUL y enlazados; las etiquetas, en
+             tinta.
+      */}
+      <div class="grid grid-cols-1 gap-10 lg:grid-cols-3 lg:gap-8">
+        {/* Columna 1: Nuestra oficina / Consulta ya */}
+        <article>
+          <h2 class="text-xl font-bold uppercase tracking-tight text-tinta">
+            Nuestra oficina
+          </h2>
+          <p class="mt-1 text-[0.9375rem] font-medium text-marino-600">Consulta ya</p>
+
+          <div class="mt-6 aspect-3/2 w-full overflow-hidden bg-marino-900">
+            <img
+              src="/img/oficina-tulua.webp"
+              {/*
+                  El alt describe lo que SE VE, no lo que acompaña. La foto es
+                  una vista de Tuluá, no del despacho: decir «sede de Candamil
+                  Abogados» le promete a quien usa lector de pantalla una
+                  imagen de la oficina que no existe.
+              */}
+              alt="Vista de Tuluá, Valle del Cauca, la ciudad donde está la oficina"
+              width="700"
+              height="467"
+              class="size-full object-cover"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+
+          {/*
+              Desde la FUENTE ÚNICA, no escrita a mano. Estaba copiada aquí, y
+              había otra copia en la tercera columna y una tercera en la
+              descripción de la página: tres sitios donde escribir la
+              dirección, que es como empiezan las incoherencias de NAP que
+              penaliza Google.
+          */}
+          <p class="mt-5 text-base leading-relaxed text-tinta">
+            {direccion}, {departamento}, {pais}
+          </p>
+        </article>
+
+        {/* Columna 2: Contáctanos / Protegemos sus derechos */}
+        <article>
+          <h2 class="text-xl font-bold uppercase tracking-tight text-tinta">
+            Contáctanos
+          </h2>
+          <p class="mt-1 text-[0.9375rem] font-medium text-marino-600">
+            Protegemos sus derechos
+          </p>
+
+          {/*
+              Los dos botones ocupan el ANCHO de la columna y van apilados,
+              como en el original.
+
+              El verde es el oficial de WhatsApp (`#25D366`), la única
+              excepción a la paleta del proyecto, con su aro `#128C7E`: sin él
+              el verde se difumina contra el fondo humo y el botón se queda sin
+              contorno. El glifo es la marca oficial, no un dibujo parecido.
+
+              El de correo NO va relleno. Con los dos llenos —verde y azul,
+              mismo tamaño y mismo peso— nada decía cuál pulsar primero, y dos
+              colores saturados seguidos en una página gris y navy se leen como
+              un anuncio pegado encima. Va perfilado en el azul de marca: eso
+              le da jerarquía al bloque sin quitarle presencia.
+
+              De paso evita el azul del original, `#2582f5`, que con texto
+              blanco da 3,4:1 y no llega al 4,5:1 que exige el AA del
+              proyecto.
+
+              La sombra del verde es corta y tiznada de NAVY, no gris: una
+              sombra neutra sobre el fondo humo ensucia el borde en vez de
+              levantarlo. Va en el mismo `box-shadow` que el aro porque la
+              propiedad es una sola y declararla dos veces pisa la primera.
+          */}
+          <div class="mt-6 flex flex-col gap-3">
+            <a
+              href={enlaceWhatsApp('Hola, estoy interesado en sus servicios legales.')}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="boton-contacto bg-[#25D366] text-white shadow-[inset_0_0_0_2px_#128C7E,0_10px_20px_-12px_rgb(2_10_22_/_0.55)] hover:shadow-[inset_0_0_0_2px_#128C7E,0_14px_26px_-12px_rgb(2_10_22_/_0.65)]"
+            >
+              <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884a9.82 9.82 0 0 1 6.988 2.896 9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.8 11.8 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.9 11.9 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.82 11.82 0 0 0 20.464 3.488" />
+              </svg>
+              Chatear por WhatsApp
+            </a>
+
+            <a href={`mailto:${email}`} class="boton-contacto boton-contacto-perfil">
+              <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="m2 7 10 6 10-6" />
+              </svg>
+              Enviar un Correo
+            </a>
+          </div>
+
+          {/*
+              El horario y el teléfono, en grande y con icono de trazo azul.
+              El número va en peso NORMAL, no en negrita: es un dato grande y
+              ligero, no un titular.
+
+              Viven DEBAJO DE LOS BOTONES, no al final de la tercera columna
+              como en el original (petición del cliente, 17-11-2026). Ganan dos
+              cosas: llenan el hueco que dejaba esta columna —dos botones y
+              nada más debajo— y quedan junto a las otras dos formas de
+              contactar, que es donde alguien los busca. La tercera columna
+              sigue dando el teléfono en su lista de datos, así que no se
+              pierde nada.
+          */}
+          <div class="mt-14 grid grid-cols-2 gap-x-4">
+            {/*
+                El pie va DEBAJO DEL ICONO, no a su derecha.
+
+                Estaba dentro de la columna del dato, así que disponía del
+                ancho de la celda menos el icono y su hueco: 34px menos. Al
+                subir los pies a 14px —petición del cliente— «Llama para tu
+                consulta» dejó de caber y se partía en dos líneas. Sacándolo a
+                la celda entera cabe de un tirón y además los dos pies quedan
+                alineados con el borde izquierdo de su columna.
+            */}
+            <div>
+              <div class="flex items-center gap-2.5">
+                <svg class="size-6 shrink-0 text-marino-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 3" />
+                </svg>
+                {/*
+                    La notación COMPACTA, que es la que usa el original y la
+                    que deja el horario y el teléfono en la misma fila. Con
+                    «8:00 a. m. – 6:00 p. m.» la fila se parte en dos.
+                */}
+                <p class="text-[1.375rem] leading-tight text-tinta">{horario.horasCompactas}</p>
+              </div>
+              <p class="mt-1.5 text-sm leading-snug text-tinta">{horario.dias}.</p>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-2.5">
+                <svg class="size-6 shrink-0 text-marino-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+                  <path d="M4 14h2a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zm16 0h-2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1z" />
+                </svg>
+                <a href={`tel:${telefonoMarcable}`} class="text-[1.375rem] leading-tight text-tinta hover:text-marino-600">
+                  {telefonoCorto}
+                </a>
+              </div>
+              <p class="mt-1.5 text-sm leading-snug text-tinta">Llama para tu consulta</p>
+            </div>
+          </div>
+        </article>
+
+        {/* Columna 3: Contáctanos ahora / protegemos su patrimonio */}
+        <article>
+          <h2 class="text-xl font-bold uppercase tracking-tight text-tinta">
+            Contáctanos ahora
+          </h2>
+          <p class="mt-1 text-[0.9375rem] font-medium text-marino-600">
+            protegemos su patrimonio
+          </p>
+
+          {/*
+              A 16px y en TINTA, no en el gris suave.
+
+              Medido, el gris suave sobre el fondo humo da 6,83:1 y pasa de
+              sobra el 4,5:1 de la norma; aun así se veía apagado, y el
+              contraste dice si un texto se PUEDE leer, no si se lee cómodo.
+              Lo que fallaba eran dos cosas: 15px —por debajo del 16 que se
+              considera mínimo para texto corrido, heredado de calcar el
+              original— y el tono secundario en el texto principal de la
+              columna. En tinta son 11,54:1.
+
+              La regla general del proyecto es que el gris suave queda para lo
+              accesorio. En ESTA sección ya no se usa: el cliente pidió también
+              en tinta la dirección de la primera columna y los pies del
+              horario y del teléfono (17-11-2026). Es una decisión suya, tomada
+              sabiendo que la página pierde ese escalón de jerarquía: aquí lo
+              que separa un dato de su apoyo es el TAMAÑO, no el tono.
+          */}
+          <p class="mt-6 text-base leading-relaxed text-tinta">
+            Entiendo que contactar a un abogado puede parecer intimidante, especialmente
+            cuando se trata de asuntos delicados o situaciones estresantes. Por eso, me
+            esfuerzo en crear un ambiente de confianza y apertura. Escucharé atentamente
+            sus preocupaciones, responderé a sus preguntas con claridad y trabajaré a su
+            lado para encontrar el camino más adecuado hacia una resolución. Su caso no es
+            solo un expediente para mí; es una oportunidad para hacer una diferencia real
+            en su vida.
+          </p>
+
+          {/*
+              Etiqueta en tinta, valor en azul y enlazado: así está en el
+              original, y además es lo útil —desde un teléfono se pulsa el
+              número—. La dirección lleva al perfil del negocio en Google
+              Maps, no a una búsqueda por calle: abre la ficha con reseñas y
+              «cómo llegar».
+          */}
+          <dl class="mt-6 space-y-2 text-base">
+            <div class="flex flex-wrap gap-x-1.5">
+              <dt class="text-tinta">Dirección:</dt>
+              <dd>
+                <a href={mapa} target="_blank" rel="noopener noreferrer" class="text-marino-600 hover:underline">
+                  {direccion}, {departamento}
+                </a>
+              </dd>
+            </div>
+            <div class="flex flex-wrap gap-x-1.5">
+              <dt class="text-tinta">Tel:</dt>
+              <dd>
+                <a href={`tel:${telefonoMarcable}`} class="text-marino-600 hover:underline">{telefonoLegible}</a>
+              </dd>
+            </div>
+            <div class="flex flex-wrap gap-x-1.5">
+              <dt class="text-tinta">Fijo:</dt>
+              <dd>
+                <a href={`tel:${telefonoFijoMarcable}`} class="text-marino-600 hover:underline">{telefonoFijo}</a>
+              </dd>
+            </div>
+            <div class="flex flex-wrap gap-x-1.5">
+              <dt class="text-tinta">E-mail:</dt>
+              <dd>
+                <a href={`mailto:${email}`} class="text-marino-600 hover:underline">{email}</a>
+              </dd>
+            </div>
+          </dl>
+        </article>
+      </div>
+    </div>
+  </section>
+</Layout>

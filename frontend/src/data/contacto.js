@@ -11,10 +11,39 @@ export const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
 /** `tel:` no admite espacios ni paréntesis. */
 export const telefonoMarcable = telefono.replace(/[^\d+]/g, '');
 
+export const telefonoFijo = '602 226 1303';
+export const telefonoFijoMarcable = '+576022261303';
+
+/**
+ * `telefono` llega pegado («+573165325335») porque así viaja en el `.env`.
+ * Para enseñarlo se le separa el indicativo, que es como lo escribe el propio
+ * bufete. El `tel:` sigue usando `telefonoMarcable`, sin espacios.
+ */
+export const telefonoLegible = telefono.replace(/^(\+\d{2})(?=\d)/, '$1 ');
+
+export const horario = {
+  horas: '8:00 a. m. – 6:00 p. m.',
+  dias: 'Abierto de lunes a viernes',
+  /*
+   * Las MISMAS horas en la notación compacta que usa la página publicada.
+   * No es otro dato: es otra forma de escribir este. Si cambia el horario,
+   * cambian las dos líneas o el sitio empieza a decir dos cosas.
+   */
+  horasCompactas: '8:00-18:00',
+};
+
 export const email = 'contacto@candamilabogados.com';
 
 export const direccion = 'Cra. 31 #24-54, Céspedes, Tuluá';
 export const ciudad = 'Tuluá, Valle del Cauca';
+
+/*
+ * `direccion` YA TERMINA en «Tuluá», así que pegarle `ciudad` detrás deja
+ * «… Tuluá · Tuluá, Valle del Cauca». Estas dos piezas existen para componer
+ * la dirección larga sin repetir la ciudad.
+ */
+export const departamento = 'Valle del Cauca';
+export const pais = 'Colombia';
 
 /**
  * Enlace a la FICHA del negocio, no a una búsqueda por dirección: así abre el

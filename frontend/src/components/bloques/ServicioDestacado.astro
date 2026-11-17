@@ -147,8 +147,15 @@ const { ladoImagen = 'izquierda' } = variantes;
     */}
     <div class:list={[hayFondo && 'lg:col-start-2']}>
       <p class="etiqueta-seccion-clara mb-3 flex items-center gap-3">
-        <span class="inline-flex size-9 items-center justify-center rounded-full bg-white/10">
-          <svg class="size-4.5 text-rojo-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        {/*
+            El disco y el dibujo crecen JUNTOS y en la misma proporcion
+            (36->44->52 y 18->22->26 px, 17-11-2026, dos subidas). Agrandar
+            solo el dibujo lo pega al borde del disco y se pierde el aire que
+            lo hace leer como un sello; agrandar solo el disco deja el dibujo
+            nadando. La mitad justa del disco es la medida de siempre.
+        */}
+        <span class="inline-flex size-13 items-center justify-center rounded-full bg-white/10">
+          <svg class="size-6.5 text-rojo-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 2 2 7l10 5 10-5zM2 12l10 5 10-5-2.2-1.1L12 14.8 4.2 10.9zm0 5 10 5 10-5-2.2-1.1L12 19.8 4.2 15.9z" />
           </svg>
         </span>
@@ -164,7 +171,18 @@ const { ladoImagen = 'izquierda' } = variantes;
       <ul class="mt-7 space-y-3">
         {puntos.map((punto) => (
           <li class="flex items-start gap-3 text-sm font-medium text-marino-100">
-            <svg class="mt-0.5 size-5 shrink-0 text-rojo-300" viewBox="0 0 24 24"
+            {/*
+                28px tras dos subidas (20 -> 24 -> 28, 17-11-2026).
+
+                El margen superior ha ido CAMBIANDO DE SIGNO, y no es un
+                capricho: sirve para que el centro de la marca coincida con el
+                centro de la primera linea de texto, que mide 20px y no se
+                mueve. Con la marca a 20px hacia falta bajarla (`mt-0.5`); a
+                24 ya sobraba (`mt-0`); a 28 es mas alta que el renglon y hay
+                que SUBIRLA (`-mt-0.5`). Si alguien vuelve a tocar el tamano,
+                esto se recalcula: (alto del icono - 20) / 2.
+            */}
+            <svg class="-mt-0.5 size-7 shrink-0 text-rojo-300" viewBox="0 0 24 24"
                  fill="currentColor" aria-hidden="true">
               <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m-1.2 14.2-4-4 1.6-1.6 2.4 2.4 5.2-5.2 1.6 1.7z" />
             </svg>
@@ -307,11 +325,10 @@ const { ladoImagen = 'izquierda' } = variantes;
     flex-wrap: nowrap;
     align-items: center;
     /*
-     * El hueco baja de 10px a 6px. En una fila de cinco, cada pixel de hueco
-     * sale CUATRO veces del ancho de las pastillas: los 16px que se ahorran
-     * aqui son 3px mas de logotipo en cada sello.
+     * El hueco baja de 10px a 6px y luego a 5px. En una fila de cinco, cada
+     * pixel de hueco sale CUATRO veces del ancho de las pastillas.
      */
-    gap: 0.375rem;
+    gap: 0.3125rem;
     /*
      * Centrada, y el ancho CLAVADO al de una fila llena. Las dos cosas van
      * juntas y por separado no sirven.
@@ -351,6 +368,52 @@ const { ladoImagen = 'izquierda' } = variantes;
      * ella. Los tramos de 330/500px se fueron con el `flex-wrap`.
      */
     max-width: none;
+    /*
+     * La franja SE SALE hacia la derecha del ancho de la pagina (peticion del
+     * cliente, 17-11-2026, tras exponerle lo que cuesta).
+     *
+     * El motivo: con los cinco sellos en una fila dentro de la columna de
+     * texto, el logotipo topaba en 90x45 y no habia de donde sacar mas.
+     * Medido: dentro del `.contenedor` solo quedan **24px** libres a la
+     * derecha, a cualquier ancho. El sitio de verdad esta FUERA del
+     * contenedor, que es exactamente lo que este margen negativo va a buscar.
+     *
+     * `(100vw - 72rem) / 2` es la mitad de lo que le sobra a la pantalla por
+     * encima del ancho maximo del contenedor (`max-w-6xl` = 72rem), o sea el
+     * aire que queda a un lado. Se le restan 16px para no pegar los sellos al
+     * canto, y el `max()` lo deja en cero por debajo de 1152px: ahi no sobra
+     * nada y la franja se queda donde estaba.
+     *
+     * Lo que se paga, y el cliente lo sabe:
+     *  · Por debajo de 1280px no se gana NADA. El aire aparece solo en
+     *    pantallas anchas.
+     *  · La franja queda mas ancha que el resto del contenido de la pagina.
+     *    El borde IZQUIERDO sigue a ras del titular y del boton, que es lo
+     *    que se pidio el 13-11; el derecho se sale.
+     *
+     * No hace falta `overflow` aqui: la seccion ya lo recorta, porque lo
+     * necesita para la capa del fondo a sangre.
+     */
+    margin-right: calc(-1 * max(0px, (100vw - 72rem) / 2 - 1rem));
+    /*
+     * Y un TOPE, porque el aire de una pantalla ancha no tiene fin.
+     *
+     * Sin el, a 1920px la franja se comia los 888px disponibles y el logotipo
+     * llegaba a 164px: el cliente lo vio y pidio un 30% menos (17-11-2026).
+     * 40rem son 640px, o sea `5 x 124 + 4 huecos de 5`, que deja el logotipo
+     * en 114 — el 70% justo de 164.
+     *
+     * El tope se expresa en ANCHO DE LA FRANJA y no en ancho de pastilla a
+     * proposito: las cinco van con `flex: 1 1 0`, asi que reparten lo que haya
+     * y el borde izquierdo no se mueve. Topando la pastilla en vez de la
+     * franja, sobraria sitio en la fila y el reparto centrado empujaria el
+     * primer sello hacia dentro, que es como se perdio una vez la alineacion
+     * con el titular.
+     *
+     * Por debajo de 1280px esto no hace nada: alli la franja ya es mas
+     * estrecha que el tope, asi que tableta y telefono se quedan como estaban.
+     */
+    max-width: 40rem;
   }
 
   /*
@@ -374,27 +437,52 @@ const { ladoImagen = 'izquierda' } = variantes;
      * flexible es el de su contenido, y sin anularlo la imagen impide que la
      * pastilla encoja.
      *
-     * El tope de 10rem es la medida de antes: en una columna lo bastante
-     * ancha la pastilla no crece mas de lo que crecia envolviendo.
+     * El tope sube a 11rem (176px) el 17-11-2026, y el motivo NO es estetico.
+     *
+     * Con 10rem, a 1920px la pastilla tocaba su maximo (160) y sobraba sitio
+     * en la fila: `justify-content: center` repartia ese sobrante a los dos
+     * lados y el primer sello DEJABA DE ESTAR A RAS del titular y del boton,
+     * que es justo lo que pidio el cliente el 13-11. Con 11rem el tope no
+     * llega a tocarse —a 1920 la pastilla pide 174— y las cinco siguen
+     * repartiendose el ancho desde el borde izquierdo.
+     *
+     * Por encima no conviene subirlo: el lienzo de los logotipos es de 320px
+     * de ancho, asi que a 176 todavia se sirve al doble de densidad y se ve
+     * nitido. Mas alla empieza a ampliarse.
      */
     flex: 1 1 0;
     min-width: 0;
-    max-width: 10rem;
+    max-width: 11rem;
     /*
-     * La proporcion sustituye al alto fijo. 2:1 es la del lienzo de los
-     * logotipos, asi que el dibujo sigue cayendo centrado en los dos ejes sin
-     * una regla mas; con un alto fijo de 5rem, al encoger el ancho la pastilla
-     * se volveria cada vez mas cuadrada y el logotipo quedaria nadando.
+     * La proporcion sustituye al alto fijo: con un alto fijo, al encoger el
+     * ancho la pastilla se volveria cada vez mas cuadrada y el logotipo
+     * quedaria nadando.
+     *
+     * 1,9:1 y NO 2:1, y es lo que hace crecer al logotipo (17-11-2026).
+     *
+     * El lienzo del logotipo es 2:1. Con la pastilla tambien a 2:1, el dibujo
+     * topaba por el ALTO —su altura util era el alto de la pastilla menos el
+     * relleno— y se quedaba en 79x40 dentro de una pastilla de 99x50: le
+     * sobraba ancho y le faltaba alto. Dandole a la pastilla algo mas de alto,
+     * el limite pasa a ser el ANCHO, que es lo unico que no se puede estirar:
+     * las cinco se reparten la columna de texto.
+     *
+     * El numero tiene tope por abajo. Por debajo de ~1,85 la pastilla engorda
+     * sin que el logotipo crezca ni un pixel, porque ya esta limitado por el
+     * ancho: solo se gana aire muerto arriba y abajo.
      */
-    aspect-ratio: 2 / 1;
+    aspect-ratio: 1.9 / 1;
     align-items: center;
     justify-content: center;
     /*
-     * El relleno baja de 12/20px a 5/7px. Es obligado, no estetico: con el
-     * relleno de antes, una pastilla de 99px dejaria 59px utiles para el
-     * logotipo y el sello no se reconoceria.
+     * El relleno baja de 12/20px a 5/7px y luego a 3/5px. Es obligado, no
+     * estetico: con el relleno original, una pastilla de 99px dejaria 59px
+     * utiles para el logotipo y el sello no se reconoceria.
+     *
+     * 3/5px es el MINIMO que admite una capsula: con menos, un logotipo
+     * apaisado toca la curva del borde y parece que se sale.
      */
-    padding: 0.3125rem 0.4375rem;
+    padding: 0.1875rem 0.3125rem;
     border-radius: 999px;
     /*
      * Casi blanco, no blanco puro: a 0,96 el navy del fondo tine lo justo

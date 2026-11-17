@@ -131,6 +131,40 @@
          py-3 text-base font-semibold transition-colors;
 }
 
+@utility boton-contacto {
+  /* El botón ancho de la página de contacto.
+
+     No es `btn`: aquel es una pastilla centrada que se ajusta a su texto, y
+     aquí los dos botones ocupan el ANCHO de la columna y van apilados.
+
+     Sigue cumpliendo el objetivo táctil mínimo de 44px en ambos ejes
+     (WCAG 2.5.5), que es innegociable aunque el original no lo respete.
+
+     La transición va sobre `all` y no sobre `opacity` porque el perfilado
+     cambia fondo, y los dos cambian elevación y posición al pasar el ratón. */
+  @apply flex min-h-12 w-full items-center justify-center gap-2.5 rounded-lg
+         px-5 py-3 text-base font-semibold transition-all duration-200
+         hover:-translate-y-px;
+}
+
+@utility boton-contacto-perfil {
+  /* El botón SECUNDARIO del bloque: fondo claro y filete.
+
+     Antes iba relleno de azul, al lado del verde relleno de WhatsApp: dos
+     colores macizos del mismo tamaño y del mismo peso, en los que nada decía
+     cuál pulsar primero. Perfilado, acompaña en vez de competir, y el verde
+     vuelve a ser lo único saturado de la pantalla.
+
+     El filete va en `box-shadow` y no en `border` para que el botón mida
+     EXACTAMENTE lo mismo que el lleno de encima: un borde real suma 3px al
+     alto y los dos dejarían de estar alineados.
+
+     Azul de marca sobre blanco: 5,61:1 el texto (WCAG 1.4.3 pide 4,5:1) y
+     3,97:1 el filete (WCAG 1.4.11 pide 3:1). */
+  @apply bg-white text-marino-600 shadow-[inset_0_0_0_1.5px_var(--color-marino-600)]
+         hover:bg-marino-50;
+}
+
 @utility btn-primario {
   /* Blanco sobre rojo: 5.82:1. Único botón rojo de cada pantalla. */
   @apply btn bg-rojo-500 text-white hover:bg-rojo-600;
@@ -229,15 +263,21 @@
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Cuando la página termina en una franja oscura (la de cierre), el pie no debe
+   Cuando la página termina en una franja CON FONDO PROPIO, el pie no debe
    dejar una banda blanca entre ambas. Se resuelve con `:has()` en vez de pasar
    una prop por el layout: así ninguna página nueva puede olvidarlo.
+
+   Vale para cualquier valor de `data-superficie`, no solo `oscura`. Nació para
+   la franja de cierre de la portada, que es navy; en `/contacto/` la última
+   sección es gris humo y el `mt-20` dejaba **80px de blanco** entre el
+   contenido y el pie. Lo que importa no es que la franja sea oscura, sino que
+   traiga fondo propio: en cuanto lo trae, el hueco se ve como una costura.
 
    Va FUERA de toda `@layer` a propósito. El `mt-20` del pie es una utilidad y
    vive en la capa `utilities`, que gana a `components` por orden de capas
    aunque tenga menos especificidad. Lo no estratificado tiene prioridad sobre
    cualquier capa, que es justo lo que hace falta aquí.
    ─────────────────────────────────────────────────────────────────────────── */
-main:has(> *:last-child[data-superficie='oscura']) + footer {
+main:has(> *:last-child[data-superficie]) + footer {
   margin-top: 0;
 }

@@ -429,10 +429,23 @@ La alternancia claro/oscuro es la que marca el ritmo; al insertar una sección
 nueva hay que respetarla o la página se aplana.
 
 ### Cascada y capas
-El `mt-20` del pie se anula en las páginas que terminan en franja oscura con una
-regla `:has()` **fuera de toda `@layer`**, al final de `global.css`. Tiene que
-ir sin capa: las utilidades de Tailwind viven en la capa `utilities`, que gana a
-`components` por orden de capas aunque tenga menos especificidad.
+El `mt-20` del pie se anula en las páginas que terminan en una franja **con
+fondo propio** con una regla `:has()` **fuera de toda `@layer`**, al final de
+`global.css`. Tiene que ir sin capa: las utilidades de Tailwind viven en la capa
+`utilities`, que gana a `components` por orden de capas aunque tenga menos
+especificidad.
+
+**La regla mira `[data-superficie]`, con cualquier valor, no solo `oscura`.**
+Nació para la franja de cierre de la portada, que es navy, y por eso pedía
+`oscura`; en `/contacto/` la última sección es gris humo y el `mt-20` dejaba
+**80 px de blanco** entre el contenido y el pie. Lo que decide no es que la
+franja sea oscura, sino que traiga fondo propio: en cuanto lo trae, el hueco se
+ve como una costura. Comprobado después del cambio: solo se movió
+`/contacto/`; la portada seguía a 0 y `/areas/` y `/quienes-somos/` conservan
+sus 80 px, porque no declaran `data-superficie`.
+
+**Por eso marcar una sección con `data-superficie` no es decorativo.** Además
+de cambiar el anillo de foco cuando vale `oscura`, pega el pie al contenido.
 
 ## Punto de control visual
 
@@ -1351,6 +1364,75 @@ los tramos de `.avales` sí habría que recuperarlos para centrar la fila corta.
     de Aeronáutica Civil es tinta navy `#083888` y da **1,08:1**. Por eso la
     cinta monocroma obligaba a recolorear, y por eso la pastilla no es
     decoración: es lo que permite que cada marca conserve su color.
+#### Los sellos crecieron tres veces el 17-11-2026, y la última SE SALE
+
+El cliente los pidió más grandes tres veces seguidas. Las dos primeras
+salieron de apretar lo que había; la tercera no cabía sin ceder en algo.
+
+**Primera — la pastilla deja de ser 2:1.** El lienzo del logotipo sí es 2:1,
+así que con la pastilla igual el dibujo topaba **por el alto** y se quedaba en
+`79×40` dentro de una caja de `99×50`: le sobraba ancho y le faltaba altura.
+A **1,9:1** el límite pasa al ancho —lo único que no se puede estirar, porque
+los cinco se reparten la columna— y el logotipo llena el hueco. Por debajo de
+~1,85 la pastilla engorda sin que el dibujo crezca un píxel: solo se gana aire
+muerto. El hueco bajó a 5 px y el relleno a 3/5, que es el mínimo que admite
+una cápsula sin que un apaisado toque la curva.
+
+**Segunda — el techo real.** Medido: dentro del `.contenedor` quedan **24 px**
+libres a la derecha, **a cualquier ancho**. Los 400 px que se ven sobrar a
+1920 están FUERA del contenedor, donde no llega ningún otro contenido del
+sitio. Con una fila de cinco ahí dentro, `90×45` es el máximo y lo que queda
+por exprimir son 3 píxeles.
+
+**Tercera — la franja se sale hacia la derecha.** Decisión del cliente, tomada
+sobre las tres salidas posibles (dos filas / salirse / dejarlo). Un margen
+derecho negativo de `max(0px, (100vw - 72rem) / 2 - 1rem)` va a buscar el aire
+que sobra fuera del contenedor.
+
+**Cuarta — y un tope, porque el aire de una pantalla ancha no tiene fin.** Sin
+él, a 1920 px la franja se comía los 888 px disponibles y el logotipo llegaba a
+164 px. El cliente lo vio y pidió **un 30 % menos**. El tope son **40rem**
+(640 px), o sea `5 × 124 + 4 huecos de 5`, que deja el logotipo en **114** —el
+70 % justo de 164—.
+
+**El tope se expresa en ancho de la FRANJA, no de la pastilla**, y eso importa:
+las cinco van con `flex: 1 1 0`, así que reparten lo que haya y el borde
+izquierdo no se mueve. Topando la pastilla, sobraría sitio en la fila y el
+reparto centrado empujaría el primer sello hacia dentro —que es exactamente
+como se perdió una vez la alineación con el titular—.
+
+| Ancho | Antes de los cambios | Con la franja suelta | **Final** |
+|---|---|---|---|
+| 1920 px | 90×45 | 164×82 | **114×57** |
+| 1536 px | 90×45 | 125×63 | **114×57** |
+| 1440 px | 90×45 | 116×58 | **114×57** |
+| 1280 px | 90×45 | 100×50 | 100×50 |
+| 768 px | 127×64 | 127×64 | **114×57** |
+| 1152 px y el resto | sin cambio | sin cambio | sin cambio |
+
+El tope **no toca teléfono ni 1024–1280**: ahí la franja ya es más estrecha que
+640 px. Sí afecta a 768, donde la columna ocupa todo el ancho y la franja
+llegaba a 705.
+
+Lo que se paga, y el cliente lo sabe:
+
+- **Por debajo de 1280 px no se gana NADA.** El aire solo existe en pantallas
+  anchas; en teléfono y tableta la franja sigue exactamente igual.
+- **La franja queda más ancha que el resto del contenido de la página.** El
+  borde IZQUIERDO sigue a ras del titular y del botón —lo que se pidió el
+  13-11—; el derecho se sale.
+
+**El tope de la pastilla subió a 11rem, y no es estético.** Con 10rem, a
+1920 px la pastilla tocaba su máximo y sobraba sitio en la fila:
+`justify-content: center` repartía ese sobrante a los dos lados y **el primer
+sello dejaba de estar a ras del titular**. Con 11rem el tope no llega a
+tocarse —a 1920 la pastilla pide 174—. Por encima no conviene subirlo: el
+lienzo mide 320 px de ancho, así que a 176 todavía se sirve al doble de
+densidad; más allá empieza a ampliarse.
+
+**No hace falta `overflow` en la franja:** la sección ya lo recorta, porque lo
+necesita para la capa del fondo a sangre.
+
 - **El rótulo NO va en el rojo de marca.** Sobre una foto el rojo no aguanta
   —5,92:1 sobre navy plano, 2,31:1 sobre duotono— y este rótulo queda centrado
   donde el velo solo está a medias. Y el botón rojo está justo encima: dos
