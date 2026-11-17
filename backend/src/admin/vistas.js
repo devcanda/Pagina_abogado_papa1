@@ -82,6 +82,18 @@ export function pagina({ titulo, usuario, activo, contenido }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
+<!--
+  El icono se declara aunque el panel no sea una pagina publica.
+  Sin el, el navegador pide /favicon.ico por su cuenta y el servidor
+  responde 404. Es inofensivo, pero ensucia la consola, y la suite de
+  imagenes comprueba que este limpia: aparecia o no segun el perfil de
+  Chrome con que se abriera, que es el peor tipo de fallo.
+  En produccion lo sirve Apache junto al sitio; en local, el montaje de
+  app.js. Es el archivo del cliente tal cual, sin tocar.
+  Ojo: NI UNA comilla invertida en este comentario. Va dentro del literal
+  de plantilla que arma la pagina, y una sola lo cierra.
+-->
+<link rel="icon" href="/favicon-32.png">
 <title>${esc(titulo)} · Panel Candamil</title>
 <style>${ESTILOS}</style>
 </head>

@@ -166,13 +166,21 @@
 }
 
 @utility destacado {
-  /* La palabra clave del titular: cursiva y subrayada. Es el recurso que más
-     cambia la percepción del titular, y no cuesta un solo byte extra. */
-  @apply italic underline decoration-rojo-500 decoration-[3px] underline-offset-[6px];
+  /* La palabra clave del titular: subrayada en rojo, y EN REDONDA.
+     La cursiva se retiró el 13-11-2026 a petición del cliente. El motivo es
+     exacto: los titulares del carrusel no llevan destacado, así que iban en
+     redonda mientras los de sección mostraban media frase en cursiva. Playfair
+     cursiva no es la misma letra inclinada —es un diseño aparte, con la «a» de
+     un solo piso y remates distintos—, así que la diferencia no se lee como
+     énfasis sino como OTRA FUENTE. Quien lo señaló no vio un recurso
+     tipográfico: vio una incoherencia.
+     El subrayado se queda: sigue señalando la palabra clave, y es lo que hace
+     que el recurso cueste 0 bytes. */
+  @apply underline decoration-rojo-500 decoration-[3px] underline-offset-[6px];
 }
 
 @utility destacado-claro {
-  @apply italic underline decoration-rojo-300 decoration-[3px] underline-offset-[6px];
+  @apply underline decoration-rojo-300 decoration-[3px] underline-offset-[6px];
 }
 
 @utility palabra-fondo {

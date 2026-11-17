@@ -1,0 +1,250 @@
+---
+/**
+ * Actividad en redes: TikTok en vertical, YouTube apaisado y la fanpage.
+ *
+ * ── Este bloque rompe los 0 KB de JavaScript, y es a propósito ──────────────
+ * El sitio no envía una sola línea de JS al visitante; es un principio del
+ * proyecto, no una casualidad. El embed de TikTok y el Page Plugin de Facebook
+ * cargan scripts de terceros, así que aquí se paga. Es deuda consciente, con
+ * dos condiciones que la hacen tolerable:
+ *
+ *   · Se paga SOLO donde se usa. Los scripts se piden desde este componente,
+ *     así que una página sin este bloque sigue enviando 0 KB.
+ *   · Nada bloquea el renderizado: `loading="lazy"` en los marcos y `defer`
+ *     en los scripts. El LCP lo sigue decidiendo la foto de la cabecera.
+ *
+ * Si algún día pesa demasiado, la salida está escrita en la spec: cambiar
+ * TikTok por vídeos elegidos a mano, que no lleva JavaScript.
+ *
+ * ── Por qué TikTok se actualiza solo ───────────────────────────────────────
+ * Es el embed de PERFIL de creador, no de un vídeo suelto: enseña hasta los
+ * diez vídeos más recientes, así que publicar uno nuevo lo trae aquí sin que
+ * nadie toque el panel. No necesita clave de API ni aprobación, a diferencia
+ * de la Display API, que exigiría revisión de la app y el OAuth del titular.
+ *
+ * ── El espaciado es MENOR que el del resto de la portada ──────────────────
+ * `py-6 lg:py-8` (1,5rem y 2rem) frente a los `py-20 lg:py-28` (5rem y 7rem)
+ * de las demás franjas: el 30% del habitual, a petición del cliente
+ * (12-11-2026).
+ *
+ * Es una excepción deliberada al ritmo de la página, no un descuido. Este
+ * bloque ya trae su propio aire dentro de cada incrustación, así que el
+ * colchón exterior sobraba. Si algún día se repasa el espaciado de la portada
+ * entera, esta sección NO es la referencia.
+ *
+ * ── Cada incrustación lleva un enlace normal debajo ────────────────────────
+ * No es adorno. Quien bloquea scripts de terceros —extensiones, redes
+ * corporativas, navegadores estrictos— no vería nada, y el bloque dejaría un
+ * hueco en medio de la portada. Con el enlace sigue sirviendo para lo que se
+ * puso: llevar a la gente a las redes.
+ */
+import { redes } from '../../data/contacto.js';
+
+const { datos = {} } = Astro.props;
+const {
+  etiqueta = '', titulo = '', destacado = '',
+  tiktokPerfil = '', facebookPagina = '', youtubeVideo = '',
+  colorTitulo = '',
+  colorTexto = '',
+} = datos;
+
+const estiloTitulo = colorTitulo ? { color: colorTitulo } : undefined;
+const estiloTexto = colorTexto ? { color: colorTexto } : undefined;
+
+/*
+ * El id se saca aquí y la dirección de incrustar se arma nosotros, contra
+ * `youtube-nocookie.com`: así no viaja al `<iframe>` nada de lo que escribió
+ * el editor, y no se deja la cookie de seguimiento hasta que le den al play.
+ */
+const idYoutube = /[?&]v=([A-Za-z0-9_-]{11})/.exec(youtubeVideo)?.[1] ?? '';
+
+/*
+ * El bloque manda; `contacto.js` es RESERVA, no una segunda lista.
+ *
+ * Los perfiles se editan desde el panel por decisión del cliente. Dejar
+ * `contacto.js` detrás evita que un sitio con los campos aún vacíos pierda las
+ * redes que ya estuvieran configuradas en código, y mantiene una sola
+ * respuesta a «¿cuál es el TikTok del bufete?»: la del bloque si la hay.
+ *
+ * Lo que viene del panel ya pasó por `sanearUrlRed`, que valida contra lista
+ * de dominios permitidos y DEVUELVE UNA URL RECONSTRUIDA. Aquí no se vuelve a
+ * confiar en el texto del editor: el `<iframe>` de YouTube se arma con el id.
+ */
+const tiktok = tiktokPerfil || redes.tiktok || '';
+const facebook = facebookPagina || redes.facebook || '';
+
+/* Sin ninguna red configurada no hay bloque que pintar. */
+const hayAlgo = Boolean(tiktok || idYoutube || facebook);
+---
+
+{hayAlgo && (
+  <section class="contenedor py-6 lg:py-8">
+    <style>
+      /*
+       * La RESERVA sostiene la columna cuando la incrustación no llega.
+       *
+       * No es decoración: sin ella, un bloqueador de rastreadores —o una red
+       * corporativa que filtre `tiktok.com`, que las hay— deja el marco en la
+       * altura de su enlace de respaldo, 28px medidos, y la fila se descuadra
+       * con una columna de 384px de ancho y 28 de alto junto a un vídeo de
+       * 362. El enlace seguía ahí, que era lo prometido, pero la portada
+       * parecía rota.
+       *
+       * Lo que la hace invisible cuando SÍ carga es `:empty`... no: TikTok y
+       * Meta REEMPLAZAN el contenido del nodo, no lo vacían. Se usa el marcador
+       * que deja cada uno al montarse:
+       *   · TikTok pone `data-tiktok-embed-processed` en el blockquote.
+       *   · Meta sustituye el `.fb-page` por un `<iframe>` hijo.
+       * Mientras no esté ese rastro, el recuadro se ve; en cuanto aparece, el
+       * marco queda a su aire y el `min-height` deja de estorbar porque la
+       * pieza real es más alta.
+       */
+      /*
+       * Las alturas van AQUÍ y no en un `style` en línea: un atributo `style`
+       * gana a cualquier regla de la hoja, así que el `min-height: 0` de la
+       * anulación de abajo no se habría aplicado nunca y el hueco reservado
+       * seguiría empujando la pieza real.
+       */
+      .reserva-red.tiktok-embed { min-height: 28rem; }
+      .reserva-red.fb-page { min-height: 13.5rem; }
+
+      .reserva-red {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed var(--color-marino-200, #b6cde8);
+        border-radius: 0.25rem;
+        background: var(--color-humo, #f7f7f8);
+        padding: 1.5rem;
+        text-align: center;
+      }
+      .reserva-red[data-tiktok-embed-processed],
+      .reserva-red:has(> iframe) {
+        display: block;
+        border: 0;
+        background: none;
+        padding: 0;
+        min-height: 0;
+      }
+    </style>
+    {etiqueta && <p class="etiqueta-seccion mb-4">{etiqueta}</p>}
+    {titulo && (
+      <h2 class="titular" style={estiloTitulo}>
+        {titulo}{destacado && <> <span class="destacado">{destacado}</span></>}
+      </h2>
+    )}
+
+    <div class="mt-10 grid gap-10 lg:grid-cols-5 lg:gap-12">
+      {/*
+        TikTok ocupa dos quintos y YouTube con la fanpage tres: el vídeo
+        vertical necesita alto, no ancho, y darle la mitad de la fila lo
+        dejaría enorme al lado de un apaisado del mismo tamaño.
+      */}
+      {tiktok && (
+        <div class="lg:col-span-2">
+          <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-tinta-suave">
+            Últimos vídeos
+          </h3>
+          <blockquote
+            class="tiktok-embed reserva-red mx-auto w-full max-w-sm"
+            cite={tiktok}
+            data-unique-id={tiktok.split('@')[1] ?? ''}
+            data-embed-type="creator"
+          >
+            <section>
+              {/* Lo que se ve si el script no carga. */}
+              <a href={tiktok} target="_blank" rel="noopener noreferrer">
+                Ver los vídeos en TikTok
+              </a>
+            </section>
+          </blockquote>
+          <p class="mt-3 text-sm" style={estiloTexto}>
+            <a class="enlace" href={tiktok} target="_blank" rel="noopener noreferrer">
+              Abrir el perfil en TikTok
+            </a>
+          </p>
+        </div>
+      )}
+
+      <div class="lg:col-span-3">
+        {idYoutube && (
+          <>
+            <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-tinta-suave">
+              En vídeo
+            </h3>
+            {/*
+              Marco 16:9 sin JavaScript: el relleno porcentual reserva el alto
+              antes de que cargue nada, así el texto de abajo no da un salto
+              cuando aparece el vídeo.
+            */}
+            <div class="relative w-full overflow-hidden rounded shadow-sm" style="padding-top:56.25%">
+              <iframe
+                class="absolute inset-0 h-full w-full"
+                src={`https://www.youtube-nocookie.com/embed/${idYoutube}`}
+                title="Vídeo de Candamil Asociados Abogados"
+                loading="lazy"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+          </>
+        )}
+
+        {facebook && (
+          <div class="mt-8">
+            <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-tinta-suave">
+              En Facebook
+            </h3>
+            <div
+              class="fb-page reserva-red"
+              data-href={facebook}
+              data-tabs=""
+              data-width="500"
+              data-height="214"
+              data-small-header="false"
+              data-adapt-container-width="true"
+              data-hide-cover="false"
+              data-show-facepile="true"
+            >
+              {/* Lo que se ve si el SDK no carga. */}
+              <blockquote cite={facebook} class="fb-xfbml-parse-ignore">
+                <a href={facebook} target="_blank" rel="noopener noreferrer">
+                  Candamil Asociados Abogados en Facebook
+                </a>
+              </blockquote>
+            </div>
+            <p class="mt-3 text-sm" style={estiloTexto}>
+              <a class="enlace" href={facebook} target="_blank" rel="noopener noreferrer">
+                Seguir la página en Facebook
+              </a>
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/*
+      Los scripts van al final del bloque y con `defer`. Solo se piden si la
+      red correspondiente está configurada: sin fanpage no se carga el SDK de
+      Meta, y sin perfil no se carga el de TikTok.
+    */}
+    {tiktok && <script is:inline defer src="https://www.tiktok.com/embed.js"></script>}
+    {facebook && (
+      <>
+        <div id="fb-root"></div>
+        {/*
+          La VERSIÓN del SDK va explícita. Meta retira versiones con el tiempo
+          —la v20.0 en septiembre de 2026 y la v21.0 en enero de 2027—, y una
+          que caduca deja de cargar sin avisar y sin error visible.
+        */}
+        <script
+          is:inline
+          defer
+          crossorigin="anonymous"
+          src="https://connect.facebook.net/es_LA/sdk.js#xfbml=1&version=v23.0"
+        ></script>
+      </>
+    )}
+  </section>
+)}

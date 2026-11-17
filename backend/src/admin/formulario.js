@@ -70,6 +70,9 @@ const NOMBRES = {
   casos: 'Caso',
   nombre: 'Nombre',
   enlace: 'Enlace',
+  tiktokPerfil: 'Perfil de TikTok',
+  facebookPagina: 'Página de Facebook',
+  youtubeVideo: 'Vídeo de YouTube',
   icono: 'Icono',
   valor: 'Valor',
   pregunta: 'Pregunta',
@@ -92,9 +95,21 @@ const NOMBRES = {
  * día dejarían de coincidir y una imagen desaparecería del panel.
  */
 export function reservaSuperada(campo, datos) {
-  return Boolean(campo.reserva
-    && Array.isArray(datos?.[campo.reserva])
-    && datos[campo.reserva].length);
+  if (!campo.reserva) return false;
+  const quienManda = datos?.[campo.reserva];
+  /*
+   * Dos formas de superar una reserva, y las dos hacen falta.
+   *
+   * La original es un GRUPO con elementos: los campos sueltos de la cabecera
+   * frente a `laminas`. La segunda es una CADENA no vacia: la figura enmarcada
+   * del perito frente a su `imagenFondo`, donde lo que manda no es una lista
+   * sino una sola clave de imagen.
+   *
+   * Se amplia aqui en vez de anadir una segunda comprobacion en los dos
+   * sitios que la usan, que es contra lo que avisa el comentario de arriba.
+   */
+  if (Array.isArray(quienManda)) return quienManda.length > 0;
+  return typeof quienManda === 'string' && quienManda !== '';
 }
 
 /**
@@ -219,12 +234,14 @@ function campoImagen(ruta, clave, campo, valor, medios) {
       </div>
       <div class="lado">
         <select id="${esc(ruta)}" name="${esc(ruta)}" data-elegir-imagen>${opciones}</select>
-        <p class="meta">Debe medir ${ancho}×${alto} px</p>
+        <p class="meta">${campo.ajuste === 'contener'
+          ? `Cabe entera en ${ancho}×${alto} px, sin recortar`
+          : `Debe medir ${ancho}×${alto} px`}</p>
         <p class="meta" data-medidas>${medio ? `Ahora: ${medidas} · ${peso}` : ''}</p>
         <label class="falso-boton">
           Sustituir la foto
           <input type="file" accept="image/png,image/jpeg,image/webp"
-                 data-ancho="${ancho}" data-alto="${alto}"${actual ? '' : ' disabled'}>
+                 data-ancho="${ancho}" data-alto="${alto}"${campo.ajuste ? ` data-ajuste="${esc(campo.ajuste)}"` : ''}${actual ? '' : ' disabled'}>
         </label>
         <p class="estado" role="status"></p>
       </div>
@@ -319,6 +336,16 @@ export function pintarCampos(
       const opciones = campo.opciones.map((o) =>
         `<option value="${esc(o)}"${o === (valor ?? campo.defecto) ? ' selected' : ''}>${esc(o)}</option>`).join('');
       control = `<select id="${esc(ruta)}" name="${esc(ruta)}">${opciones}</select>`;
+    } else if (campo.tipo === 'url') {
+      /*
+       * `type="url"` da el teclado adecuado en el móvil y un aviso del
+       * navegador si falta el `https://`. La comprobación de verdad —que sea
+       * del dominio esperado— la hace `sanearUrlRed` en el servidor: lo del
+       * navegador es comodidad, no seguridad.
+       */
+      control = `<input type="url" inputmode="url" id="${esc(ruta)}" name="${esc(ruta)}"`
+        + ` value="${esc(valor ?? '')}"`
+        + `${campo.ejemplo ? ` placeholder="${esc(campo.ejemplo)}"` : ''}>`;
     } else {
       control = `<input type="text" id="${esc(ruta)}" name="${esc(ruta)}"`
         + ` value="${esc(valor ?? '')}"`

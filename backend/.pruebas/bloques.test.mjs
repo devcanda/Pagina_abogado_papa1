@@ -4,6 +4,15 @@
  * En Node y no con curl porque `curl -F` falla al leer archivos en Git Bash
  * sobre Windows, y aquí hace falta control exacto sobre el cuerpo.
  */
+import { execFileSync } from 'node:child_process';
+
+/* Para comparar lo que enseña el panel con lo que hay de verdad en la base. */
+const sql = (q) => execFileSync('docker', ['exec', '-i', 'candamil-db-dev', 'psql',
+  '-U', 'candamil_app', '-d', 'candamil_db', '-t', '-A', '-c', q], { encoding: 'utf8' }).trim();
+
+/* Cuantos bloques sirve la portada ANTES de que esta suite toque nada. */
+const VISIBLES_AL_EMPEZAR = Number(sql('SELECT count(*) FROM bloques WHERE visible'));
+
 const BASE = process.env.BASE ?? 'http://localhost:3000';
 const CORREO = process.env.CORREO;
 const CLAVE = process.env.CLAVE;
@@ -85,7 +94,21 @@ csrf = (html.match(/const CSRF = "([a-f0-9]{48})"/) ?? [])[1];
 
 console.log('\n══ La pantalla se agrupa por bloques ══');
 const fichas = [...html.matchAll(/data-bloque="(\d+)"/g)].map((m) => Number(m[1]));
-comprobar('salen los 8 bloques de la portada', fichas.length === 8, `${fichas.length} fichas`);
+/*
+ * Contra la BASE, no contra un número escrito a mano.
+ *
+ * Aquí ponía `=== 8`. Se añadió el bloque de redes sociales y la prueba se
+ * puso roja denunciando un fallo que no existía: la pantalla enseñaba
+ * exactamente los bloques que hay, que es lo que tiene que hacer. Una prueba
+ * que nombra contenido obliga a tocarla cada vez que cambia la portada, y
+ * acaba ignorándose.
+ *
+ * Los ocultos TAMBIÉN salen, atenuados: si desaparecieran, nadie podría
+ * volver a encenderlos.
+ */
+const cuantosEnLaBase = Number(sql('SELECT count(*) FROM bloques'));
+comprobar('sale una ficha por cada bloque de la portada',
+  fichas.length === cuantosEnLaBase, `${fichas.length} fichas · ${cuantosEnLaBase} en la base`);
 
 const rotulos = [...html.matchAll(/<h2>([^<]+)<span class="tipo">/g)].map((m) => m[1]);
 comprobar('con los rótulos en castellano llano',
@@ -126,35 +149,62 @@ comprobar('un bloque sin imágenes también sale, y se puede editar',
   html.includes('data-bloque="3"') && html.includes('data-editor="3"'));
 
 console.log('\n══ Apagar y encender ══');
-const antes = (await bloquesPublicos()).length;
-const apagado = await visibilidad(7, false);
-comprobar('se puede apagar un bloque', apagado.estado === 200 && apagado.datos.data?.visible === false,
-  apagado.datos.data?.rotulo ?? apagado.datos.error ?? '');
+/*
+ * El bloque sobre el que se prueba el interruptor se ELIGE, no se escribe.
+ *
+ * Aqui estaba clavado el id 7, que es <<Casos resueltos>>. Dos fallos en uno,
+ * y los dos costaron contenido publicado:
+ *
+ *  - Una prueba NO puede nombrar contenido. Que bloque ocupa el id 7 lo decide
+ *    quien edita la portada, no esta suite.
+ *  - Daba por hecho que empezaba ENCENDIDO: apagaba y <<devolvia>> encendiendo.
+ *    El dia que el cliente apago ese bloque, la prueba lo dejo VISIBLE y la
+ *    portada volvio a ensenar una seccion retirada a peticion suya. Lo vio el,
+ *    no la suite.
+ *
+ * Ahora se toma el primero que este encendido y se devuelve su estado REAL en
+ * un `finally`, que es la regla de siempre en este proyecto.
+ */
+const ID_INTERRUPTOR = Number(sql('SELECT id FROM bloques WHERE visible ORDER BY orden, id LIMIT 1'));
+const VISIBLE_ANTES = sql(`SELECT visible FROM bloques WHERE id=${ID_INTERRUPTOR}`) === 't';
 
-const despues = (await bloquesPublicos()).length;
-comprobar('la API deja de servirlo', despues === antes - 1, `${antes} -> ${despues} bloques`);
+try {
+  const antes = (await bloquesPublicos()).length;
+  const apagado = await visibilidad(ID_INTERRUPTOR, false);
+  comprobar('se puede apagar un bloque', apagado.estado === 200 && apagado.datos.data?.visible === false,
+    apagado.datos.data?.rotulo ?? apagado.datos.error ?? '');
 
-const htmlApagado = await (await pedir('/panel/bloques')).text();
-comprobar('la ficha sigue en el panel, atenuada',
-  /class="bloque apagado" data-bloque="7"/.test(htmlApagado));
+  const despues = (await bloquesPublicos()).length;
+  comprobar('la API deja de servirlo', despues === antes - 1, `${antes} -> ${despues} bloques`);
 
-const encendido = await visibilidad(7, true);
-comprobar('se vuelve a encender', encendido.estado === 200 && encendido.datos.data?.visible === true);
-comprobar('la API lo sirve otra vez', (await bloquesPublicos()).length === antes);
+  const htmlApagado = await (await pedir('/panel/bloques')).text();
+  comprobar('la ficha sigue en el panel, atenuada',
+    new RegExp(`class="bloque apagado" data-bloque="${ID_INTERRUPTOR}"`).test(htmlApagado));
+
+  const encendido = await visibilidad(ID_INTERRUPTOR, true);
+  comprobar('se vuelve a encender', encendido.estado === 200 && encendido.datos.data?.visible === true);
+  comprobar('la API lo sirve otra vez', (await bloquesPublicos()).length === antes);
+} finally {
+  /* Se devuelve el estado que TENIA, no el que la prueba supone. */
+  await visibilidad(ID_INTERRUPTOR, VISIBLE_ANTES);
+  const vuelto = sql(`SELECT visible FROM bloques WHERE id=${ID_INTERRUPTOR}`) === 't';
+  comprobar('el interruptor vuelve a como estaba', vuelto === VISIBLE_ANTES,
+    `visible: ${VISIBLE_ANTES}`);
+}
 
 console.log('\n══ Validación y permisos ══');
-comprobar('sin token CSRF se rechaza', (await visibilidad(7, false, false)).estado === 403);
+comprobar('sin token CSRF se rechaza', (await visibilidad(ID_INTERRUPTOR, false, false)).estado === 403);
 comprobar('bloque inexistente da 404', (await visibilidad(999999, false)).estado === 404);
 comprobar('id no numérico da 400', (await visibilidad('abc', false)).estado === 400);
 
-const sinCampo = await pedir('/panel/bloques/7/visibilidad', {
+const sinCampo = await pedir(`/panel/bloques/${ID_INTERRUPTOR}/visibilidad`, {
   method: 'POST',
   headers: { 'content-type': 'application/json', 'x-csrf-token': csrf },
   body: JSON.stringify({}),
 });
 comprobar('sin el campo «visible» da 400', sinCampo.status === 400);
 
-const noBooleano = await pedir('/panel/bloques/7/visibilidad', {
+const noBooleano = await pedir(`/panel/bloques/${ID_INTERRUPTOR}/visibilidad`, {
   method: 'POST',
   headers: { 'content-type': 'application/json', 'x-csrf-token': csrf },
   body: JSON.stringify({ visible: 'si' }),
@@ -162,8 +212,16 @@ const noBooleano = await pedir('/panel/bloques/7/visibilidad', {
 comprobar('«visible» que no es booleano da 400', noBooleano.status === 400);
 
 console.log('\n══ Estado final ══');
+/*
+ * Se compara con lo que HABIA, no con un numero escrito a mano.
+ *
+ * Aqui ponia `=== 8`, y eso es nombrar contenido: cuantas franjas tiene la
+ * portada lo decide quien la edita desde el panel. En cuanto el cliente apago
+ * una, esta comprobacion se puso roja denunciando un fallo que no existia.
+ */
 const final = await bloquesPublicos();
-comprobar('la portada queda con sus 8 bloques', final.length === 8, `${final.length} bloques`);
+comprobar('la portada queda con los bloques que tenia', final.length === VISIBLES_AL_EMPEZAR,
+  `${final.length} de ${VISIBLES_AL_EMPEZAR} bloques`);
 
 const fallos = resultados.filter((r) => !r.bien);
 console.log(`\n  ${resultados.length - fallos.length}/${resultados.length} comprobaciones correctas`);

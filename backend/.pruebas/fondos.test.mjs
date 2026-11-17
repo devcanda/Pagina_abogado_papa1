@@ -12,6 +12,7 @@
 import { readFile, rm, copyFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 
 const sql = (q, vars = {}) => execFileSync('docker', [
   'exec', '-i', 'candamil-db-dev', 'psql', '-U', 'candamil_app', '-d', 'candamil_db', '-t', '-A',
@@ -28,7 +29,25 @@ ws.onmessage = (e) => {
   const m = JSON.parse(e.data);
   if (m.id && pend.has(m.id)) { pend.get(m.id)(m.result); pend.delete(m.id); }
   else {
-    if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error') errores.push(m.params.entry.text.slice(0, 200));
+    /*
+     * Solo cuentan los errores de NUESTRO codigo.
+     *
+     * Esta suite mira el panel y el sitio publicado, y el bloque de redes
+     * carga a proposito scripts de TikTok y de Meta. Una red que los filtre
+     * —y esta los filtra— llena la consola de fallos de carga que no son un
+     * defecto del sitio: para eso existe el enlace de respaldo debajo de cada
+     * incrustacion. Contarlos convertiria la comprobacion en un termometro de
+     * la red de quien ejecuta las pruebas.
+     *
+     * Un error SIN url (una excepcion de guion en linea, por ejemplo) si
+     * cuenta: casi siempre es nuestro.
+     */
+    const NUESTROS = ['http://localhost:', 'http://127.0.0.1:'];
+    const ajeno = (u) => typeof u === 'string' && u !== '' && !NUESTROS.some((o) => u.startsWith(o));
+    if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error'
+        && !ajeno(m.params.entry.url)) {
+      errores.push(m.params.entry.text.slice(0, 200));
+    }
     if (m.method === 'Runtime.exceptionThrown') errores.push(JSON.stringify(m.params.exceptionDetails.text).slice(0, 200));
     if (m.method && ev.has(m.method)) { ev.get(m.method)(); ev.delete(m.method); }
   }
@@ -69,7 +88,16 @@ const FILA_MEDIO = sql("SELECT archivo || '|' || coalesce(ancho::text,'') || '|'
   + "|| coalesce(alto::text,'') || '|' || coalesce(bytes::text,'') "
   + "FROM medios WHERE clave='fondo-lamina-2'");
 const RUTA_MEDIO = `../frontend/public${FILA_MEDIO.split('|')[0]}`;
-const RESPALDO = `${process.env.TMPDIR ?? '.'}/respaldo-fondo-lamina-2`;
+/*
+ * El respaldo va al temporal del SISTEMA, no al directorio de trabajo.
+ *
+ * Aqui habia `process.env.TMPDIR ?? '.'`, y en Windows TMPDIR no existe: la
+ * suite dejaba `respaldo-fondo-lamina-2` y su PNG de origen —750KB— sueltos
+ * dentro de `backend/`, donde `git status` los saca como archivos sin seguir.
+ * Un respaldo es basura de la ejecucion, no material del proyecto.
+ */
+const CARPETA_TMP = process.env.TMPDIR ?? tmpdir();
+const RESPALDO = `${CARPETA_TMP}/respaldo-fondo-lamina-2`;
 const HABIA_ARCHIVO = existsSync(RUTA_MEDIO);
 
 // Fuera del `try`: el `finally` los usa para comparar, y una `const` declarada
@@ -79,7 +107,7 @@ const estadoFondos = () => JSON.parse(sql(
   + " FROM bloques, jsonb_array_elements(datos->'laminas') l WHERE id=1"));
 const antesFondos = JSON.parse(COPIA).laminas.map((l) => ({ f: l.imagenFondo ?? '', v: l.velo ?? 'ninguno' }));
 if (HABIA_ARCHIVO) {
-  await mkdir(process.env.TMPDIR ?? '.', { recursive: true });
+  await mkdir(CARPETA_TMP, { recursive: true });
   await copyFile(RUTA_MEDIO, RESPALDO);
 }
 await ver('document.querySelector(\'[data-editor="1"]\').open = true');
@@ -107,9 +135,27 @@ comprobar('una lámina sin fondo se queda sin velo',
   velos.every((v, i) => fondosPuestos[i] || v === 'ninguno'),
   velos.map((v, i) => `${fondosPuestos[i] || '(sin fondo)'}:${v}`).join(' · '));
 
+/*
+ * Lo que se comprueba es el COMPORTAMIENTO, no el catalogo.
+ *
+ * Aqui se exigia la lista literal `fondo-lamina-1,2,3`. El dia que otro bloque
+ * estreno un hueco de la misma medida —el fondo del perito— la prueba se puso
+ * roja denunciando un fallo que no existia: el desplegable ofrecia justo los
+ * huecos de su medida, que es su trabajo. Una prueba que nombra contenido hay
+ * que tocarla cada vez que cambia el contenido, y acaba ignorandose.
+ *
+ * Las dos reglas que SI son suyas: solo huecos de la medida sugerida del
+ * campo, y nunca los de prueba.
+ */
 const opciones = await ver('[...document.querySelector(\'[name="laminas.0.imagenFondo"]\').options].map(o=>o.value).filter(Boolean).sort().join(",")');
-comprobar('solo ofrece los huecos de 1920×1080',
-  opciones === 'fondo-lamina-1,fondo-lamina-2,fondo-lamina-3', opciones);
+const ofrecidos = (opciones ?? '').split(',').filter(Boolean);
+const deEsaMedida = (sql(`SELECT string_agg(clave, ',' ORDER BY clave) FROM medios
+  WHERE ancho_sugerido = 1920 AND alto_sugerido = 1080 AND clave NOT LIKE 'prueba-%'`) || '')
+  .split(',').filter(Boolean);
+comprobar('ofrece todos los huecos de su medida, y solo esos',
+  ofrecidos.length > 0 && ofrecidos.join(',') === deEsaMedida.join(','),
+  `${ofrecidos.length} opciones`);
+comprobar('y ninguno de prueba', ofrecidos.every((o) => !o.startsWith('prueba-')));
 comprobar('y la figura recortada sigue ofreciendo los suyos',
   (await ver('[...document.querySelector(\'[name="laminas.0.imagen"]\').options].map(o=>o.value).filter(Boolean).every(v=>v.startsWith("hero-"))')) === true);
 
@@ -128,7 +174,37 @@ await new Promise((r) => setTimeout(r, 200));
 comprobar('al elegir el hueco se habilita «Sustituir la foto»',
   (await ver('document.querySelector(\'[name="laminas.1.imagenFondo"]\').closest(".campo-imagen").querySelector("input[type=file]").disabled')) === false);
 
-const png = await readFile(process.env.FOTO ?? `${process.env.TMPDIR}/fondo-prueba.png`);
+/*
+ * La foto de prueba se GENERA; no se da por puesta en el disco.
+ *
+ * Aqui habia una ruta a `$TMPDIR/fondo-prueba.png`, un archivo que ninguna
+ * parte del proyecto crea: la suite solo pasaba en la maquina donde alguien lo
+ * habia dejado a mano, y en otra reventaba con ENOENT dentro del `try`, antes
+ * de llegar a nada. Una prueba que depende de un archivo suelto no viaja, y
+ * este proyecto se trabaja en dos equipos.
+ *
+ * Basta con un PNG valido: lo que se ejercita es el camino del navegador
+ * —canvas, WebP, subida—, no el contenido de la imagen. `FOTO` sigue
+ * sirviendo para apuntar a una foto de verdad cuando se quiera mirar.
+ */
+const png = process.env.FOTO
+  ? await readFile(process.env.FOTO)
+  : await (async () => {
+      const { escribirPNG } = await import('../../herramientas/png.mjs');
+      const [ancho, alto] = [1920, 1080];
+      const rgba = Buffer.alloc(ancho * alto * 4);
+      for (let i = 0; i < ancho * alto; i++) {
+        // Un degradado, no un color plano: un PNG de un solo tono se comprime
+        // a casi nada y no probaria el limite de tamano de la subida.
+        rgba[i * 4] = (i % ancho) & 0xff;
+        rgba[i * 4 + 1] = Math.floor(i / ancho) & 0xff;
+        rgba[i * 4 + 2] = 0x40;
+        rgba[i * 4 + 3] = 0xff;
+      }
+      const ruta = `${RESPALDO}-origen.png`;
+      escribirPNG(ruta, ancho, alto, rgba);
+      return readFile(ruta);
+    })();
 const subida = await ver(`(async()=>{
   const bytes = Uint8Array.from(atob(${JSON.stringify(png.toString('base64'))}), c=>c.charCodeAt(0));
   const archivo = new File([bytes], 'fondo.png', {type:'image/png'});
@@ -182,11 +258,31 @@ comprobar('las otras láminas no se han movido',
 
 console.log('\n== Y sale así en la página publicada ==');
 await ver('document.querySelector(\'[data-publicar-boton]\').click()');
-for (let i = 0; i < 90; i++) {
+/*
+ * Hay que esperar a VERLA ARRANCAR y solo despues a que acabe.
+ *
+ * La ruta responde 202 en cuanto coge el candado, sin esperar a compilar, asi
+ * que el boton tarda un momento en quedarse deshabilitado. Este bucle
+ * comprobaba `disabled` en la misma vuelta del click(): lo encontraba aun
+ * habilitado, salia a la primera y media el dist/ ANTERIOR.
+ *
+ * Casi siempre colaba, porque el dist anterior se parecia al nuevo. El dia que
+ * no colo salieron DIEZ rojos de golpe, todos describiendo una pagina sin
+ * estilos —una seccion de 6300 px y 1928 px de desbordamiento—: se habia leido
+ * el arbol a medio cambiar. Un fallo asi no se parece a su causa, y por eso
+ * conviene que quede escrito.
+ *
+ * `perito` y `redes` ya nacieron con esta espera; esta suite es anterior.
+ */
+for (let i = 0; i < 50; i++) {
+  if (await ver('document.querySelector(\'[data-publicar-boton]\').disabled')) break;
+  await new Promise((r) => setTimeout(r, 200));
+}
+for (let i = 0; i < 120; i++) {
   if (!(await ver('document.querySelector(\'[data-publicar-boton]\').disabled'))) break;
   await new Promise((r) => setTimeout(r, 1000));
 }
-await new Promise((r) => setTimeout(r, 500));
+await new Promise((r) => setTimeout(r, 800));
 const html = await readFile('../frontend/dist/index.html', 'utf8');
 // Una capa por cada lámina CON fondo: la que acaba de poner la prueba más las
 // que ya lo tuvieran.

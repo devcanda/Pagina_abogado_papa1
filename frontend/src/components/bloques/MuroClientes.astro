@@ -1,0 +1,305 @@
+---
+/**
+ * BLOQUE «muroClientes» — cinta horizontal con los logotipos de los clientes.
+ *
+ * Sustituye a la franja de cierre en la portada. Ver
+ * `specs/009-nuestros-clientes/`.
+ *
+ * ── Por qué aquí NO hay pastilla, y en los avales del perito sí ───────────
+ * Aquella franja tuvo que ponerle una superficie clara detrás a cada logotipo
+ * porque las marcas venían en su color y algunas —Aeronáutica Civil, tinta
+ * navy— daban 1,08:1 sobre el fondo. Estas siete vienen con la tinta en
+ * BLANCO, así que sobre el navy de la franja se leen solas. Añadir la
+ * pastilla aquí sería decorar un problema que no existe, y además partiría en
+ * siete cajas una tira que se lee mejor seguida.
+ *
+ * ── Por qué esta franja respira MENOS que el resto de la portada ──────────
+ * `py-8 lg:py-10` frente a los `py-20 lg:py-28` de las secciones normales.
+ * Petición del cliente (17-11-2026), y el argumento es suyo: el rótulo
+ * «Confían en nosotros» decía lo mismo que el titular «Nuestros clientes»,
+ * así que sobraba, y sin él la franja no necesita el colchón de una sección
+ * con texto. Un muro de logotipos no se lee, se reconoce de un vistazo.
+ *
+ * El rótulo NO se borró del registro: el campo sigue ahí, vacío. El día que
+ * alguien quiera un rótulo distinto lo escribe en el panel y vuelve a salir,
+ * con su separación, sin tocar código.
+ *
+ * Es la segunda excepción al ritmo de la portada, después del bloque de redes
+ * sociales. Si algún día se repasa el espaciado general, ninguna de las dos es
+ * la referencia.
+ *
+ * ── La cinta se mueve sola, y SIN JavaScript ──────────────────────────────
+ * Petición del cliente (17-11-2026). El sitio público envía 0 KB de JS y un
+ * carrusel de logotipos no es motivo para romperlo: la misma decisión que se
+ * tomó con el carrusel de la cabecera.
+ *
+ * El truco es repetir el grupo TRES veces y desplazar la pista exactamente un
+ * tercio. Al llegar al final, lo que se ve es idéntico a lo que se veía al
+ * empezar, así que el salto del reinicio no existe.
+ *
+ * Por qué tres copias y no dos: la pista tiene que ser más ancha que la
+ * pantalla MÁS un grupo entero, o al final del ciclo asoma un hueco por la
+ * derecha. Siete marcas a 192px son 1344px por copia; con tres, 4032, que
+ * cubre cualquier monitor normal.
+ */
+const { datos = {} } = Astro.props;
+const {
+  rotulo = '', titulo = '', clientes = [],
+  colorRotulo = '', colorTitulo = '',
+} = datos;
+
+/* Un cliente sin NOMBRE no se pinta: el nombre es el texto alternativo y el
+   respaldo cuando falta el archivo. Sin él no hay nada que anunciar. */
+const lista = (Array.isArray(clientes) ? clientes : []).filter((c) => c && c.nombre);
+
+const estiloRotulo = colorRotulo ? { color: colorRotulo } : undefined;
+const estiloTitulo = colorTitulo ? { color: colorTitulo } : undefined;
+
+/*
+ * Las copias son DECORATIVAS. Van con `aria-hidden` para que un lector de
+ * pantalla anuncie siete clientes y no veintiuno, y sin enlace aunque el
+ * cliente lo tenga: un enlace dentro de una copia sería un destino de
+ * tabulación duplicado que además se está moviendo.
+ */
+const COPIAS = 3;
+---
+
+<section class="bg-marino-800 py-8 lg:py-10" data-superficie="oscura">
+  <div class="contenedor">
+    {rotulo && (
+      <p class="etiqueta-seccion-clara text-center" style={estiloRotulo}>{rotulo}</p>
+    )}
+    {titulo && (
+      <h2
+        class:list={[
+          'titular-claro text-center text-[1.75rem] sm:text-[2rem] lg:text-[2.25rem]',
+          rotulo && 'mt-3',
+        ]}
+        style={estiloTitulo}
+      >{titulo}</h2>
+    )}
+  </div>
+
+  {lista.length > 0 && (
+    <div class:list={['cinta', (rotulo || titulo) && 'mt-7']}>
+      <div class="cinta-pista">
+        {Array.from({ length: COPIAS }).map((_, copia) => (
+          <ul
+            class="cinta-grupo"
+            data-clientes={copia === 0 ? '' : undefined}
+            aria-hidden={copia === 0 ? undefined : 'true'}
+          >
+            {lista.map((cliente) => {
+              const marca = cliente.imagen
+                ? (
+                  <img
+                    src={cliente.imagen}
+                    alt={copia === 0 ? cliente.nombre : ''}
+                    width="320"
+                    height="160"
+                    class="h-full w-auto max-w-full object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )
+                : (
+                  /* Sin logotipo se pinta el NOMBRE. Es lo que evita un hueco
+                     roto el día que falte un archivo, y lo que permitió
+                     publicar esta franja antes de tener las siete piezas. */
+                  <span class="text-center text-sm font-semibold leading-tight text-marino-100">
+                    {cliente.nombre}
+                  </span>
+                );
+              return (
+                <li class="marca-cliente">
+                  {cliente.enlace && copia === 0
+                    ? (
+                      <a href={cliente.enlace} target="_blank" rel="noopener noreferrer"
+                         class="flex h-full w-full items-center justify-center">
+                        {marca}
+                      </a>
+                    )
+                    : marca}
+                </li>
+              );
+            })}
+          </ul>
+        ))}
+      </div>
+    </div>
+  )}
+</section>
+
+<style>
+  /*
+   * La ventana por la que se ve la cinta. Va a lo ancho de la SECCIÓN, no
+   * dentro del contenedor de los textos: una cinta que empieza y acaba con
+   * margen no parece una cinta, parece una fila recortada.
+   */
+  .cinta {
+    overflow: hidden;
+    /*
+     * Los extremos se desvanecen. Sin esto, las marcas aparecen y desaparecen
+     * de golpe contra el borde de la pantalla, que es lo que delata que hay un
+     * recorte en vez de una cinta que sigue más allá.
+     */
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 5%,
+      #000 95%,
+      transparent 100%
+    );
+  }
+
+  .cinta-pista {
+    display: flex;
+    /*
+     * `max-content` o la pista se encoge al ancho de la pantalla y las marcas
+     * se apelotonan en vez de salir por el borde.
+     */
+    width: max-content;
+    /*
+     * Propiedades LARGAS, nunca la forma corta `animation:`.
+     *
+     * La corta reinicia TODAS las subpropiedades, incluida
+     * `animation-play-state: running`, así que cualquier regla que intente
+     * pausar más abajo no haría nada. Ya pasó en el carrusel de la cabecera y
+     * está escrito en AGENTS.md; aquí el congelado al pasar el ratón depende
+     * exactamente de lo mismo.
+     */
+    animation-name: desfile;
+    /*
+     * La duracion cambia por tramo, y es para que la VELOCIDAD no cambie.
+     *
+     * El recorrido de una vuelta es el ancho de un grupo, y ese ancho depende
+     * del tamano de los logotipos: 756px en un telefono y 1512 en un monitor
+     * ancho. Con una duracion unica, la cinta ira­a al doble de rapido en
+     * escritorio que en el movil. Las cuatro cifras salen de dividir cada
+     * recorrido entre ~36 px/s, que es el paso al que se puede reconocer una
+     * marca sin que parezca parada.
+     */
+    animation-duration: 21s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /*
+   * De IZQUIERDA A DERECHA: la pista empieza corrida un tercio hacia la
+   * izquierda y vuelve a cero, así que lo que ve el visitante entra por la
+   * izquierda y sale por la derecha.
+   *
+   * El paso es exactamente un tercio porque hay tres copias y cada marca
+   * ocupa siempre `ancho + hueco` —el hueco va en el `margin-inline-end` de
+   * cada una, NO en un `gap` de la lista—. Con `gap`, siete marcas dejan seis
+   * huecos dentro del grupo y uno más entre grupos, los tres tercios no miden
+   * lo mismo y en cada vuelta se ve un salto.
+   */
+  @keyframes desfile {
+    from { transform: translate3d(-33.3333%, 0, 0); }
+    to { transform: translate3d(0, 0, 0); }
+  }
+
+  .cinta-grupo {
+    display: flex;
+    align-items: center;
+  }
+
+  .marca-cliente {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-inline-end: 1rem;
+    /*
+     * Se limita el ALTO DEL LIENZO, no el del logotipo.
+     *
+     * Los siete archivos llegan en un lienzo de 320x160 con la marca ya
+     * colocada dentro a igual área óptica (lo hace
+     * `herramientas/preparar-logos-clientes.mjs`, que la mide sobre la TINTA y
+     * no sobre el halo). Si el CSS volviera a ajustar cada imagen a su caja
+     * desharía esa normalización y la Cámara de Comercio —casi cuadrada— se
+     * vería la mitad que Dixtrital, que es una tira.
+     *
+     * El lienzo es 2:1, así que el alto fija también el ancho.
+     */
+    height: 2.875rem;
+  }
+
+  @media (min-width: 640px) {
+    .marca-cliente { height: 4rem; margin-inline-end: 1.5rem; }
+    /* Grupo de 1064px. */
+    .cinta-pista { animation-duration: 30s; }
+  }
+
+  @media (min-width: 1280px) {
+    .marca-cliente { height: 4.875rem; margin-inline-end: 2rem; }
+    /* Grupo de 1316px. */
+    .cinta-pista { animation-duration: 36s; }
+  }
+
+  @media (min-width: 1536px) {
+    .marca-cliente { height: 5.5rem; margin-inline-end: 2.5rem; }
+    /* Grupo de 1512px. */
+    .cinta-pista { animation-duration: 42s; }
+  }
+
+  /*
+   * Se congela al pasar el ratón o al entrar el foco.
+   *
+   * No es un control rotulado, así que NO cumple el criterio 2.2.2 de la
+   * WCAG por sí solo —ver AGENTS.md—, pero sirve para lo que más molesta de
+   * una cinta: querer mirar una marca y que se escape.
+   */
+  .cinta:hover .cinta-pista,
+  .cinta:focus-within .cinta-pista {
+    animation-play-state: paused;
+  }
+
+  /*
+   * Con «menos movimiento» la cinta NO se ralentiza: se APAGA, y la franja
+   * vuelve a ser la fila estática de antes. Es justo el caso que esa
+   * preferencia existe para cubrir.
+   *
+   * Hay que deshacer tres cosas a la vez, y las tres hacen falta: sin
+   * `width: auto` la pista sigue midiendo `max-content` y desborda; sin
+   * ocultar las copias se verían veintiuna marcas; y sin `flex-wrap` las
+   * siete no caben en pantallas estrechas.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .cinta { mask-image: none; }
+
+    .cinta-pista {
+      animation-name: none;
+      transform: none;
+      width: auto;
+      justify-content: center;
+    }
+
+    .cinta-grupo {
+      flex-wrap: wrap;
+      justify-content: center;
+      /* El tope marca cuántas caen por fila; es el reparto que tenía la
+         franja antes de la cinta. */
+      max-width: 19.25rem;
+      margin-inline: auto;
+    }
+
+    .cinta-grupo[aria-hidden='true'] { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) and (min-width: 640px) {
+    .cinta-grupo { max-width: 35rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) and (min-width: 1024px) {
+    .cinta-grupo { max-width: 58.5rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) and (min-width: 1280px) {
+    .cinta-grupo { max-width: 74.25rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) and (min-width: 1536px) {
+    .cinta-grupo { max-width: 83rem; }
+  }
+</style>

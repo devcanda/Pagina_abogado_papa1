@@ -30,6 +30,31 @@ export const mapa = 'https://www.google.com/maps/place/Candamil+y+Asociados+Abog
 
 export const whatsapp = import.meta.env.PUBLIC_WHATSAPP ?? '';
 
+/**
+ * Perfiles en redes. ÚNICA fuente, por el mismo motivo que el resto: hasta
+ * ahora los iconos de la barra superior apuntaban a `#` porque nadie los
+ * configuró, y el día que se añadiera un bloque de redes habría dos listas que
+ * acabarían discrepando.
+ *
+ * Aquí van los PERFILES, que no cambian nunca. El vídeo de YouTube que se
+ * muestra en la portada NO está aquí: eso es contenido, cambia, y se edita
+ * desde el panel como cualquier otro texto.
+ *
+ * Una cadena vacía significa «esa red no existe todavía»: ni el icono ni el
+ * bloque la pintan. Es preferible a un enlace que lleva a ninguna parte.
+ */
+export const redes = {
+  facebook: '',
+  instagram: '',
+  linkedin: '',
+  tiktok: '',
+  youtube: '',
+};
+
+/** Las que están configuradas, en el orden en que se declaran. */
+export const redesActivas = () =>
+  Object.entries(redes).filter(([, url]) => url).map(([nombre, url]) => ({ nombre, url }));
+
 export const MENSAJE_POR_DEFECTO = 'Hola, necesito asesoría jurídica. ¿Me pueden ayudar?';
 
 /** Enlace a WhatsApp con el mensaje ya escrito. */

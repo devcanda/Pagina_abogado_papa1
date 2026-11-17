@@ -44,7 +44,15 @@ await ver(`(()=>{const f=document.querySelector('form');
 await new Promise((r) => setTimeout(r, 1800));
 
 console.log('\n== La pantalla trae los formularios ==');
-comprobar('un editor por bloque', (await ver(`document.querySelectorAll('[data-editor]').length`)) === 8);
+/*
+ * Un editor por bloque, sean los que sean. Antes exigía `=== 8` y se puso
+ * roja al añadir el bloque de redes sociales, denunciando un fallo que no
+ * existía. Lo que importa es que no falte ninguno ni sobre.
+ */
+const editores = await ver("document.querySelectorAll('[data-editor]').length");
+comprobar('un editor por cada bloque de la portada',
+  editores === Number(sql('SELECT count(*) FROM bloques')),
+  `${editores} editores`);
 comprobar('campos de texto generados',
   (await ver(`document.querySelectorAll('.campo input[type=text], .campo textarea').length`)) > 40,
   (await ver(`document.querySelectorAll('.campo input[type=text], .campo textarea').length`)) + ' controles');

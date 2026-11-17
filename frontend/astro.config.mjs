@@ -26,12 +26,17 @@ export default defineConfig({
    * y al medir todavía no están aplicados—, y las comprobaciones de
    * maquetación fallan por algo que no es un fallo del sitio.
    *
-   * Se declaran explícitos para que no dependan del valor por defecto de
-   * Astro, y con `strictPort` para que fallen en vez de saltar al siguiente
-   * libre: un servidor en un puerto que nadie espera es peor que ninguno.
+   * `strictPort` para que falle en vez de saltar al siguiente libre: un
+   * servidor en un puerto que nadie espera es peor que ninguno.
+   *
+   * OJO: **Astro no tiene una opción `preview` de primer nivel.** `astro
+   * preview` usa este mismo `server.port`, así que el 4340 se le pasa por la
+   * línea de órdenes, en el guion `preview` de `package.json`. Aquí hubo una
+   * clave `preview: { port: 4340 }` que Astro ignoraba en silencio; pareció
+   * funcionar porque había un servidor del puerto correcto levantado de antes,
+   * y las pruebas dieron verde contra él.
    */
   server: { port: 4321, strictPort: true },
-  preview: { port: 4340, strictPort: true },
 
   vite: { plugins: [tailwindcss()] },
 });

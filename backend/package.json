@@ -17,7 +17,7 @@
     "db:estado": "node --env-file-if-exists=.env scripts/migrar.js --estado",
     "usuario:crear": "node --env-file-if-exists=.env scripts/crear-usuario.js",
     "usuario:clave": "node --env-file-if-exists=.env scripts/cambiar-clave.js",
-    "probar": "node .pruebas/panel.test.mjs && node .pruebas/bloques.test.mjs && node .pruebas/imagenes.test.mjs && node .pruebas/colores.test.mjs && node .pruebas/fondos.test.mjs && node .pruebas/editor.test.mjs && node .pruebas/publicar.test.mjs"
+    "probar": "node .pruebas/panel.test.mjs && node .pruebas/bloques.test.mjs && node .pruebas/imagenes.test.mjs && node .pruebas/colores.test.mjs && node .pruebas/fondos.test.mjs && node .pruebas/editor.test.mjs && node .pruebas/redes.test.mjs && node .pruebas/perito.test.mjs && node .pruebas/publicar.test.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

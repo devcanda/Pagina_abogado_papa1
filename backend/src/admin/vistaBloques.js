@@ -339,10 +339,18 @@ const MEDIOS = ${JSON.stringify(
   ).replace(/</g, '\u003c')};
 
 /**
- * Reduce al tamaño pedido sin deformar: recorta el sobrante del lado largo,
- * que es lo que hace 'object-fit: cover' en el sitio.
+ * Reduce al tamaño pedido sin deformar.
+ *
+ * Por defecto CUBRE: recorta el sobrante del lado largo, que es lo que hace
+ * 'object-fit: cover' en el sitio, y es lo correcto para una fotografía.
+ *
+ * Con ajuste 'contener' CABE ENTERA y lo que sobra queda transparente. Hace
+ * falta para los logotipos: recortar el lado largo de un logotipo le corta
+ * letras, y un logotipo ajeno no se puede modificar ni por accidente. El
+ * lienzo nace transparente y WebP guarda el canal alfa, asi que el logotipo
+ * llega al sitio sin fondo y se puede poner sobre cualquier color.
  */
-function redimensionar(archivo, anchoDestino, altoDestino) {
+function redimensionar(archivo, anchoDestino, altoDestino, ajuste) {
   return new Promise((resolver, rechazar) => {
     const url = URL.createObjectURL(archivo);
     const img = new Image();
@@ -354,7 +362,9 @@ function redimensionar(archivo, anchoDestino, altoDestino) {
       const ctx = lienzo.getContext('2d');
       ctx.imageSmoothingQuality = 'high';
 
-      const escala = Math.max(anchoDestino / img.width, altoDestino / img.height);
+      const escala = ajuste === 'contener'
+        ? Math.min(anchoDestino / img.width, altoDestino / img.height)
+        : Math.max(anchoDestino / img.width, altoDestino / img.height);
       const w = img.width * escala;
       const h = img.height * escala;
       ctx.drawImage(img, (anchoDestino - w) / 2, (altoDestino - h) / 2, w, h);
@@ -445,7 +455,8 @@ function engancharSubida(entrada) {
     estado.textContent = 'Ajustando la imagen…';
     try {
       const blob = await redimensionar(
-        archivo, Number(entrada.dataset.ancho), Number(entrada.dataset.alto));
+        archivo, Number(entrada.dataset.ancho), Number(entrada.dataset.alto),
+        entrada.dataset.ajuste);
 
       estado.textContent = 'Subiendo (' + Math.round(blob.size / 1024) + ' KB)…';
       const cuerpo = new FormData();

@@ -263,6 +263,63 @@ export const BLOQUES = {
       texto: { tipo: 'parrafo', max: 300 },
       textoBoton: { tipo: 'texto', max: 30 },
       enlaceBoton: { tipo: 'enlace' },
+      /*
+       * Entidades que certifican el servicio.
+       *
+       * Van en una franja propia bajo las dos columnas, no dentro de la
+       * columna de texto: ahi solo queda el 46% del ancho y cinco logotipos a
+       * 80px cada uno no se leen. A lo ancho de la seccion caben a 220px.
+       *
+       * Cada logotipo lleva su NOMBRE, que no es decorativo: es el texto
+       * alternativo. Un logotipo sin nombre es un sello que un lector de
+       * pantalla no puede anunciar, y aqui lo que aporta el bloque es
+       * precisamente quien avala.
+       */
+      tituloCertificaciones: {
+        tipo: 'texto', max: 60, nombre: 'Rotulo de las certificaciones',
+        ayuda: 'Encabeza la fila de logotipos. Vacio, no se pinta',
+      },
+      certificaciones: {
+        tipo: 'grupo', max: 6, nombre: 'Entidad certificadora',
+        campos: {
+          nombre: {
+            tipo: 'texto', max: 60, requerido: true,
+            ayuda: 'Nombre de la entidad. Es el texto alternativo del logotipo',
+          },
+          /*
+           * `ajuste: 'contener'` y no el recorte de siempre.
+           *
+           * El panel reduce con `cover`, que recorta el lado largo: a una foto
+           * le sienta bien y a un logotipo le corta letras. Ademas son marcas
+           * AJENAS; deformarlas o recortarlas no es una cuestion de gusto.
+           * Con 'contener' cabe entera y lo que sobra queda transparente.
+           */
+          /*
+           * 320x160, y el lienzo es solo el MARCO: lo que decide el tamano en
+           * pantalla es como se coloca el logotipo dentro.
+           *
+           * Hubo un paso intermedio por 320x120, igualando la proporcion del
+           * lienzo a la del hueco de la casilla para que un logotipo apaisado
+           * lo llenara. Funcionaba con los apaisados y rompia con el apilado:
+           * el de Aeronautica Civil (1,38:1) tocaba el techo antes de crecer y
+           * se veia claramente mas pequeno que sus vecinos.
+           *
+           * `herramientas/preparar-logos-certificacion.mjs` iguala el AREA
+           * optica de los cinco, no su altura, y para eso necesita un lienzo
+           * que admita tanto un 2,9:1 como un 1,38:1.
+           *
+           * La medida tiene que ser la MISMA aqui y en `medios`: el
+           * desplegable solo ofrece huecos de la misma medida sugerida, asi
+           * que si discrepan el campo se queda sin opciones que ofrecer.
+           */
+          imagen: {
+            tipo: 'imagen', ancho: 320, alto: 160, ajuste: 'contener',
+            nombre: 'Logotipo',
+            ayuda: 'Preferible PNG o WebP con fondo transparente',
+          },
+          enlace: { tipo: 'enlace', ayuda: 'Opcional. Ficha o web de la entidad' },
+        },
+      },
       palabraFondo: { tipo: 'texto', max: 14, ayuda: 'Palabra grande y tenue al fondo' },
       tarjetas: {
         tipo: 'grupo',
@@ -329,6 +386,65 @@ export const BLOQUES = {
   },
 
   // ──────────────────────────────────────────────────────────────────────────
+  redesSociales: {
+    nombre: 'Redes sociales',
+    descripcion: 'Últimos vídeos de TikTok, un vídeo de YouTube y la fanpage de Facebook.',
+    // Claro, como el bloque al que sustituye: la portada alterna claro y
+    // oscuro, y es esa alternancia la que le da ritmo.
+    tono: 'claro',
+    componente: 'RedesSociales.astro',
+    campos: {
+      etiqueta: { tipo: 'texto', max: 40 },
+      titulo: { tipo: 'texto', max: 90, requerido: true },
+      destacado: { tipo: 'texto', max: 45, ayuda: 'Parte del titular en cursiva subrayada' },
+      /*
+       * Los tres se editan AQUÍ, por decisión del cliente (11-11-2026).
+       *
+       * Nacieron en `src/data/contacto.js` con el argumento de que un perfil
+       * de red no cambia nunca y de que así la barra superior y el bloque
+       * leerían la misma lista. El argumento sigue siendo cierto; lo que pesó
+       * más es que, con los perfiles en código, el cliente no puede pegar su
+       * propio TikTok sin que alguien toque el repositorio, y eso convierte un
+       * cambio de dos minutos en una tarea de programador.
+       *
+       * EL RIESGO QUE SE ASUME: ahora hay dos sitios donde puede vivir una
+       * red —este bloque y `contacto.js`—, y es el mismo agujero del NAP
+       * incoherente que el proyecto ya cerró con el teléfono y la dirección.
+       * Se mitiga así, y conviene no aflojarlo:
+       *
+       *   · `contacto.js` queda como RESERVA, no como segunda lista: el
+       *     componente usa lo del bloque y solo cae a `contacto.js` si el
+       *     campo está vacío.
+       *   · La barra superior sigue leyendo `contacto.js`. Mientras los
+       *     campos del bloque estén puestos y `contacto.js` vacío, los iconos
+       *     de la barra no se pintan. Cerrarlo del todo es llevar los datos
+       *     de contacto a la base, que es trabajo aparte y está anotado.
+       */
+      tiktokPerfil: {
+        tipo: 'url',
+        red: 'tiktok',
+        ejemplo: 'https://www.tiktok.com/@usuario',
+        ayuda: 'Perfil, no un vídeo suelto: así se actualiza solo.',
+      },
+      facebookPagina: {
+        tipo: 'url',
+        red: 'facebook',
+        ejemplo: 'https://www.facebook.com/pagina',
+        ayuda: 'La página del bufete, no un perfil personal.',
+      },
+      youtubeVideo: {
+        tipo: 'url',
+        red: 'youtube',
+        ejemplo: 'https://www.youtube.com/watch?v=...',
+        ayuda: 'Pegue el enlace del vídeo tal cual; se limpia solo.',
+      },
+      colorTitulo: { tipo: 'color', defecto: '#373435', ayuda: 'Color del titular' },
+      colorTexto: { tipo: 'color', defecto: '#373435', ayuda: 'Color del texto corrido' },
+    },
+    variantes: {},
+  },
+
+  // ──────────────────────────────────────────────────────────────────────────
   servicioDestacado: {
     nombre: 'Servicio destacado',
     descripcion: 'Un servicio con texto, lista de puntos, imagen y botón.',
@@ -340,9 +456,117 @@ export const BLOQUES = {
       destacado: { tipo: 'texto', max: 45 },
       texto: { tipo: 'parrafo', max: 600 },
       puntos: { tipo: 'lista', max: 6 },
-      imagen: { tipo: 'imagen', ancho: 900, alto: 680 },
+      /*
+       * La figura enmarcada es la RESERVA del fondo a sangre.
+       *
+       * Las dos no pueden convivir, y esto no es como en la cabecera. Alli la
+       * figura se monta sobre una cuna y deja ver la foto al lado; aqui es un
+       * rectangulo OPACO que ocupa su columna entera, y entre 1024 y 1280px
+       * tapa la mitad izquierda mientras el texto tapa la derecha: un fondo
+       * detras no se veria en absoluto.
+       *
+       * Asi que al poner fondo, la figura y su marco rojo se retiran. El panel
+       * deja de pintar este campo —ensenar los dos juegos deja a quien edita
+       * sin saber cual manda— pero la clave se CONSERVA: elegir
+       * «— sin imagen —» en el fondo devuelve el diseno anterior entero.
+       */
+      imagen: { tipo: 'imagen', ancho: 900, alto: 680, reserva: 'imagenFondo' },
+      /*
+       * Fondo a sangre, por detras del texto. Mismo papel que el de la
+       * cabecera y mismas medidas de lienzo.
+       *
+       * A 1920px solo se ve la banda `y 193-887` del lienzo: la franja es mas
+       * apaisada que 16:9 y `object-fit: cover` recorta arriba y abajo. Lo
+       * importante de la foto tiene que caer ahi, y a la IZQUIERDA, que es
+       * donde no hay letras encima.
+       */
+      imagenFondo: {
+        tipo: 'imagen', ancho: 1920, alto: 1080, nombre: 'Imagen de fondo',
+        ayuda: 'Ocupa la franja entera. Al ponerla, la figura enmarcada se retira',
+      },
+      /*
+       * Version VERTICAL, solo para movil, y es opcional.
+       *
+       * En el telefono la franja es alta y estrecha: de un lienzo apaisado
+       * `cover` solo deja ver el 56% central del ancho. Sin esta, el movil usa
+       * la de escritorio, que es mejor que nada pero recorta mucho.
+       */
+      imagenFondoMovil: {
+        tipo: 'imagen', ancho: 1024, alto: 1536, nombre: 'Imagen de fondo (movil)',
+        ayuda: 'Opcional. Version vertical, para que no se recorte en el telefono',
+      },
+      /*
+       * El velo no es opcional de verdad en cuanto hay foto.
+       *
+       * El titular es blanco y el contraste depende de que zona de la imagen
+       * caiga bajo cada letra: NO hay forma de medirlo desde el panel. Por
+       * defecto `ninguno`, para que anadir el campo no oscurezca nada.
+       */
+      velo: {
+        tipo: 'opcion', nombre: 'Velo sobre la imagen',
+        opciones: ['ninguno', 'ligero', 'medio', 'fuerte', 'opaco'],
+        defecto: 'ninguno',
+        ayuda: 'Oscurece la foto para que se lea el texto. Suba el velo si no se lee',
+      },
       textoBoton: { tipo: 'texto', max: 30 },
       enlaceBoton: { tipo: 'enlace' },
+      /*
+       * Entidades que certifican el servicio.
+       *
+       * Van en una franja propia bajo las dos columnas, no dentro de la
+       * columna de texto: ahi solo queda el 46% del ancho y cinco logotipos a
+       * 80px cada uno no se leen. A lo ancho de la seccion caben a 220px.
+       *
+       * Cada logotipo lleva su NOMBRE, que no es decorativo: es el texto
+       * alternativo. Un logotipo sin nombre es un sello que un lector de
+       * pantalla no puede anunciar, y aqui lo que aporta el bloque es
+       * precisamente quien avala.
+       */
+      tituloCertificaciones: {
+        tipo: 'texto', max: 60, nombre: 'Rotulo de las certificaciones',
+        ayuda: 'Encabeza la fila de logotipos. Vacio, no se pinta',
+      },
+      certificaciones: {
+        tipo: 'grupo', max: 6, nombre: 'Entidad certificadora',
+        campos: {
+          nombre: {
+            tipo: 'texto', max: 60, requerido: true,
+            ayuda: 'Nombre de la entidad. Es el texto alternativo del logotipo',
+          },
+          /*
+           * `ajuste: 'contener'` y no el recorte de siempre.
+           *
+           * El panel reduce con `cover`, que recorta el lado largo: a una foto
+           * le sienta bien y a un logotipo le corta letras. Ademas son marcas
+           * AJENAS; deformarlas o recortarlas no es una cuestion de gusto.
+           * Con 'contener' cabe entera y lo que sobra queda transparente.
+           */
+          /*
+           * 320x160, y el lienzo es solo el MARCO: lo que decide el tamano en
+           * pantalla es como se coloca el logotipo dentro.
+           *
+           * Hubo un paso intermedio por 320x120, igualando la proporcion del
+           * lienzo a la del hueco de la casilla para que un logotipo apaisado
+           * lo llenara. Funcionaba con los apaisados y rompia con el apilado:
+           * el de Aeronautica Civil (1,38:1) tocaba el techo antes de crecer y
+           * se veia claramente mas pequeno que sus vecinos.
+           *
+           * `herramientas/preparar-logos-certificacion.mjs` iguala el AREA
+           * optica de los cinco, no su altura, y para eso necesita un lienzo
+           * que admita tanto un 2,9:1 como un 1,38:1.
+           *
+           * La medida tiene que ser la MISMA aqui y en `medios`: el
+           * desplegable solo ofrece huecos de la misma medida sugerida, asi
+           * que si discrepan el campo se queda sin opciones que ofrecer.
+           */
+          imagen: {
+            tipo: 'imagen', ancho: 320, alto: 160, ajuste: 'contener',
+            nombre: 'Logotipo',
+            ayuda: 'Preferible PNG o WebP con fondo transparente',
+          },
+          enlace: { tipo: 'enlace', ayuda: 'Opcional. Ficha o web de la entidad' },
+        },
+      },
       palabraFondo: { tipo: 'texto', max: 14, ayuda: 'Palabra grande y tenue al fondo' },
       /*
        * Colores del texto. Selector LIBRE por decisión del cliente (D4): no
@@ -422,6 +646,64 @@ export const BLOQUES = {
   },
 
   // ──────────────────────────────────────────────────────────────────────────
+  muroClientes: {
+    nombre: 'Nuestros clientes',
+    descripcion: 'Tira horizontal con los logotipos de los clientes del bufete.',
+    /*
+     * OSCURO, y no es una eleccion estetica: los siete logotipos vienen con la
+     * tinta en BLANCO. Sobre fondo claro desaparecerian, y recolorear una
+     * marca ajena no esta sobre la mesa en este proyecto.
+     */
+    tono: 'oscuro',
+    componente: 'MuroClientes.astro',
+    campos: {
+      rotulo: {
+        tipo: 'texto', max: 40, nombre: 'Rotulo',
+        ayuda: 'Versales sobre la fila. Vacio, no se pinta',
+      },
+      titulo: { tipo: 'texto', max: 70, ayuda: 'Opcional, bajo el rotulo' },
+      clientes: {
+        tipo: 'grupo', max: 12, nombre: 'Cliente',
+        campos: {
+          nombre: {
+            tipo: 'texto', max: 60, requerido: true,
+            ayuda: 'Nombre del cliente. Es el texto alternativo del logotipo',
+          },
+          /*
+           * Mismo lienzo que los avales del perito (320x160) y mismo
+           * `ajuste: 'contener'`, a proposito: son dos tiras de logotipos
+           * ajenos con el mismo problema, asi que comparten la herramienta de
+           * preparacion y el desplegable de huecos del panel, que solo ofrece
+           * huecos de la MISMA medida sugerida.
+           *
+           * El lienzo es solo el MARCO. Lo que iguala el peso de cada marca es
+           * como se coloca dentro, y eso lo hace
+           * `herramientas/preparar-logos-clientes.mjs` por area optica. Aqui
+           * las proporciones van de 1,00 (Camara de Comercio, cuadrada) a 3,94
+           * (Dixtrital, una tira): contenidos a secas, la primera tocaria el
+           * techo antes de crecer y se veria la mitad que sus vecinas.
+           */
+          imagen: {
+            tipo: 'imagen', ancho: 320, alto: 160, ajuste: 'contener',
+            nombre: 'Logotipo',
+            ayuda: 'PNG o WebP con fondo transparente y tinta clara',
+          },
+          enlace: { tipo: 'enlace', ayuda: 'Opcional. Web del cliente' },
+        },
+      },
+      /*
+       * El defecto es el rojo claro de `etiqueta-seccion-clara`, que es lo que
+       * el bloque pinta si nadie toca el campo. Poner aqui otro valor dejaria
+       * al panel enseñando un color distinto del publicado, que es justo el
+       * fallo que evito la migracion 009 con los colores de las laminas.
+       */
+      colorRotulo: { tipo: 'color', defecto: '#d98a8c', ayuda: 'Color del rotulo' },
+      colorTitulo: { tipo: 'color', defecto: '#ffffff', ayuda: 'Color del titular' },
+    },
+    variantes: {},
+  },
+
+  // ──────────────────────────────────────────────────────────────────────────
   textoLibre: {
     nombre: 'Texto libre',
     descripcion: 'Párrafos y subtítulos sueltos. Para contenido que no encaja en otro bloque.',
@@ -462,6 +744,81 @@ export function variantesPorDefecto(tipo) {
   return Object.fromEntries(
     Object.entries(def.variantes).map(([k, v]) => [k, v.defecto]),
   );
+}
+
+/*
+ * ── URLs de redes sociales ──────────────────────────────────────────────────
+ *
+ * Estas direcciones acaban DENTRO del `src` de un `<iframe>` y del `href` de
+ * un enlace. Es el mismo agujero que los colores: un campo de texto escrito
+ * crudo en un atributo es una vía de inyección, y aquí además bastaría un
+ * `javascript:` o un dominio ajeno para colar contenido de terceros en la
+ * portada del bufete.
+ *
+ * Se valida con lista de lo PERMITIDO —dominio y forma de la ruta— y se
+ * devuelve una URL reconstruida por nosotros. Nunca se reenvía la cadena que
+ * escribió el editor: aunque pasara la comprobación, reconstruirla es lo que
+ * garantiza que no viaje nada más.
+ *
+ * De paso se tira la basura de sesión (`?si=`, `?entry=`, `fbclid`…), que es
+ * lo que sale al copiar del navegador o de la app. Mismo criterio que ya se
+ * aplicó al enlace de Google Maps.
+ */
+const REDES = {
+  tiktok: {
+    dominios: ['tiktok.com', 'www.tiktok.com'],
+    // @usuario. TikTok admite letras, dígitos, punto y guion bajo.
+    leer: (u) => {
+      const m = /^\/@([A-Za-z0-9._]{1,24})\/?$/.exec(u.pathname);
+      return m ? `https://www.tiktok.com/@${m[1]}` : '';
+    },
+  },
+  youtube: {
+    dominios: ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'],
+    /*
+     * Se guarda la URL de ver, no la de incrustar: es la que el editor
+     * reconoce cuando vuelve al panel. La de incrustar la arma el componente
+     * a partir del id, contra `youtube-nocookie.com`.
+     */
+    leer: (u) => {
+      const id = u.hostname === 'youtu.be'
+        ? u.pathname.slice(1)
+        : (u.searchParams.get('v') ?? /^\/(?:shorts|embed|live)\/([^/]+)/.exec(u.pathname)?.[1] ?? '');
+      return /^[A-Za-z0-9_-]{11}$/.test(id) ? `https://www.youtube.com/watch?v=${id}` : '';
+    },
+  },
+  facebook: {
+    dominios: ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com'],
+    leer: (u) => {
+      // `profile.php?id=123` es una página sin nombre corto; también vale.
+      if (u.pathname === '/profile.php') {
+        const id = u.searchParams.get('id') ?? '';
+        return /^[0-9]{5,25}$/.test(id) ? `https://www.facebook.com/profile.php?id=${id}` : '';
+      }
+      const m = /^\/([A-Za-z0-9.-]{1,64})\/?$/.exec(u.pathname);
+      return m && m[1] !== 'profile.php' ? `https://www.facebook.com/${m[1]}` : '';
+    },
+  },
+};
+
+/**
+ * Devuelve la URL canónica de una red, o cadena vacía si no encaja.
+ * Se exporta porque la usan el saneado, el panel y las pruebas: duplicada,
+ * un día dejarían de coincidir.
+ */
+export function sanearUrlRed(valor, red) {
+  const def = REDES[red];
+  if (!def) return '';
+  let u;
+  try {
+    u = new URL(String(valor).trim());
+  } catch {
+    return '';                       // No es ni una URL.
+  }
+  // `https` y nada más: `javascript:`, `data:` y `http:` quedan fuera.
+  if (u.protocol !== 'https:') return '';
+  if (!def.dominios.includes(u.hostname.toLowerCase())) return '';
+  return def.leer(u);
 }
 
 /**
@@ -506,6 +863,14 @@ export function sanearDatos(tipo, datos) {
          */
         const c = String(valor).trim().toLowerCase();
         salida[clave] = /^[a-z0-9][a-z0-9-]{0,62}$/.test(c) ? c : '';
+      } else if (campo.tipo === 'url') {
+        /*
+         * Una URL vacía es legítima: significa «esta red todavía no está».
+         * Una inválida se descarta y deja el campo vacío, que el componente
+         * resuelve no pintando esa parte. No se conserva lo anterior a
+         * propósito: si alguien pega una dirección mala, tiene que verlo.
+         */
+        salida[clave] = String(valor).trim() ? sanearUrlRed(valor, campo.red) : '';
       } else if (campo.tipo === 'color') {
         /*
          * Un color acaba DENTRO de un atributo `style`. Sin esta comprobación

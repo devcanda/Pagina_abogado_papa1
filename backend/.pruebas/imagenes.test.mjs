@@ -5,6 +5,9 @@
  */
 import { execFileSync } from 'node:child_process';
 
+/* El origen del panel. Se usa para quedarse solo con SUS errores de consola. */
+const PANEL = 'http://localhost:3000';
+
 const sql = (q) => execFileSync('docker', ['exec', '-i', 'candamil-db-dev', 'psql',
   '-U', 'candamil_app', '-d', 'candamil_db', '-t', '-A', '-c', q], { encoding: 'utf8' }).trim();
 
@@ -16,7 +19,20 @@ ws.onmessage = (e) => {
   const m = JSON.parse(e.data);
   if (m.id && pend.has(m.id)) { pend.get(m.id)(m.result); pend.delete(m.id); }
   else {
-    if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error') errores.push(m.params.entry.text.slice(0, 200));
+    /*
+     * Solo los errores DEL PANEL.
+     *
+     * Chrome es compartido: la pestana puede venir de cualquier pagina, y
+     * `Log.enable` reproduce lo que ya habia en el registro. Sin este filtro,
+     * la suite daba por sucia la consola del panel por errores de la portada
+     * —los scripts de TikTok y Meta, que esta red filtra—. Un fallo que
+     * depende de donde estuviera el navegador no se puede diagnosticar.
+     */
+    const delPanel = (u) => typeof u === 'string' && u.startsWith(PANEL);
+    if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error'
+        && (delPanel(m.params.entry.url) || !m.params.entry.url)) {
+      errores.push(m.params.entry.text.slice(0, 200));
+    }
     if (m.method === 'Runtime.exceptionThrown') errores.push(JSON.stringify(m.params.exceptionDetails.text).slice(0, 200));
     if (m.method && ev.has(m.method)) { ev.get(m.method)(); ev.delete(m.method); }
   }
@@ -34,7 +50,7 @@ const comprobar = (n, c, d = '') => { res.push(c); console.log(`  ${c ? 'ok' : '
 await cdp('Page.enable'); await cdp('Runtime.enable'); await cdp('Log.enable');
 await cdp('Emulation.setDeviceMetricsOverride', { width: 1280, height: 950, deviceScaleFactor: 1, mobile: false });
 
-await ir('http://localhost:3000/panel/entrar');
+await ir(`${PANEL}/panel/entrar`);
 await ver(`(()=>{const f=document.querySelector('form');
   f.querySelector('[name=email]').value=${JSON.stringify(process.env.CORREO)};
   f.querySelector('[name=clave]').value=${JSON.stringify(process.env.CLAVE)};

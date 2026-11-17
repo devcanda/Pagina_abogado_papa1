@@ -1,4 +1,5 @@
 import express from 'express';
+import { join } from 'node:path';
 import { carpetaMedios } from './services/imagenes.service.js';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -55,6 +56,14 @@ export function crearApp() {
     // `maxAge: 0` porque aquí se sustituyen imágenes continuamente y una caché
     // haría dudar de si la subida funcionó.
     app.use('/img', express.static(carpetaMedios(), { maxAge: 0 }));
+
+    /*
+     * Y el icono, que vive un nivel por encima de las imagenes.
+     * En produccion lo sirve Apache desde `public_html`; aqui el panel esta
+     * en otro puerto que el sitio y sin esto pediria un 404 en cada carga.
+     */
+    app.use('/favicon-32.png', express.static(
+      join(carpetaMedios(), '..', 'favicon-32.png'), { maxAge: 0 }));
   }
 
   // El panel va ANTES que la API y bajo su propio prefijo: su sesión es por

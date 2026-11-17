@@ -3,7 +3,7 @@
 ## Estado Actual
 - Arquitectura base completa y probada de extremo a extremo (spec `001`).
 - `backend/`: Express + PostgreSQL por capas (health, paginas, leads, chat).
-- `frontend/`: Astro 5 + Tailwind 4. 4 páginas, 44KB CSS, **0KB de JS**.
+- `frontend/`: Astro 5 + Tailwind 4. 5 páginas, 44KB CSS, **0KB de JS**.
 - `Layout.astro` elige Corporativo o Landing según `pagina.es_landing_page`.
 - **Portada**: hero, bufete, franja, áreas, cifras, perito, casos y cierre.
 - **Serif de titulares** (Playfair autoalojada); utilidades en `AGENTS.md`.
@@ -11,9 +11,74 @@
 - Base de desarrollo en Docker (`docker compose up -d`, puerto 5434).
 
 ## Decisiones y Aprendizajes
+- **Página `/areas/` implementada** (17-11-2026, spec `010`): cuadrícula
+  moderna de 3 columnas inspirada en LawyerBase (`practice-areas-modern-3-columns.html`),
+  con 9 especialidades simétricas, velo interactivo Navy, 0 KB de JS y botones
+  de contacto directos. Resuelve el 404 de la barra de navegación y del botón
+  «Ver todas las áreas» de la portada.
 - **La portada se pinta desde la base**: `bloques` + `bloques/registro.js` +
   `Renderizador.astro`.
 - **Los bloques guardan la CLAVE de la imagen, no la ruta** (ver `AGENTS.md`).
+- **La franja de clientes es una CINTA que se mueve sola, sin JavaScript**
+  (17-11-2026). Grupo repetido 3 veces y desplazamiento de un tercio exacto;
+  el hueco va en `margin-inline-end`, **nunca en `gap`**, o los tercios no
+  cuadran y se ve un salto en cada vuelta. Duracion por tramo para que la
+  velocidad sea la misma (~36 px/s medidos). Va **hacia la derecha**.
+  **Segunda deuda de WCAG 2.2.2** del sitio, tras el carrusel de la cabecera:
+  no hay control de pausa; con `prefers-reduced-motion` se apaga del todo.
+- **Chrome en segundo plano CONGELA el reloj de las animaciones.** `playState`
+  dice `running` y `currentTime` no avanza: medir el movimiento asi da 0 px/s
+  siempre. Hace falta `Emulation.setFocusEmulationEnabled` +
+  `Page.setWebLifecycleState: active`. Es la hermana del aviso de la carga
+  diferida.
+- **Los logotipos de clientes se igualan sobre la TINTA, no sobre el halo**
+  (17-11-2026). El `trim({threshold:1})` se quedaba con el resplandor de los
+  archivos, así que el área óptica salía «perfecta» (×1,01) mientras la tinta
+  real iba ×2,23: Carmelita al 142 % y Dixtrital al 64 %. Ahora la caja se
+  calcula con alfa ≥ 128 y 3 px de sangrado → 94 %–106 %. **La altura sigue
+  variando a propósito**: igualar área es lo que hace que pesen lo mismo.
+- **El ancho útil del `.contenedor` es 1104 px, no 1152.** Topa en 1152 pero
+  lleva 24 px de margen interior por lado. Calcular una fila sobre 1152 la
+  rompe por 28 px: pasó al agrandar los logotipos de clientes. El máximo para
+  siete en fila es **144×72 px** con hueco de 1 rem.
+- **`bloques.test.mjs` dejaba un bloque ENCENDIDO** (arreglado el 17-11-2026):
+  probaba el interruptor sobre el id 7 clavado y «devolvía» encendiendo, así
+  que al ejecutarla volvió a publicar «Casos resueltos», que el cliente había
+  mandado ocultar. Ahora elige el bloque, lee su estado antes y lo repone en un
+  `finally`. **Tras correr suites, comprobar `SELECT tipo, visible FROM
+  bloques`.**
+- **«Nuestros clientes» sustituye a la franja de cierre** (17-11-2026,
+  migración `019`, spec `009`). Bloque nuevo `muroClientes`: tira horizontal
+  con los siete logotipos de clientes de la web anterior, tinta blanca sobre
+  navy, igualados por **área óptica** (23 000 px² en 320×160) con
+  `herramientas/preparar-logos-clientes.mjs`, que además **quita un velo de
+  alfa 38** que los originales traen en todo el rectángulo. Una fila de
+  1024 px para arriba; 4+3 en tableta y 3+3+1 en teléfono.
+  **La portada se queda sin botón final**: decisión del cliente, expuesta y
+  tomada. El bloque viejo queda apagado, no borrado.
+- **Un tipo de bloque nuevo obliga a REINICIAR la API.** El backend importa
+  `frontend/src/bloques/registro.js` y lo guarda en memoria: guardar un bloque
+  recién registrado da **409 «tipo que ya no existe»** hasta que se reinicia.
+  El sitio compilado sí lo pinta, porque `astro build` relee el registro.
+- **Los avales del perito van en UNA SOLA FILA desde el 17-11-2026** (petición
+  del cliente): `flex-wrap: nowrap` + `flex: 1 1 0` + `aspect-ratio: 2/1`, sin
+  los tramos de ancho de `.avales`. Medido a nueve anchos: una fila, sin
+  desbordar, a ras del titular y del botón. **El precio está en el móvil**: a
+  390 px el logotipo queda en 44×22 y la línea pequeña de cada sello deja de
+  leerse. Es deuda consciente; se revierte solo en el teléfono devolviendo
+  `flex-wrap: wrap` por debajo de `sm`.
+- **«Casos resueltos» está APAGADO desde el 14-11-2026** (petición del cliente):
+  `bloques.visible = FALSE` en el id 7, contenido intacto. Se vuelve a encender
+  con un clic en `/panel/bloques`. Deja tres superficies oscuras seguidas
+  —perito, franja de cierre y pie—; se sostiene porque el cierre es
+  `marino-800` y estrecho, pero cualquier sección nueva que entre ahí va en
+  claro.
+- **El `destacado` de los titulares va en REDONDA desde el 13-11-2026.** El
+  cliente pidió «la fuente de los titulares del slider» para el resto: la
+  familia ya era la misma (Playfair 700 en los dos), lo que se veía distinto era
+  la cursiva, que en Playfair es un diseño aparte y no la redonda inclinada. Se
+  quitó `italic`; el subrayado rojo se queda. La cursiva del archivo sigue
+  usándose en `FranjaTexto` y `FranjaCompromiso`: no se puede borrar el woff2.
 - **CORS solo en la API, nunca en el panel** (global rompía el acceso).
 - **Punto de control visual:** `docs/linea-base/` + `herramientas/visual.mjs`;
   espera la fuente por su efecto, no por `fonts.ready`.
@@ -143,6 +208,34 @@
   **Un hueco de imagen es contenido igual que un titular.**
 - **El correo del panel es `publicidad@candamilabogados.com`**, no el de la
   cuenta del sistema. Las suites lo reciben en `CORREO`.
+- **Bloque de redes sociales IMPLEMENTADO** (11-11-2026): tipo `redesSociales`
+  en el registro, `RedesSociales.astro`, migración `012`. Falta solo pegar las
+  URLs reales. **Con las URLs vacías el bloque no pinta nada**, así que la
+  portada tiene hoy una sección menos.
+- **Astro NO tiene opción `preview` de primer nivel**: `astro preview` usa
+  `server.port`. Mi clave `preview: {port:4340}` se ignoraba y las pruebas
+  dieron verde contra un servidor levantado de antes. El 4340 va como
+  `--port` en el guion de `package.json`.
+- **Dos pruebas nombraban contenido** («los 8 bloques», «=== 8 editores») y se
+  pusieron rojas al añadir el bloque. Ahora cuentan contra la base.
+- **Bloque de redes sociales, especificado** (11-11-2026):
+  `specs/006-redes-sociales/`. Sustituye a `cifrasYPreguntas`, que se OCULTA,
+  no se borra. Decidido con el cliente: TikTok **automático** (embed de perfil
+  oficial: hasta 10 vídeos recientes, sin clave de API ni aprobación; la
+  Display API exigiría revisión de la app y OAuth del titular) y el bloque
+  actual oculto entero.
+  **El botón de «Me gusta» de Facebook está descontinuado desde el 10-02-2026**
+  junto con el de comentarios; sobrevive el Page Plugin, que ya no documenta un
+  contador total.
+  **Este bloque rompe los 0 KB de JavaScript** del sitio: es deuda consciente,
+  y la salida si pesa es pasar TikTok a vídeos elegidos a mano.
+  **Bloqueado**: faltan las tres URLs del cliente (perfil TikTok, vídeo YouTube,
+  fanpage Facebook).
+- **Los iconos sociales de la barra superior apuntan a `#`**: nunca se
+  configuraron. Las URLs van a `contacto.js`, fuente única, no al bloque.
+- **No existe tipo `url` en `sanearDatos`** (hay `lista`, `grupo`, `opcion`,
+  `imagen`, `color`). Hay que crearlo con lista de dominios permitidos: una URL
+  acaba dentro del `src` de un `<iframe>`, mismo agujero que los colores.
 - **El proyecto ya se puede clonar en otro equipo** (10-11-2026): guía en
   `docs/puesta-en-marcha.md`. Lo que faltaba y se añadió: corredor de
   migraciones (`npm run db:migrar`), `.nvmrc`, `.gitignore` de raíz y las
@@ -216,10 +309,189 @@
   línea y tenía bloqueado TODO el JavaScript del panel, incluida la subida de
   imágenes. `img-src` necesita `blob:` o la subida falla.
 
+- **El bloque de redes ya se ve, con cuentas de PRUEBA.** `@tiktok`, la página
+  de Meta y un vídeo cualquiera, puestos desde el panel el 11-11-2026 para
+  poder mirar la maqueta. **Hay que sustituirlas por las del bufete.**
+- **Los tres campos se editan en el panel** desde esa misma fecha, por decisión
+  del cliente; `contacto.js` queda de reserva. El precio está anotado en
+  AGENTS.md: la barra superior sigue leyendo `contacto.js`, y sus iconos
+  siguen en `#`.
+- **Esta máquina filtra `tiktok.com` y `connect.facebook.net`.** Ni sale la
+  petición (`000` en curl, cert inválido en Chrome). Las incrustaciones de esas
+  dos no se pueden ver aquí; YouTube sí responde. No es un fallo del sitio.
+- **`.reserva-red` sostiene la columna** cuando una incrustación no llega. Sin
+  ella el marco se queda en 28px y la fila se descuadra, aunque el enlace de
+  respaldo esté ahí.
+- **Dos suites contaban errores de consola de TERCEROS** y daban falsos rojos
+  según qué página tuviera abierta el Chrome compartido. Ahora filtran por
+  origen.
+- **`fondos.test.mjs` dependía de un PNG suelto en `$TMPDIR`** que nada crea:
+  reventaba en cualquier otra máquina. Ahora lo genera.
+
+- **El panel declara su icono** (`/favicon-32.png`). Sin él, Chrome pedía
+  `/favicon.ico` y el servidor respondía 404: inofensivo, pero la suite de
+  imágenes comprueba que la consola esté limpia y se ponía roja **según el
+  perfil de Chrome** con que se abriera. En local lo sirve `app.js`; en
+  producción, Apache.
+- **Los respaldos de las pruebas van al temporal del SISTEMA**, no a `.`. En
+  Windows no hay `TMPDIR`, así que `fondos.test.mjs` dejaba el respaldo y un
+  PNG de 750KB sueltos dentro de `backend/`, visibles en `git status`.
+- **Arrancar el proyecto tras un reinicio** pide cuatro cosas, y las pruebas
+  fallan raro si falta alguna: Docker Desktop, la API (3000), `npm run preview`
+  (4340) y **un Chrome con `--remote-debugging-port=9222`**. Sin el último, las
+  suites que miden en el navegador no arrancan y `npm run probar` se corta tras
+  las dos primeras sin decir por qué.
+
+- **El bloque de redes lleva `py-6 lg:py-8`**, el 30 % del espaciado de las
+  demás franjas (12-11-2026, pedido por el cliente). Medido: 112px → 32px en
+  escritorio, 80px → 24px en móvil. Excepción deliberada al ritmo de la portada.
+- **Un comentario JSX suelto antes del `<section>` no compila** dentro de
+  `{hayAlgo && (…)}`: cuenta como segundo hijo. Las notas de ese componente van
+  al bloque de encabezado.
+
+- **La franja del perito admite foto de fondo** (`imagenFondo`,
+  `imagenFondoMovil`, `velo`), y al ponerla **la figura con marco rojo se
+  retira**: es opaca y tapaba justo donde iría la foto. Reversible con
+  «— sin imagen —». Migración `013`, huecos `fondo-perito` (1920×1080) y
+  `fondo-perito-movil` (1024×1536), los dos con el relleno de 1×1.
+- **El velo de ese bloque es el ESPEJO del de la cabecera** y corta en `lg`, no
+  en `md`: el texto está a la derecha y la sección pasa a dos columnas a
+  1024 px.
+- **`reservaSuperada()` entiende ahora cadenas**, no solo arrays.
+- **La banda visible de un fondo depende del ancho**: a 1920 px `y 193-887`, a
+  1440 px `y 75-1005`, y a 1024 px el recorte pasa a ser lateral
+  (`x 199-1721`). Diseñar para la de 1920 cubre todas.
+- **Chrome aquí NO dispara la carga diferida** con la ventana en segundo plano:
+  cargan 0 de las 13 imágenes `lazy` de la portada. Si una captura sale sin
+  foto, es esto, no el componente. Para capturar hay que forzar `eager`.
+- **`publicar()` en una prueba tiene que esperar a VER arrancar la
+  compilación**: la ruta responde 202 al coger el candado, no al terminar.
+- **Para quitar un campo desde el panel hay que mandarlo en blanco**, no
+  omitirlo: `conciliar()` conserva lo que no se envía.
+
+- **La franja del perito YA lleva su foto** (12-11-2026): topógrafo con
+  estación total y dron en campo. Origen en
+  `docs/imagenes-origen/fondo-perito-campo.jpg`; las dos piezas se generan con
+  `herramientas/componer-fondo-perito{,-movil}.mjs`. 75 KB y 85 KB.
+- **Velo `fuerte`, elegido midiendo** con `herramientas/contraste-fondo.mjs`:
+  es el mínimo que pasa 4,5:1 en MÓVIL (5,92:1). En escritorio da 6,65:1 y no
+  apaga al topógrafo, porque ahí el velo es degradado.
+- **La banda visible en móvil es `x 97-927`**, no `224-800`: cambió al quitar
+  la figura, porque la sección pasó de 390×1040 a 390×721.
+- **sharp NO soporta `mix-blend-mode` en SVG.** Un molde de tres degradados
+  apilados sale opaco. Las máscaras se calculan píxel a píxel.
+- **Capturar a 1920 px sale sin foto** aunque el DOM esté bien: es un límite de
+  rasterización del navegador emulado. Con `deviceScaleFactor: 0.5` aparece.
+  No es un fallo del sitio.
+
+- **La franja del perito lleva una fila de 5 entidades certificadoras**
+  (12-11-2026). Grupo `certificaciones` en el registro: nombre obligatorio,
+  logotipo **320×160** y enlace opcional. Las cinco entidades están puestas con
+  su nombre y su logotipo: ARAV, RAA, Lonja de Colombia, Aeronáutica Civil y
+  Delta Force.
+- **Sin logotipo, la casilla pinta el NOMBRE.** Es lo que permite ver la
+  estructura antes de que lleguen los archivos, y evita huecos rotos después.
+- **El panel ya sabe `ajuste: 'contener'`** además de cubrir. Antes recortaba
+  siempre con `Math.max`, que a un logotipo le corta letras.
+- **El rótulo de esa franja va en `marino-100`, no en rojo**: está sobre la
+  foto y el botón rojo queda justo encima.
+- **La franja de sellos va DENTRO de la columna de texto**, bajo el botón
+  «Solicitar un avalúo», a ras del titular (13-11-2026). Comprobado al píxel a
+  1920, 1440, 1280, 1024, 768 y 390.
+- **Cada sello va en una PASTILLA clara de 160×80**, `border-radius: 999px`,
+  todas iguales. La simetría la da la pastilla, no el logotipo; lo de dentro
+  ya viene igualado por área óptica.
+- **160×80 es la medida que deja caber tres por fila** en los ~520 px de la
+  columna. Caen 3+2, y 2+2+1 en móvil y entre 1024 y 1151.
+- **La última fila va centrada**, y para eso la lista lleva el ancho EXACTO de
+  una fila llena (330 px para dos pastillas, 500 para tres) y
+  `justify-content: center`: las filas completas no se mueven y la corta se
+  centra. CSS no puede centrar solo la última línea.
+- **El tope va por tramos y el de en medio es el raro:** 3 pastillas por
+  debajo de `lg`, 2 entre 1024 y 1151, 3 desde 1152. La columna de texto no se
+  ensancha de forma lineal.
+- **La pastilla es `min(10rem, calc(50% - 0.3125rem))`**: a 360 px faltaban
+  2 px para dos pastillas y los cinco sellos caían uno por fila.
+- **El rótulo de esta franja va en negrita y CENTRADO sobre las pastillas**,
+  excepción local a `etiqueta-seccion-clara`. El tope de ancho vive en el
+  envoltorio `.avales`, no en la lista: así rótulo y sellos miden lo mismo y
+  comparten centro.
+- **Hubo tres diseños antes**, todos en el historial de
+  `ServicioDestacado.astro`: cinco cajas blancas (rechazadas), un panel con
+  filetes (retirado) y una cinta monocroma sin superficie (retirada el mismo
+  día: obligaba a recolorear cinco marcas ajenas y dejaba los sellos
+  pequeños).
+- **Sin superficie clara no hay franja en color:** Aeronáutica Civil es tinta
+  navy `#083888` y da 1,08:1 sobre este fondo. La pastilla es lo que permite
+  que cada marca conserve su color.
+- **La sección creció al meter los avales en la columna**: 1920×943 y
+  390×1093. Las bandas visibles de los fondos se midieron con la sección más
+  baja; hay que remedirlas antes de recomponer esas imágenes.
+- **La `<ul>` de sellos lleva `data-certificaciones`**: la sección tiene otra
+  lista antes y una prueba medía la equivocada.
+- **La spec 008 se escribió DESPUÉS de implementar**, incumpliendo la regla 2.
+  Anotado en la propia spec.
+- **Texto del perito reescrito** (12-11-2026): 25 años en público y privado,
+  inmuebles, bienes muebles y avalúos especiales, y piloto de dron certificado
+  UAS. 309 caracteres, leídos después de guardar.
+- **Apuntar una entidad a un hueco con su relleno de 1×1 deja la casilla
+  VACÍA**: el componente cree que hay logotipo y deja de pintar el nombre. Pasó
+  al tocar el texto. Lo vigila una comprobación que cuenta como vacía toda
+  casilla sin texto cuya imagen mida menos de 4 px, **y se verificó que falla**
+  —dos veces: primero inyectando el fallo en la página y, con los logotipos ya
+  puestos, apuntando una entidad al hueco de 1×1 y recompilando.
+- **Esa medición NO puede hacerse en el navegador.** Miraba `naturalWidth`, que
+  vale 0 mientras la imagen no cargue, y los logotipos van en carga diferida:
+  el día que llegaron, denunció cuatro casillas vacías que se ven perfectamente.
+  Ahora el navegador devuelve la dirección y **la mide Node**, leyendo la
+  cabecera del PNG o del WebP.
+- **Una expresión regular con ventana de N caracteres se pone roja sola.** La
+  que comprobaba `data-ajuste="contener"` buscaba dentro de 800 caracteres;
+  creció el desplegable de huecos, la distancia pasó a 1101 y falló sin que
+  nada estuviera mal. Se busca dentro del campo, no a tantos caracteres.
+- **La franja es UN panel, no cinco cajas** (12-11-2026). Las cinco cajas
+  blancas de esquina recta las rechazó el cliente: leían como parches pegados
+  sobre el diseño. Ahora es una sola pieza con esquinas suaves, sombra y
+  filetes de 1 px, que son el fondo del panel asomando por un `gap: 1px`. El
+  fondo claro no era negociable —marcas ajenas pensadas para blanco—; la forma
+  sí lo era.
+- **Los logotipos se igualan por ÁREA óptica, no por altura.** Cuatro son
+  apaisados y el de Aeronáutica Civil es apilado: contenidos por alto, ese se
+  veía mucho más pequeño. La herramienta los coloca a 30 000 px² sobre un
+  lienzo de 320×160. **El lienzo es solo el marco**; si el CSS volviera a
+  ajustar cada imagen a su caja desharía la normalización.
+- **La medida tiene que coincidir en el registro y en `medios`**, o el
+  desplegable del panel se queda sin huecos que ofrecer.
+- **Los logotipos los prepara `herramientas/preparar-logos-certificacion.mjs`**,
+  no se suben crudos: quita el fondo blanco por inundación desde los bordes
+  —con pila explícita, que el de Delta Force son 22 millones de píxeles—,
+  recorta y contiene en el lienzo del hueco.
+- **El logotipo de Aeronáutica Civil llegó primero en NEGATIVO** (63 % tinta
+  blanca, 33 % navy `#082858`): 1,03:1 sobre la superficie clara y 1,08:1 sobre
+  navy, invisible en ambos. Se publicó sin logotipo, enseñando el nombre, y el
+  cliente entregó la versión positiva el mismo día. **El camino del nombre no
+  se quita** aunque ya no haga falta: es lo que evita un cuadro roto el día que
+  falte un archivo.
+- **`fondos.test.mjs` nunca tuvo la espera de publicación.** Comprobaba
+  `disabled` en la misma vuelta del `click()`, así que salía a la primera y
+  medía el `dist/` anterior. Colaba casi siempre; el día que no, dieron DIEZ
+  rojos describiendo una página sin estilos —sección de 6300 px, 1928 px de
+  desbordamiento—, que es cómo se ve leer el árbol a medio cambiar. Arreglada
+  igual que en `perito` y `redes`: esperar a verla ARRANCAR y luego a que
+  acabe.
+- **La API pública devuelve las claves de imagen RESUELTAS a ruta.** Reenviar
+  ese objeto al panel sin devolverlas a su clave descarta las fotos.
+
 ## Pendientes / Próximos Pasos
-- [ ] **`/contacto/` y `/areas/` NO existen**: los botones de la cabecera, el
-      pie y el Sticky CTA apuntan ahí y dan 404. Solo hay `inicio`,
-      `quienes-somos` y `demanda-laboral`.
+- [ ] **Faltan las URLs reales de las redes del bufete**: TikTok, la fanpage de
+      Facebook y el vídeo de YouTube. Hasta que lleguen, la portada enseña
+      cuentas de prueba que no son del cliente.
+- [ ] **Los iconos de la barra superior siguen en `#`** (LinkedIn, Instagram,
+      Facebook). Se cierra llevando los datos de contacto a la base.
+- [ ] **Ver el bloque con las incrustaciones montadas** en una red que no
+      filtre TikTok ni Meta, y medir si mueven el LCP de la portada.
+- [ ] **`/contacto/` NO existe**: los botones de la cabecera, el
+      pie y el Sticky CTA apuntan ahí y dan 404 (`/areas/` ya está resuelto en spec 010).
 - [ ] **El botón principal del hero apunta a `/contacto/`, que NO existe**: la
       llamada a la acción más visible del sitio da 404. Es el mismo pendiente
       de siempre, pero ahora está en la primera lámina.

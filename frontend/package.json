@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "astro preview --port 4340",
     "check": "astro check",
     "visual:capturar": "node ../herramientas/visual.mjs capturar http://localhost:4340",
     "visual:comparar": "node ../herramientas/visual.mjs comparar ../docs/linea-base"

@@ -13,10 +13,49 @@ const { datos = {}, variantes = {} } = Astro.props;
 const {
   etiqueta = '', titulo = '', destacado = '', texto = '',
   puntos = [], imagen = '', palabraFondo = '',
+  tituloCertificaciones = '', certificaciones = [],
+  imagenFondo = '', imagenFondoMovil = '', velo = 'ninguno',
   textoBoton = '', enlaceBoton = '/contacto/',
   colorTitulo = '',
   colorTexto = '',
 } = datos;
+
+/*
+ * Con fondo a sangre, la figura enmarcada SE RETIRA.
+ *
+ * No es una preferencia: esa figura es un rectangulo opaco que ocupa su
+ * columna entera. Medido en la pagina, entre 1024 y 1280px tapa la mitad
+ * izquierda mientras el texto tapa la derecha, asi que una foto detras no se
+ * veria en ningun sitio. O una cosa o la otra.
+ *
+ * Sin fondo, el bloque se pinta exactamente como siempre.
+ */
+const hayFondo = Boolean(imagenFondo);
+
+/*
+ * Solo las entidades que tienen NOMBRE. El nombre es lo que hace util al
+ * sello: es el texto alternativo del logotipo y, mientras el logotipo no
+ * llegue, es lo que se pinta en su lugar.
+ */
+const sellos = (Array.isArray(certificaciones) ? certificaciones : [])
+  .filter((c) => c && c.nombre);
+
+/* Mismos tramos que en la cabecera, para que el panel signifique lo mismo. */
+const OPACIDAD_VELO = {
+  ninguno: 0, ligero: 0.3, medio: 0.5, fuerte: 0.7, opaco: 0.85,
+};
+
+/*
+ * El velo viaja a CSS en COMPONENTES, no en hexadecimal.
+ *
+ * El degradado necesita el mismo color con alfa 0 en el otro extremo, y
+ * escribir `transparent` hace que varias maquinas interpolen pasando por negro
+ * transparente: aparece una banda gris por el medio.
+ *
+ * El color es el `marino-900` de la seccion, para que no se vea costura entre
+ * la zona velada y el resto de la franja.
+ */
+const VELO_RGB = '10, 36, 67';
 
 /*
  * Colores del texto, elegidos desde el panel. Van en línea porque tienen que
@@ -33,6 +72,44 @@ const { ladoImagen = 'izquierda' } = variantes;
 ---
 
 <section class="relative overflow-hidden bg-marino-900 py-20 lg:py-28" data-superficie="oscura">
+  {/*
+    Capa de fondo. Va dentro de la seccion, que ya lleva `relative` y
+    `overflow-hidden`, asi que un `inset: 0` basta y el sobrante se recorta
+    solo. No hace falta el `left: 50%; width: 100vw` de la cabecera: alli la
+    capa vive dentro de una lamina con `transform`, que crea bloque contenedor
+    y la encerraba en el contenedor centrado.
+  */}
+  {hayFondo && (
+    <div class="servicio-fondo" aria-hidden="true">
+      {/*
+        `<picture>` y no dos `<img>`: el navegador elige UNA fuente y descarga
+        solo esa. La vertical solo se emite si existe; sin ella el movil usa la
+        de escritorio, que es como se comporta la cabecera.
+      */}
+      <picture>
+        {imagenFondoMovil && (
+          <source media="(max-width: 767px)" srcset={imagenFondoMovil} />
+        )}
+        <img
+          src={imagenFondo}
+          alt=""
+          width="1920"
+          height="1080"
+          class="h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
+      </picture>
+      {OPACIDAD_VELO[velo] > 0 && (
+        <div
+          class="servicio-velo"
+          style={`--velo-rgb: ${VELO_RGB}; opacity: ${OPACIDAD_VELO[velo]};`}
+        >
+        </div>
+      )}
+    </div>
+  )}
+
   <span
     class="palabra-fondo -bottom-6 left-0 text-[16vw] text-white/[0.04] lg:text-[9rem]"
     aria-hidden="true"
@@ -40,26 +117,35 @@ const { ladoImagen = 'izquierda' } = variantes;
     {palabraFondo}
   </span>
 
-  <div class="contenedor relative grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-    <!-- Ilustración. Es decorativa: el titular de al lado ya nombra el servicio. -->
-    <div class:list={['relative', ladoImagen === 'derecha' && 'lg:order-last']}>
-      <div
-        class="absolute -bottom-4 -left-4 size-full border-4 border-rojo-500/60"
-        aria-hidden="true"
-      >
+  {/* `z-10` para quedar por encima de la capa de fondo, que va en `z-0`. */}
+  <div class="contenedor relative z-10 grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+    {/* Ilustración. Es decorativa: el titular de al lado ya nombra el servicio. */}
+    {!hayFondo && (
+      <div class:list={['relative', ladoImagen === 'derecha' && 'lg:order-last']}>
+        <div
+          class="absolute -bottom-4 -left-4 size-full border-4 border-rojo-500/60"
+          aria-hidden="true"
+        >
+        </div>
+        <img
+          src={imagen}
+          alt=""
+          width="900"
+          height="680"
+          class="relative w-full rounded-sm object-cover shadow-sm"
+          loading="lazy"
+          decoding="async"
+        />
       </div>
-      <img
-        src={imagen}
-        alt=""
-        width="900"
-        height="680"
-        class="relative w-full rounded-sm object-cover shadow-sm"
-        loading="lazy"
-        decoding="async"
-      />
-    </div>
+    )}
 
-    <div>
+    {/*
+      Sin figura, el texto caeria en la PRIMERA columna de la rejilla y se
+      pondria encima de la mitad de la foto que el encuadre deja libre.
+      `lg:col-start-2` lo mantiene donde estaba. Por debajo de `lg` la rejilla
+      es de una sola columna y no hay nada que colocar.
+    */}
+    <div class:list={[hayFondo && 'lg:col-start-2']}>
       <p class="etiqueta-seccion-clara mb-3 flex items-center gap-3">
         <span class="inline-flex size-9 items-center justify-center rounded-full bg-white/10">
           <svg class="size-4.5 text-rojo-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -90,6 +176,335 @@ const { ladoImagen = 'izquierda' } = variantes;
       {textoBoton && (
         <a href={enlaceBoton} class="btn-primario-oscuro mt-9">{textoBoton}</a>
       )}
+
+      {/*
+        Franja de entidades certificadoras.
+
+        Va DENTRO de la columna de texto, debajo del boton, alineada con el
+        titular y con los puntos del servicio (peticion del cliente, 13-11-2026).
+        Antes iba a lo ancho de la seccion, bajo las dos columnas.
+
+        Lo que lo hace viable es que ahora los sellos VUELVEN a su color sobre una
+        pastilla clara, y una pastilla se puede envolver: los cinco caen en 3 + 2
+        dentro de los ~520px de la columna. En la version a lo ancho eran una fila
+        unica y por eso necesitaba toda la seccion.
+      */}
+      {sellos.length > 0 && (
+        <div class="avales mt-12">
+          {/*
+            El rotulo va CLARO, no en el rojo de `etiqueta-seccion-clara`.
+
+            Dos motivos, y los dos estan ya escritos en el proyecto. El rojo no
+            sobrevive a una foto de fondo: sobre navy plano da 5,92:1 y sobre un
+            duotono cae a 2,31:1, y este rotulo cae justo donde el velo solo esta
+            a medias. Y el rojo se reserva a la ACCION: el boton de
+            «Solicitar un avaluo» esta dos centimetros mas arriba, y dos rojos
+            seguidos dejan de senalar cual de los dos hay que pulsar.
+          */}
+          {tituloCertificaciones && (
+            <p class="etiqueta-seccion-clara mb-5 text-center !font-bold !text-marino-100">
+              {tituloCertificaciones}
+            </p>
+          )}
+          {/*
+            `data-certificaciones` no es decoracion: la seccion ya tiene otra `ul`
+            —la de los puntos del servicio— y una prueba que buscara «la primera
+            lista» media la equivocada. Ya paso.
+          */}
+          <ul data-certificaciones class="franja-sellos">
+            {sellos.map((sello) => {
+              /*
+                PASTILLA CLARA POR SELLO, y el logotipo en su color.
+
+                Es el tercer diseno de esta franja y conviene saber por que no
+                se vuelve al monocromo. Sin superficie, los cinco logotipos
+                habia que recolorearlos a la fuerza: el de Aeronautica Civil
+                es tinta navy `#083888` y sobre el fondo de esta seccion da
+                1,08:1. La pastilla devuelve a cada marca su color —que es
+                como la reconoce quien la conoce— y de paso permite agrandarla
+                sin que compita con el titular.
+
+                Todas las pastillas miden LO MISMO, lleve el logotipo la
+                proporcion que lleve. Ahi esta la simetria: lo que se alinea
+                es la pastilla, no el dibujo de dentro, que ya viene igualado
+                por area optica desde `preparar-logos-certificacion.mjs`.
+              */
+              const contenido = sello.imagen
+                ? (
+                  <img
+                    src={sello.imagen}
+                    alt={sello.nombre}
+                    width="320"
+                    height="160"
+                    class="w-auto max-w-full object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )
+                /*
+                  Sin logotipo se pinta el NOMBRE.
+
+                  Asi la franja se ve y se puede valorar el espacio desde el primer
+                  dia, y el dia de manana un logotipo que falte no deja un hueco
+                  roto: deja el nombre de la entidad, que es la informacion que de
+                  verdad importa.
+                */
+                : <span class="px-3 text-center text-xs font-semibold leading-tight text-tinta">{sello.nombre}</span>;
+
+              return (
+                <li class="celda-sello">
+                  {sello.enlace
+                    ? (
+                      <a
+                        href={sello.enlace}
+                        class="flex h-full w-full items-center justify-center"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {contenido}
+                      </a>
+                    )
+                    : contenido}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   </div>
+
 </section>
+
+<style>
+  /*
+   * ── La franja de avales: una pastilla por sello ──────────────────────────
+   *
+   * Tercer diseno, y los tres estan en el historial de este archivo:
+   *
+   *   1. Cinco cajas `bg-white/95` sueltas. Rechazadas: «parches pegados».
+   *   2. Un panel unico con filetes de 1px. Aceptado y luego retirado.
+   *   3. Una pastilla clara por sello, dentro de la columna de texto. Esto.
+   *
+   * Hubo ademas un cuarto intento sin superficie —cinta monocroma— que
+   * obligaba a recolorear las cinco marcas, porque el logotipo de Aeronautica
+   * Civil es tinta navy y sobre este fondo da 1,08:1. La pastilla evita ese
+   * peaje: cada marca vuelve a su color.
+   *
+   * La simetria la da que TODAS las pastillas miden lo mismo. Lo que se
+   * alinea es la pastilla; lo de dentro ya viene igualado por area optica.
+   */
+  .franja-sellos {
+    display: flex;
+    /*
+     * UNA SOLA FILA (peticion del cliente, 17-11-2026).
+     *
+     * Antes envolvia en 3 + 2. `nowrap` es la mitad del cambio: la otra es que
+     * la pastilla pasa a `flex: 1 1 0`, porque cinco pastillas de 160px piden
+     * 824px y la columna de texto da 520. Sin lo segundo, `nowrap` dejaria los
+     * sellos desbordando la columna por la derecha.
+     */
+    flex-wrap: nowrap;
+    align-items: center;
+    /*
+     * El hueco baja de 10px a 6px. En una fila de cinco, cada pixel de hueco
+     * sale CUATRO veces del ancho de las pastillas: los 16px que se ahorran
+     * aqui son 3px mas de logotipo en cada sello.
+     */
+    gap: 0.375rem;
+    /*
+     * Centrada, y el ancho CLAVADO al de una fila llena. Las dos cosas van
+     * juntas y por separado no sirven.
+     *
+     * Lo que se pide es que la ultima fila —la que se queda a medias— quede
+     * centrada bajo las de arriba. CSS no tiene forma de apuntar a «la ultima
+     * linea de un contenedor envuelto»: `justify-content` manda sobre TODAS.
+     * Asi que se centra todo y se le da al contenedor el ancho exacto de una
+     * fila llena: las filas completas lo llenan y no se mueven ni un pixel
+     * —siguen a ras del titular y del boton—, y la que va corta se centra
+     * dentro de ese mismo ancho.
+     *
+     * Ese ancho lo fija `.avales`, el envoltorio, y no la lista: el ROTULO
+     * tiene que medir lo mismo para quedar centrado sobre las pastillas y no
+     * sobre la columna entera. Si el tope viviera aqui, el rotulo se
+     * centraria respecto al texto de arriba y quedaria descolgado de los
+     * sellos, que es justo lo contrario de lo que se pide.
+     */
+    justify-content: center;
+  }
+
+  /*
+   * El envoltorio: rotulo y pastillas comparten ancho.
+   *
+   * El tope se declara por tramos, y es el numero de pastillas por fila, no
+   * un ancho estetico. 2 pastillas = 330px (2x160 + un hueco de 10);
+   * 3 pastillas = 500px. Los tramos salen de medir el ancho real de la
+   * columna, que no cambia de forma lineal: entre `lg` y 1152px la columna de
+   * texto se estrecha y solo caben dos.
+   */
+  .avales {
+    /*
+     * Sin tope. Con las pastillas envolviendo, el ancho habia que CLAVARLO
+     * para que la fila corta quedase centrada bajo la llena; en una sola fila
+     * no hay fila corta que centrar, asi que la franja ocupa la columna
+     * entera y el rotulo —que comparte este envoltorio— sigue centrado sobre
+     * ella. Los tramos de 330/500px se fueron con el `flex-wrap`.
+     */
+    max-width: none;
+  }
+
+  /*
+   * La pastilla.
+   *
+   * 10rem x 5rem es la medida que deja caber TRES por fila en la columna de
+   * texto, que mide entre 514 y 527px segun el ancho de pantalla: 3x160 + dos
+   * huecos de 10 = 500. Con 11rem solo caben dos y la franja se estira a tres
+   * filas. Por debajo de `lg` la columna es mas estrecha y caen de dos en dos
+   * sin tocar nada: es `flex-wrap` haciendo su trabajo.
+   */
+  .celda-sello {
+    display: flex;
+    /*
+     * Las cinco se REPARTEN el ancho de la columna a partes iguales.
+     *
+     * `flex: 1 1 0` —base cero, no `auto`— es lo que iguala: con base `auto`
+     * cada pastilla partiria del ancho de su contenido y las cinco acabarian
+     * midiendo distinto, que es justo la simetria que este bloque defiende.
+     * `min-width: 0` hace falta porque el minimo por defecto de un elemento
+     * flexible es el de su contenido, y sin anularlo la imagen impide que la
+     * pastilla encoja.
+     *
+     * El tope de 10rem es la medida de antes: en una columna lo bastante
+     * ancha la pastilla no crece mas de lo que crecia envolviendo.
+     */
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 10rem;
+    /*
+     * La proporcion sustituye al alto fijo. 2:1 es la del lienzo de los
+     * logotipos, asi que el dibujo sigue cayendo centrado en los dos ejes sin
+     * una regla mas; con un alto fijo de 5rem, al encoger el ancho la pastilla
+     * se volveria cada vez mas cuadrada y el logotipo quedaria nadando.
+     */
+    aspect-ratio: 2 / 1;
+    align-items: center;
+    justify-content: center;
+    /*
+     * El relleno baja de 12/20px a 5/7px. Es obligado, no estetico: con el
+     * relleno de antes, una pastilla de 99px dejaria 59px utiles para el
+     * logotipo y el sello no se reconoceria.
+     */
+    padding: 0.3125rem 0.4375rem;
+    border-radius: 999px;
+    /*
+     * Casi blanco, no blanco puro: a 0,96 el navy del fondo tine lo justo
+     * para que la pastilla no deslumbre, y ningun logotipo pensado para
+     * blanco lo nota.
+     */
+    background: rgb(255 255 255 / 0.96);
+    /*
+     * El aro clarisimo la despega del fondo sin dibujarle un marco, y la
+     * sombra le da apoyo: una forma plana sobre una foto parece recortada y
+     * pegada encima.
+     */
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.22),
+      0 14px 28px -18px rgb(2 10 22 / 0.9);
+  }
+
+  /*
+   * Se limita el LIENZO, no el logotipo.
+   *
+   * Los cinco archivos llegan en un lienzo de 320x160 con el logotipo ya
+   * colocado dentro a igual area optica (lo hace
+   * `herramientas/preparar-logos-certificacion.mjs`). Si el CSS volviera a
+   * ajustar cada imagen a su caja desharia esa normalizacion y el logotipo
+   * apilado de Aeronautica Civil se veria mas pequeno que sus vecinos.
+   *
+   * El lienzo es 2:1 y la pastilla tambien, asi que el logotipo cae centrado
+   * en los dos ejes sin una sola regla mas.
+   */
+  .celda-sello img {
+    /*
+     * El tope era `3.5rem`, un alto fijo pensado para una pastilla de alto
+     * fijo. Ahora la pastilla encoge con la columna, asi que el lienzo se mide
+     * contra ELLA. Sigue limitandose el LIENZO y no el logotipo, que es lo que
+     * conserva la normalizacion por area optica.
+     */
+    max-height: 100%;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .celda-sello a {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /*
+   * `display: contents` o la imagen no llena la capa.
+   *
+   * Un `<picture>` es `inline` por defecto, asi que el `h-full w-full` de la
+   * imagen se mide contra una caja de alto automatico y la foto se queda en su
+   * tamano natural. Con `contents` el `<picture>` desaparece a efectos de
+   * maquetacion y la imagen vuelve a medirse contra la capa.
+   */
+  .servicio-fondo picture {
+    display: contents;
+  }
+
+  /*
+   * La seccion ya lleva `relative` y `overflow-hidden`, asi que basta con
+   * `inset: 0`. `z-index: 0`, nunca `-1`: con `-1` la capa se iria por detras
+   * del fondo de la propia seccion y no se veria.
+   */
+  .servicio-fondo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  /*
+   * Velo sobre la foto. Es el ESPEJO del de la cabecera, y la diferencia
+   * importa: alli el texto ocupa la mitad IZQUIERDA y el velo se desvanece
+   * hacia la derecha; aqui el texto esta a la DERECHA. Copiarlo tal cual
+   * dejaria el titular sin apoyo justo donde esta.
+   *
+   * En movil es plano: ahi el texto ocupa todo el ancho, asi que toda la foto
+   * esta debajo de algo y oscurecerla entera es lo correcto.
+   */
+  .servicio-velo {
+    position: absolute;
+    inset: 0;
+    background-color: rgb(var(--velo-rgb));
+  }
+
+  /*
+   * El corte es `lg` (1024px), NO el `md` de la cabecera.
+   *
+   * Esta seccion pasa a dos columnas en `lg`. Con el corte en `md`, entre 768
+   * y 1023px el texto ocupa todavia el ancho entero y le tocaria un degradado
+   * que deja limpia la mitad izquierda: medio titular sobre la foto. Es la
+   * clase de fallo que no salta en una captura de escritorio.
+   *
+   * Los cortes 18% y 62% son el reflejo de los 82% y 38% de la cabecera: a
+   * plena fuerza desde antes de donde empieza el texto (52%) y retirandose
+   * bastante antes.
+   */
+  @media (min-width: 1024px) {
+    .servicio-velo {
+      background-color: transparent;
+      background-image: linear-gradient(
+        to right,
+        rgba(var(--velo-rgb), 0) 18%,
+        rgb(var(--velo-rgb)) 62%,
+        rgb(var(--velo-rgb)) 100%
+      );
+    }
+  }
+</style>
