@@ -1,20 +1,23 @@
 ---
 /**
- * Tarjeta moderna de Área de Práctica — inspirada en el patrón "Modern 3 Columns"
- * de LawyerBase y adaptada estrictamente al sistema de diseño de Candamil Abogados.
+ * Tarjeta editorial moderna de Área de Práctica.
  *
- * Características:
- * - Proporción apaisada 7:4 / 16:10 con imagen optimizada de fondo.
- * - Velo de color Navy (marino-900) con degradado para garantizar contraste >7:1.
- * - Al hacer hover: micro-zoom suave de la imagen y reducción del velo para apreciar la foto.
- * - Título centrado en Playfair Display con filete decorativo azul.
- * - Sin JavaScript: 100% CSS nativo y utilidades de Tailwind CSS 4.
+ * Diseño en dos niveles (cabecera visual + cuerpo editorial limpio) para
+ * maximizar la calidad gráfica y garantizar que el texto descriptivo de cada
+ * servicio se lea con total nitidez (contraste 7.3:1 sobre blanco, sin recortes).
+ *
+ * - Cabecera visual (h-48): imagen optimizada con zoom suave en hover, velo
+ *   degradado sutil y etiqueta de categoría.
+ * - Cuerpo editorial: título en Playfair Display, filete azul animado,
+ *   descripción completa sin truncar y pie con flecha de acción.
+ * - Cero JavaScript: 100% CSS nativo y utilidades de Tailwind CSS 4.
  */
 interface Props {
   area: {
     id: string;
     nombre: string;
     subtitulo: string;
+    categoria?: string;
     imagen: string;
     href: string;
     ctaTexto?: string;
@@ -23,73 +26,102 @@ interface Props {
 }
 
 const { area } = Astro.props;
+const esExterno = area.href.startsWith('http');
 ---
 
 <li class="h-full list-none">
   <a
     href={area.href}
-    class="group relative flex aspect-7/4 w-full flex-col items-center justify-center
-           overflow-hidden rounded-xl border border-marino-900/10 bg-marino-900
-           p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl
-           focus:outline-none focus-visible:ring-3 focus-visible:ring-marino-400
-           focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+    target={esExterno ? '_blank' : undefined}
+    rel={esExterno ? 'noopener noreferrer' : undefined}
+    class="group flex h-full flex-col overflow-hidden rounded-2xl border border-humo-200
+           bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5
+           hover:border-marino-300 hover:shadow-xl focus:outline-none
+           focus-visible:ring-3 focus-visible:ring-marino-600 focus-visible:ring-offset-2"
     aria-label={`${area.nombre}: ${area.subtitulo}`}
   >
-    <!-- Imagen de fondo con zoom suave en hover -->
-    <img
-      src={area.imagen}
-      alt=""
-      width="700"
-      height="400"
-      class="absolute inset-0 size-full object-cover transition-transform duration-500 ease-out
-             group-hover:scale-105"
-      loading="lazy"
-      decoding="async"
-    />
+    <!-- Cabecera visual de la tarjeta -->
+    <div class="relative h-48 w-full shrink-0 overflow-hidden bg-marino-900">
+      <img
+        src={area.imagen}
+        alt=""
+        width="700"
+        height="440"
+        class="size-full object-cover opacity-90 transition-all duration-500 ease-out
+               group-hover:scale-105 group-hover:opacity-100"
+        loading="lazy"
+        decoding="async"
+      />
 
-    <!-- Velo de marca Navy que se atenúa suavemente al pasar el cursor -->
-    <div
-      class="absolute inset-0 bg-gradient-to-t from-marino-950/90 via-marino-900/80 to-marino-900/65
-             transition-opacity duration-300 group-hover:opacity-40"
-      aria-hidden="true"
-    />
-
-    <!-- Capa de contenido central (patrón LawyerBase Modern) -->
-    <div class="relative z-10 flex flex-col items-center justify-center text-center px-2">
-      <h3
-        class="font-display text-xl font-bold tracking-wide text-white drop-shadow-md
-               sm:text-2xl lg:text-xl xl:text-2xl"
-      >
-        {area.nombre}
-      </h3>
-
-      <!-- Filete sutil de marca (azul) que se ensancha al interactuar -->
-      <span
-        class="mt-2.5 h-0.5 w-8 rounded-full bg-marino-300/80 transition-all duration-300
-               group-hover:w-16 group-hover:bg-white"
+      <!-- Degradado sutil para unificar la fotografía y dar soporte a la insignia -->
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-marino-900/75 via-marino-900/20 to-marino-900/15
+               transition-opacity duration-300 group-hover:opacity-60"
         aria-hidden="true"
       />
 
-      <!-- Subtítulo breve que se enfatiza en pantallas grandes -->
-      <p
-        class="mt-3 line-clamp-2 max-w-xs text-xs font-medium leading-relaxed text-marino-100/90
-               drop-shadow transition-colors group-hover:text-white sm:text-sm"
-      >
-        {area.subtitulo}
-      </p>
+      {area.categoria && (
+        <span
+          class="absolute left-4 top-4 rounded-full border border-white/20 bg-marino-900/85
+                 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-marino-50
+                 backdrop-blur-sm"
+        >
+          {area.categoria}
+        </span>
+      )}
+    </div>
 
-      <!-- Indicador accesible de acción -->
-      <span
-        class="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider
-               text-white/80 opacity-0 transition-all duration-300 group-hover:opacity-100
-               group-hover:translate-y-0 translate-y-1"
-        aria-hidden="true"
-      >
-        <span>{area.ctaTexto ?? 'Consultar área'}</span>
-        <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <path d="M5 12h14m-6-6 6 6-6 6" />
-        </svg>
-      </span>
+    <!-- Cuerpo editorial limpio: máxima legibilidad para el texto descriptivo -->
+    <div class="flex flex-1 flex-col justify-between p-6">
+      <div>
+        <h3
+          class="font-display text-xl font-bold leading-snug text-marino-900
+                 transition-colors duration-200 group-hover:text-marino-600"
+        >
+          {area.nombre}
+        </h3>
+
+        <!-- Filete de marca en azul que se expande al interactuar -->
+        <span
+          class="mt-2.5 block h-0.5 w-10 rounded-full bg-marino-600/60 transition-all duration-300
+                 group-hover:w-16 group-hover:bg-marino-600"
+          aria-hidden="true"
+        />
+
+        <!-- Descripción completa sin recortes -->
+        <p class="mt-3.5 text-sm leading-relaxed text-tinta-suave">
+          {area.subtitulo}
+        </p>
+      </div>
+
+      <!-- Pie de tarjeta con llamada a la acción -->
+      <div class="mt-6 flex items-center justify-between border-t border-humo-200 pt-4">
+        <span
+          class="text-sm font-semibold text-marino-600 transition-colors
+                 group-hover:text-marino-900"
+        >
+          {area.ctaTexto ?? 'Consultar área'}
+        </span>
+
+        <span
+          class="inline-flex size-8 shrink-0 items-center justify-center rounded-full
+                 bg-marino-50 text-marino-600 transition-all duration-300
+                 group-hover:translate-x-0.5 group-hover:bg-rojo-500 group-hover:text-white"
+          aria-hidden="true"
+        >
+          <svg
+            class="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12h14m-6-6 6 6-6 6" />
+          </svg>
+        </span>
+      </div>
     </div>
   </a>
 </li>

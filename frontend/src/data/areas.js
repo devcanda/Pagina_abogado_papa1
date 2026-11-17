@@ -1,17 +1,19 @@
 /**
- * Catálogo estructurado de Áreas de Práctica.
+ * Catálogo completo de Áreas de Práctica y Servicios Jurídicos.
  *
- * Fuente de datos para la página /areas/ y su cuadrícula moderna de 3 columnas.
- * Cada área cuenta con su imagen optimizada, síntesis de especialidad y
- * llamada de acción directa.
+ * Fuente estructurada de datos para /areas/. Refleja el catálogo real del bufete:
+ * - 15 servicios en cuadrícula moderna de 3 columnas (5 filas x 3 columnas).
+ * - 3 planes iniciales de asesoría con tarifa fija.
  */
 import { enlaceWhatsApp } from './contacto.js';
 
 export const areasPractica = [
+  // ── Bloque 1: Demandas y Litigios Principales ──
   {
     id: 'laboral',
     nombre: 'Derecho Laboral',
     subtitulo: 'Despidos sin justa causa, liquidaciones, reintegros laborales, acoso y reclamación pensional.',
+    categoria: 'Litigios',
     imagen: '/img/area-laboral.webp',
     href: '/demanda-laboral/',
     ctaTexto: 'Ver servicio laboral',
@@ -21,7 +23,8 @@ export const areasPractica = [
   {
     id: 'civil',
     nombre: 'Derecho Civil',
-    subtitulo: 'Responsabilidad civil y contractual, cobro de cartera, indemnizaciones y redacción de contratos.',
+    subtitulo: 'Responsabilidad civil contractual y extracontractual, indemnizaciones, cobranza y contratos.',
+    categoria: 'Litigios',
     imagen: '/img/area-civil.webp',
     href: enlaceWhatsApp('Hola, deseo realizar una consulta sobre un proceso de Derecho Civil.'),
     ctaTexto: 'Consultar caso civil',
@@ -31,17 +34,30 @@ export const areasPractica = [
   {
     id: 'familia',
     nombre: 'Derecho de Familia',
-    subtitulo: 'Sucesiones y herencias, divorcios, cuotas alimentarias, régimen de visitas y custodia.',
+    subtitulo: 'Divorcios, cuotas alimentarias, custodias, régimen de visitas y liquidación de sociedad conyugal.',
+    categoria: 'Litigios',
     imagen: '/img/area-familia.webp',
-    href: enlaceWhatsApp('Hola, requiero asesoría jurídica en Derecho de Familia o Sucesiones.'),
-    ctaTexto: 'Consultar caso de familia',
-    whatsappMensaje: 'Hola, requiero asesoría jurídica en Derecho de Familia o Sucesiones.',
+    href: enlaceWhatsApp('Hola, requiero asesoría jurídica en Derecho de Familia.'),
+    ctaTexto: 'Consultar tema de familia',
+    whatsappMensaje: 'Hola, requiero asesoría jurídica en Derecho de Familia.',
+    destacado: false,
+  },
+  {
+    id: 'particion',
+    nombre: 'Sucesiones y Particiones',
+    subtitulo: 'Liquidación notarial y judicial de herencias, partición equitativa de bienes y acuerdos hereditarios.',
+    categoria: 'Litigios',
+    imagen: '/img/area-particion.webp',
+    href: enlaceWhatsApp('Hola, necesito asesoría para un trámite de sucesión o partición de bienes.'),
+    ctaTexto: 'Consultar sucesión',
+    whatsappMensaje: 'Hola, necesito asesoría para un trámite de sucesión o partición de bienes.',
     destacado: false,
   },
   {
     id: 'penal',
     nombre: 'Derecho Penal',
-    subtitulo: 'Defensa técnica especializada, representación de víctimas, audiencias preliminares y juicios.',
+    subtitulo: 'Defensa técnica especializada, representación de víctimas, audiencias preliminares y juicio oral.',
+    categoria: 'Litigios',
     imagen: '/img/area-penal.webp',
     href: enlaceWhatsApp('Hola, necesito asistencia y defensa jurídica en materia penal.'),
     ctaTexto: 'Consultar defensa penal',
@@ -52,6 +68,7 @@ export const areasPractica = [
     id: 'inmobiliario',
     nombre: 'Derecho Inmobiliario',
     subtitulo: 'Restitución de inmuebles, prescripción adquisitiva (pertenencia), deslindes y escrituración.',
+    categoria: 'Litigios',
     imagen: '/img/area-inmobiliario.webp',
     href: enlaceWhatsApp('Hola, requiero orientación en Derecho Inmobiliario o litigio de tierras.'),
     ctaTexto: 'Consultar tema inmobiliario',
@@ -62,6 +79,7 @@ export const areasPractica = [
     id: 'administrativo',
     nombre: 'Derecho Administrativo',
     subtitulo: 'Demandas contra el Estado, reparación directa, nulidad y restablecimiento del derecho, disciplinarios.',
+    categoria: 'Litigios',
     imagen: '/img/area-administrativo.webp',
     href: enlaceWhatsApp('Hola, deseo asesoría en una demanda o litigio contra el Estado.'),
     ctaTexto: 'Consultar tema administrativo',
@@ -69,19 +87,69 @@ export const areasPractica = [
     destacado: false,
   },
   {
-    id: 'peritaje',
-    nombre: 'Perito Avaluador',
-    subtitulo: 'Avalúos comerciales, urbanos, rurales y especiales certificados (RNA/ARAV) con defensa en estrado.',
+    id: 'salud-tutela',
+    nombre: 'Derecho a la Salud y Tutelas',
+    subtitulo: 'Reclamación de tratamientos, cirugías, medicamentos negados, desacatos y negligencia médica ante EPS.',
+    categoria: 'Constitucional',
+    imagen: '/img/area-tutela.webp',
+    href: enlaceWhatsApp('Hola, necesito interponer una tutela o reclamación por vulneración al derecho a la salud.'),
+    ctaTexto: 'Consultar caso de salud',
+    whatsappMensaje: 'Hola, necesito interponer una tutela o reclamación por vulneración al derecho a la salud.',
+    destacado: true,
+  },
+
+  // ── Bloque 2: Servicios Periciales y Avalúos ──
+  {
+    id: 'peritaje-general',
+    nombre: 'Perito Avaluador Certificado',
+    subtitulo: 'Dictámenes periciales certificados RAA/ARAV con sustentación oral y defensa en estrado judicial.',
+    categoria: 'Peritajes',
     imagen: '/img/fondo-perito.webp',
-    href: enlaceWhatsApp('Hola, necesito cotizar un avalúo o dictamen pericial con el perito titular.'),
-    ctaTexto: 'Solicitar avalúo pericial',
-    whatsappMensaje: 'Hola, necesito cotizar un avalúo o dictamen pericial con el perito titular.',
+    href: enlaceWhatsApp('Hola, necesito cotizar un dictamen pericial o avalúo con el perito titular.'),
+    ctaTexto: 'Solicitar peritaje',
+    whatsappMensaje: 'Hola, necesito cotizar un dictamen pericial o avalúo con el perito titular.',
     destacado: true,
   },
   {
+    id: 'avaluo-comercial',
+    nombre: 'Avalúos Comerciales y Muebles',
+    subtitulo: 'Valoración pericial de locales, bodegas, oficinas, maquinaria industrial y establecimientos comerciales.',
+    categoria: 'Peritajes',
+    imagen: '/img/area-comercial.webp',
+    href: enlaceWhatsApp('Hola, requiero un avalúo comercial o de maquinaria para trámite judicial o comercial.'),
+    ctaTexto: 'Cotizar avalúo comercial',
+    whatsappMensaje: 'Hola, requiero un avalúo comercial o de maquinaria para trámite judicial o comercial.',
+    destacado: false,
+  },
+  {
+    id: 'avaluo-rural',
+    nombre: 'Avalúos Rurales y Terrenos',
+    subtitulo: 'Determinación del valor de fincas, terrenos agrícolas, servidumbres y predios suburbanos.',
+    categoria: 'Peritajes',
+    imagen: '/img/area-rural.webp',
+    href: enlaceWhatsApp('Hola, deseo cotizar un avalúo rural o peritaje de predios agrícolas.'),
+    ctaTexto: 'Cotizar avalúo rural',
+    whatsappMensaje: 'Hola, deseo cotizar un avalúo rural o peritaje de predios agrícolas.',
+    destacado: false,
+  },
+  {
+    id: 'peritaje-automotor',
+    nombre: 'Peritaje de Automotores',
+    subtitulo: 'Evaluación técnica de vehículos siniestrados, pérdida de valor comercial y dictamen para reclamaciones.',
+    categoria: 'Peritajes',
+    imagen: '/img/area-peritaje.webp',
+    href: enlaceWhatsApp('Hola, requiero un peritaje técnico o avalúo de automotores.'),
+    ctaTexto: 'Cotizar peritaje de vehículo',
+    whatsappMensaje: 'Hola, requiero un peritaje técnico o avalúo de automotores.',
+    destacado: false,
+  },
+
+  // ── Bloque 3: Tránsito, Documentos y Conciliación ──
+  {
     id: 'transito',
     nombre: 'Tránsito y Accidentes',
-    subtitulo: 'Reclamaciones por accidentes viales, cobro a aseguradoras (SOAT y contractual) y peritaje automotor.',
+    subtitulo: 'Indemnizaciones por siniestros viales, cobro a aseguradoras (SOAT y pólizas) y asesoría en comparendos.',
+    categoria: 'Otros',
     imagen: '/img/area-transito.webp',
     href: enlaceWhatsApp('Hola, requiero asesoría por un accidente de tránsito o cobro de indemnización.'),
     ctaTexto: 'Consultar accidente de tránsito',
@@ -90,12 +158,79 @@ export const areasPractica = [
   },
   {
     id: 'conciliacion',
-    nombre: 'Conciliación y Contratos',
-    subtitulo: 'Mecanismos alternativos de solución de conflictos (MASC), acuerdos extrajudiciales y blindaje contractual.',
+    nombre: 'Conciliación Extrajuicio',
+    subtitulo: 'Mecanismos alternativos de resolución de conflictos (MASC) con actas con mérito ejecutivo y cosa juzgada.',
+    categoria: 'Otros',
     imagen: '/img/area-conciliacion.webp',
-    href: enlaceWhatsApp('Hola, deseo asesoría para un trámite de conciliación extrajudicial o revisión contractual.'),
+    href: enlaceWhatsApp('Hola, deseo asesoría para un trámite de conciliación extrajudicial.'),
     ctaTexto: 'Consultar conciliación',
-    whatsappMensaje: 'Hola, deseo asesoría para un trámite de conciliación extrajudicial o revisión contractual.',
+    whatsappMensaje: 'Hola, deseo asesoría para un trámite de conciliación extrajudicial.',
     destacado: false,
+  },
+  {
+    id: 'documentos',
+    nombre: 'Redacción de Documentos',
+    subtitulo: 'Elaboración rigurosa de Derechos de Petición, poderes especiales, contratos privados e informes jurídicos.',
+    categoria: 'Otros',
+    imagen: '/img/area-poder.webp',
+    href: enlaceWhatsApp('Hola, necesito la redacción de un documento legal (derecho de petición, contrato, poder).'),
+    ctaTexto: 'Solicitar redacción',
+    whatsappMensaje: 'Hola, necesito la redacción de un documento legal (derecho de petición, contrato, poder).',
+    destacado: false,
+  },
+];
+
+/**
+ * Planes iniciales de asesoría con tarifa establecida.
+ * Rescatados de planes.md del sitio corporativo.
+ */
+export const planesServicios = [
+  {
+    id: 'consulta-urgente',
+    nombre: 'Consulta Urgente',
+    etiqueta: 'Respuesta Inmediata',
+    precio: '$100.000',
+    unidad: '/ consulta',
+    descripcion: 'Para situaciones que no dan espera: capturas, citaciones a fiscalía, denuncias inmediatas o violencia intrafamiliar.',
+    caracteristicas: [
+      'Videollamada de hasta 30 minutos',
+      'Atención directa con abogado titular',
+      'Diagnóstico jurídico y ruta de acción clara',
+      'Revisión previa de antecedentes de urgencia',
+    ],
+    destacado: false,
+    whatsappMensaje: 'Hola, necesito contratar una Consulta Jurídica Urgente ($100.000).',
+  },
+  {
+    id: 'asesoria-mensual',
+    nombre: 'Asesoría Continua',
+    etiqueta: 'Plan Recomendado',
+    precio: '$120.000',
+    unidad: '/ mes',
+    descripcion: 'Acompañamiento legal constante para personas naturales, comerciantes y pequeñas empresas que requieren respaldo.',
+    caracteristicas: [
+      'Hasta 3 consultas jurídicas al mes',
+      'Tiempo de respuesta en 24 horas o menos',
+      'Concepto emitido por escrito o nota en video',
+      'Acompañamiento preventivo permanente',
+    ],
+    destacado: true,
+    whatsappMensaje: 'Hola, deseo suscribirme al Plan de Asesoría Continua ($120.000/mes).',
+  },
+  {
+    id: 'redaccion-documentos',
+    nombre: 'Redacción Jurídica',
+    etiqueta: 'Trámites y Contratos',
+    precio: '$150.000',
+    unidad: '/ documento',
+    descripcion: 'Elaboración técnica de documentos para trámites ante entidades públicas, particulares o debates comerciales.',
+    caracteristicas: [
+      'Derechos de petición o quejas formales',
+      'Contratos privados con blindaje jurídico',
+      'Poderes especiales y autorizaciones',
+      'Respuesta y entrega escrita con sustento legal',
+    ],
+    destacado: false,
+    whatsappMensaje: 'Hola, requiero el servicio de Redacción de Documentos ($150.000/dcto).',
   },
 ];

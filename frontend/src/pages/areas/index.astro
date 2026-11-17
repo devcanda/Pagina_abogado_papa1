@@ -1,25 +1,26 @@
 ---
 /**
- * Página corporativa: Áreas de práctica.
+ * Página corporativa: Áreas de práctica y catálogo de servicios jurídicos.
  *
- * Presenta el catálogo de especialidades del bufete y del perito avaluador
- * en una cuadrícula moderna de 3 columnas (patrón LawyerBase Modern Style),
- * garantizando cero JavaScript de cliente y cumplimiento estricto de accesibilidad.
+ * Presenta el catálogo integral de especialidades del bufete y del perito avaluador:
+ * - Cuadrícula moderna de 3 columnas (patrón LawyerBase Modern Style) con 15 servicios.
+ * - Sección de planes iniciales de asesoría con tarifas claras y transparentes.
+ * - Alternancia cromática rigurosa (oscuro -> claro -> neutro -> claro) y 0 KB de JS.
  */
 import Layout from '../../layouts/Layout.astro';
 import TarjetaAreaModerna from '../../components/areas/TarjetaAreaModerna.astro';
-import { areasPractica } from '../../data/areas.js';
+import { areasPractica, planesServicios } from '../../data/areas.js';
 import { telefonoMarcable, enlaceWhatsApp } from '../../data/contacto.js';
 
 const metadata = {
-  titulo: 'Áreas de Práctica Jurídica | Candamil Abogados Tuluá',
+  titulo: 'Áreas de Práctica y Servicios Jurídicos | Candamil Abogados Tuluá',
   descripcion:
-    'Especialidades legales y dictámenes periciales en Tuluá y el Valle del Cauca. Defensa experta en derecho laboral, civil, familia, penal, administrativo y avalúos certificados.',
+    'Especialidades legales, peritajes certificados y planes de asesoría jurídica en Tuluá y el Valle del Cauca. Derecho laboral, civil, familia, penal, administrativo, salud y avalúos.',
 };
 ---
 
 <Layout titulo={metadata.titulo} descripcion={metadata.descripcion}>
-  <!-- Encabezado de página (Banner estilo LawyerBase con estética Navy) -->
+  <!-- Encabezado de página (Banner estilo LawyerBase en Navy oscuro) -->
   <section class="relative overflow-hidden bg-marino-900 py-16 text-white sm:py-20 lg:py-24" data-superficie="oscura">
     <!-- Palabra decorativa tenue de fondo -->
     <span
@@ -30,15 +31,6 @@ const metadata = {
     </span>
 
     <div class="contenedor relative text-center">
-      <!-- Migas de pan (Breadcrumbs) accesibles -->
-      <nav aria-label="Migas de pan" class="mb-5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-marino-200/80">
-        <a href="/" class="transition-colors hover:text-white">Inicio</a>
-        <span aria-hidden="true" class="text-marino-400">/</span>
-        <span class="text-white" aria-current="page">Áreas de práctica</span>
-      </nav>
-
-      <p class="etiqueta-seccion-clara mb-3">Defensa jurídica y peritajes</p>
-
       <h1 class="titular-claro max-w-3xl mx-auto text-3xl sm:text-4xl lg:text-5xl">
         Áreas de <span class="destacado-claro">práctica</span>
       </h1>
@@ -50,22 +42,22 @@ const metadata = {
     </div>
   </section>
 
-  <!-- Sección principal: Cuadrícula moderna de 3 columnas -->
-  <section class="bg-white py-16 sm:py-20 lg:py-24" aria-labelledby="titulo-cuadricula">
+  <!-- Sección principal: Cuadrícula moderna de 3 columnas con 15 servicios -->
+  <section class="bg-humo py-16 sm:py-20 lg:py-24" aria-labelledby="titulo-cuadricula">
     <div class="contenedor">
       <div class="mx-auto mb-12 max-w-2xl text-center sm:mb-16">
         <h2 id="titulo-cuadricula" class="titular text-2xl sm:text-3xl">
-          Especialidades a su <span class="destacado">servicio</span>
+          Especialidades y servicios a su <span class="destacado">disposición</span>
         </h2>
         <p class="mt-4 text-tinta-suave text-base">
-          Seleccione un área para iniciar una consulta directa o conocer los trámites jurídicos que adelantamos.
+          Seleccione cualquier especialidad para iniciar una consulta directa con el abogado o perito titular.
         </p>
       </div>
 
-      <!-- Cuadrícula 3x3 de áreas de práctica -->
+      <!-- Cuadrícula 3 columnas (5 filas x 3 columnas = 15 servicios simétricos) -->
       <ul
         class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8"
-        aria-label="Listado de áreas de práctica jurídica"
+        aria-label="Listado de áreas de práctica jurídica y servicios periciales"
       >
         {areasPractica.map((area) => (
           <TarjetaAreaModerna area={area} />
@@ -74,11 +66,172 @@ const metadata = {
     </div>
   </section>
 
-  <!-- Franja de cierre y conversión (Fondo claro respetando alternancia) -->
-  <section class="border-t border-marino-100 bg-marino-50 py-16 sm:py-20">
-    <div class="contenedor text-center">
-      <p class="etiqueta-seccion mb-3">Evaluación preliminar</p>
+  <!-- Sección de Planes Iniciales de Servicios con Tarifa Fija -->
+  <section class="border-t border-humo-200 bg-white py-16 sm:py-20 lg:py-24" aria-labelledby="titulo-planes">
+    <div class="contenedor">
+      <div class="mx-auto mb-12 max-w-2xl text-center sm:mb-16">
+        <p class="etiqueta-seccion mb-3">Tarifas y planes de atención</p>
+        <h2 id="titulo-planes" class="titular text-2xl sm:text-3xl">
+          Modalidades de asesoría <span class="destacado">directa</span>
+        </h2>
+        <p class="mt-4 text-tinta-suave text-base">
+          Transparencia desde el primer contacto. Elija la modalidad que mejor se adapte a su urgencia o necesidad jurídica.
+        </p>
+      </div>
 
+      <div class="mx-auto grid max-w-5xl grid-cols-1 items-stretch gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
+        {planesServicios.map((plan) => (
+          <article
+            data-superficie={plan.destacado ? 'oscura' : undefined}
+            class={`relative flex flex-col justify-between rounded-2xl border p-7 sm:p-8
+                    transition-all duration-300
+                    ${plan.destacado
+                      ? 'border-marino-700 bg-marino-900 text-white shadow-2xl lg:-my-3 lg:py-10'
+                      : 'border-humo-200 bg-white text-tinta shadow-sm hover:-translate-y-1 hover:border-marino-300 hover:shadow-lg'
+                    }`}
+          >
+            {plan.destacado && (
+              <span
+                class="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full
+                       border border-marino-300/40 bg-marino-600 px-4 py-1 text-xs font-bold
+                       uppercase tracking-wider text-white shadow-md"
+              >
+                {plan.etiqueta}
+              </span>
+            )}
+
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  {!plan.destacado && (
+                    <span
+                      class="mb-2.5 inline-block rounded-full bg-marino-50 px-3 py-1
+                             text-[11px] font-semibold uppercase tracking-wider text-marino-600"
+                    >
+                      {plan.etiqueta}
+                    </span>
+                  )}
+                  <h3
+                    class={`font-display text-2xl font-bold leading-tight
+                            ${plan.destacado ? 'text-white' : 'text-marino-900'}`}
+                  >
+                    {plan.nombre}
+                  </h3>
+                </div>
+
+                <!-- Icono distintivo por modalidad -->
+                <span
+                  class={`inline-flex size-11 shrink-0 items-center justify-center rounded-xl
+                          ${plan.destacado
+                            ? 'bg-white/10 text-marino-200'
+                            : 'bg-marino-50 text-marino-600'
+                          }`}
+                  aria-hidden="true"
+                >
+                  {plan.id === 'consulta-urgente' && (
+                    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 3" />
+                    </svg>
+                  )}
+                  {plan.id === 'asesoria-mensual' && (
+                    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      <path d="m9 12 2 2 4-4" />
+                    </svg>
+                  )}
+                  {plan.id === 'redaccion-documentos' && (
+                    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <path d="M14 2v6h6" />
+                      <path d="M16 13H8" />
+                      <path d="M16 17H8" />
+                      <path d="M10 9H8" />
+                    </svg>
+                  )}
+                </span>
+              </div>
+
+              <!-- Bloque de precio con alto contraste -->
+              <div
+                class={`mt-5 flex items-baseline gap-2 rounded-xl px-4 py-3
+                        ${plan.destacado
+                          ? 'bg-white/8 border border-white/10'
+                          : 'bg-humo border border-humo-200/80'
+                        }`}
+              >
+                <span
+                  class={`font-display text-3xl font-extrabold tracking-tight sm:text-4xl
+                          ${plan.destacado ? 'text-white' : 'text-marino-900'}`}
+                >
+                  {plan.precio}
+                </span>
+                <span
+                  class={`text-xs font-semibold uppercase tracking-wide
+                          ${plan.destacado ? 'text-marino-200' : 'text-tinta-suave'}`}
+                >
+                  {plan.unidad}
+                </span>
+              </div>
+
+              <p
+                class={`mt-5 text-sm leading-relaxed
+                        ${plan.destacado ? 'text-marino-100/90' : 'text-tinta-suave'}`}
+              >
+                {plan.descripcion}
+              </p>
+
+              <hr class={`my-6 ${plan.destacado ? 'border-white/15' : 'border-humo-200'}`} />
+
+              <ul
+                class={`space-y-3 text-sm ${plan.destacado ? 'text-marino-50' : 'text-tinta'}`}
+                aria-label={`Características del plan ${plan.nombre}`}
+              >
+                {plan.caracteristicas.map((caracteristica) => (
+                  <li class="flex items-start gap-2.5">
+                    <svg
+                      class={`mt-0.5 size-5 shrink-0 ${plan.destacado ? 'text-marino-300' : 'text-marino-600'}`}
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <span>{caracteristica}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div class="mt-8 pt-2">
+              <a
+                href={enlaceWhatsApp(plan.whatsappMensaje)}
+                class={`w-full text-center text-sm font-semibold
+                        ${plan.destacado ? 'btn-primario-oscuro' : 'btn-secundario'}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Elegir este plan
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <p class="mx-auto mt-10 max-w-2xl text-center text-xs leading-relaxed text-tinta-suave">
+        Valores expresados en pesos colombianos (COP). Si decide iniciar representación judicial
+        tras su consulta, los honorarios se acuerdan por escrito antes de cualquier trámite.
+      </p>
+    </div>
+  </section>
+
+  <!-- Franja de cierre y orientación general -->
+  <section class="border-t border-humo-200 bg-humo py-16 sm:py-20">
+    <div class="contenedor text-center">
       <h2 class="titular mx-auto max-w-2xl text-2xl sm:text-3xl">
         ¿Tiene dudas sobre en qué área encaja <span class="destacado">su caso?</span>
       </h2>
