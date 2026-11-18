@@ -1,0 +1,46 @@
+---
+/**
+ * Un icono de red social, que es ENLACE o no según tenga URL.
+ *
+ * Petición del cliente (18-11-2026): quiere ver los tres logotipos ya, pero
+ * todavía no tiene las direcciones de los perfiles. La lógica se deja montada
+ * para que el día que las pegue en `contacto.js` se conviertan en enlaces
+ * solas, sin tocar ni este archivo ni los dos sitios que lo usan.
+ *
+ * Sin URL se pinta un `<span>`, NO un `<a href="#">`.
+ *
+ * Esa es la parte que importa y la que no hay que «simplificar» después: un
+ * enlace vacío entra en el orden de tabulación y el lector de pantalla lo
+ * anuncia como enlace, así que quien navega sin ver pierde el tiempo en tres
+ * controles que no hacen nada. Era exactamente lo que había en la barra antes
+ * de esta revisión. Un `<span>` se ve igual y no promete nada.
+ *
+ * Mientras es un `<span>` va `aria-hidden`: es decoración, y lo que de verdad
+ * lleva a las redes —cuando lo haya— será el enlace. Y no lleva efecto de
+ * paso del ratón, porque un elemento que se ilumina al pasar por encima está
+ * diciendo que se puede pulsar.
+ *
+ * Vive aparte para no repetir este reparto en `BarraContacto.astro` y en el
+ * menú móvil de `Navbar.astro`: duplicado, un día uno de los dos se quedaría
+ * con el enlace muerto.
+ */
+const { red, clase = '', claseIcono = 'size-4', claseHover = '' } = Astro.props;
+
+const esEnlace = Boolean(red.url);
+const Etiqueta = esEnlace ? 'a' : 'span';
+---
+
+<Etiqueta
+  href={esEnlace ? red.url : undefined}
+  target={esEnlace ? '_blank' : undefined}
+  rel={esEnlace ? 'noopener noreferrer nofollow' : undefined}
+  aria-label={esEnlace
+    ? `${red.nombre} de Candamil Asociados Abogados (se abre en otra pestaña)`
+    : undefined}
+  aria-hidden={esEnlace ? undefined : 'true'}
+  class:list={[clase, esEnlace && claseHover]}
+>
+  <svg class={claseIcono} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d={red.d} />
+  </svg>
+</Etiqueta>

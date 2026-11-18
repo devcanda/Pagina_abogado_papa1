@@ -9,12 +9,27 @@
  */
 import BarraContacto from '../../components/BarraContacto.astro';
 import Logo from '../../components/Logo.astro';
+import { telefonoMarcable, redesEnUso } from '../../data/contacto.js';
+import { ICONOS_REDES } from '../../data/iconos-redes.js';
+import IconoRed from '../../components/IconoRed.astro';
 
 const enlaces = [
   { href: '/', texto: 'Inicio' },
   { href: '/quienes-somos/', texto: 'Quiénes somos' },
   { href: '/areas/', texto: 'Áreas de práctica' },
-  { href: '/blog/', texto: 'Blog jurídico' },
+  /*
+   * «Blog jurídico» queda APARCADO (18-11-2026, petición del cliente): la
+   * sección aún no se va a manejar.
+   *
+   * No es solo que no haya contenido: `/blog/` **no existe**, así que el
+   * enlace daba un 404 en la cabecera de todas las páginas. Un menú que
+   * lleva a una página de error cuesta más que un menú con una opción menos,
+   * y a Google le dice que el sitio está roto.
+   *
+   * Se deja comentado y no borrado: el día que haya blog es descomentar esta
+   * línea. El pie lo sigue enlazando; ver `Footer.astro`.
+   */
+  // { href: '/blog/', texto: 'Blog jurídico' },
   { href: '/contacto/', texto: 'Contacto' },
 ];
 
@@ -31,7 +46,22 @@ const rutaActual = Astro.url.pathname;
  */
 const esActual = (href) =>
   href === '/' ? rutaActual === '/' : rutaActual.startsWith(href);
-const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
+/*
+ * El teléfono sale de `contacto.js`, no del `.env`.
+ *
+ * Este componente lo leía por su cuenta: un NAP duplicado, que es el agujero
+ * que el proyecto ya cerró una vez con el resto de los datos de contacto. El
+ * mismo fallo estaba en `TextoConImagen.astro` y se corrigió ayer.
+ */
+
+/*
+ * Las redes del menú MÓVIL. La barra superior va oculta por debajo de `md`,
+ * así que sin esto el teléfono se queda sin un solo acceso a las redes. Se
+ * descarta en silencio la que no tenga glifo, igual que en la barra.
+ */
+const redes = redesEnUso()
+  .filter((red) => ICONOS_REDES[red.nombre])
+  .map((red) => ({ ...red, ...ICONOS_REDES[red.nombre] }));
 ---
 
 <BarraContacto />
@@ -67,7 +97,7 @@ const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
       ))}
     </ul>
 
-    <a href={`tel:${telefono}`} class="btn-primario-oscuro hidden px-5 py-2.5 text-sm lg:inline-flex">
+    <a href={`tel:${telefonoMarcable}`} class="btn-primario-oscuro hidden px-5 py-2.5 text-sm lg:inline-flex">
       Agendar consulta
     </a>
 
@@ -106,10 +136,32 @@ const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
           </li>
         ))}
         <li class="mt-1 border-t border-humo-200 px-4 pt-3">
-          <a href={`tel:${telefono}`} class="btn-primario w-full py-2.5 text-sm">
+          <a href={`tel:${telefonoMarcable}`} class="btn-primario w-full py-2.5 text-sm">
             Agendar consulta
           </a>
         </li>
+
+        {redes.length > 0 && (
+          <li class="mt-3 border-t border-humo-200 px-4 pt-3">
+            {/*
+                Los iconos miden 44px de lado: aquí sí es un objetivo de dedo,
+                y 44 es el mínimo que fija el proyecto. El `-ml-2.5` devuelve
+                el relleno del primero para que su dibujo quede a ras del
+                texto de los enlaces de arriba.
+            */}
+            <ul class="-ml-2.5 flex items-center gap-1">
+              {redes.map((red) => (
+                <li>
+                  <IconoRed
+                    red={red}
+                    clase="flex size-11 items-center justify-center rounded-lg text-marino-600"
+                    claseIcono="size-5"
+                  />
+                </li>
+              ))}
+            </ul>
+          </li>
+        )}
       </ul>
     </details>
   </nav>

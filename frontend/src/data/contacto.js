@@ -71,18 +71,45 @@ export const whatsapp = import.meta.env.PUBLIC_WHATSAPP ?? '';
  *
  * Una cadena vacía significa «esa red no existe todavía»: ni el icono ni el
  * bloque la pintan. Es preferible a un enlace que lleva a ninguna parte.
+ *
+ * EL ORDEN DE DECLARACIÓN ES EL ORDEN EN QUE SE PINTAN. `redesActivas()`
+ * recorre las claves tal como están escritas aquí, así que mover una línea
+ * mueve el icono en la barra superior y en el menú móvil. Facebook, YouTube y
+ * TikTok van primero por petición del cliente (18-11-2026): son las tres que
+ * el bufete usa. Instagram y LinkedIn se quedan declaradas y vacías para que
+ * añadirlas sea escribir una URL, no tocar código.
  */
 export const redes = {
   facebook: '',
+  youtube: '',
+  tiktok: '',
   instagram: '',
   linkedin: '',
-  tiktok: '',
-  youtube: '',
 };
 
 /** Las que están configuradas, en el orden en que se declaran. */
 export const redesActivas = () =>
   Object.entries(redes).filter(([, url]) => url).map(([nombre, url]) => ({ nombre, url }));
+
+/*
+ * Las que el bufete USA, estén o no configuradas.
+ *
+ * Es una lista aparte de `redesActivas()` y no un capricho: el cliente quiere
+ * ver los tres logotipos en la cabecera desde ya, y todavía no tiene las
+ * direcciones de los perfiles (18-11-2026). Con una sola función no hay forma
+ * de distinguir «esta red no la tenemos» de «la tenemos pero aún no sé la
+ * URL», y las dos cosas se pintan distinto: la primera no sale, la segunda
+ * sale como dibujo sin enlace.
+ *
+ * Pegar aquí abajo la URL en `redes` es lo único que hace falta para que el
+ * dibujo se convierta en enlace. No hay que tocar ningún componente.
+ *
+ * El orden de ESTA lista es el que manda en la cabecera.
+ */
+export const REDES_EN_USO = ['facebook', 'youtube', 'tiktok'];
+
+export const redesEnUso = () =>
+  REDES_EN_USO.map((nombre) => ({ nombre, url: redes[nombre] ?? '' }));
 
 export const MENSAJE_POR_DEFECTO = 'Hola, necesito asesoría jurídica. ¿Me pueden ayudar?';
 
