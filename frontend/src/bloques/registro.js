@@ -346,10 +346,39 @@ export const BLOQUES = {
         max: 12,
         campos: {
           nombre: { tipo: 'texto', max: 50, requerido: true },
-          enlace: { tipo: 'enlace' },
+          /*
+           * Con descripción, la tarjeta deja de ser un enlace y se ABRE sobre
+           * sí misma, con un botón a WhatsApp dentro (spec 013). Sin ella se
+           * comporta como siempre y lleva a `enlace`.
+           *
+           * Por eso `enlace` es su RESERVA: enseñar los dos campos a la vez
+           * deja a quien edita sin saber cuál manda. El valor guardado se
+           * conserva, así que vaciar la descripción devuelve el enlace.
+           */
+          descripcion: {
+            tipo: 'parrafo', max: 160,
+            ayuda: 'Con texto, la tarjeta se abre en vez de enlazar',
+          },
+          /*
+           * Vacío, el componente arma «Hola, deseo una consulta sobre
+           * {nombre}.». Exigir seis mensajes escritos a mano para que el
+           * botón funcione acaba con una tarjeta sin mensaje y un WhatsApp
+           * en blanco.
+           */
+          mensaje: {
+            tipo: 'texto', max: 140,
+            nombre: 'Mensaje de WhatsApp',
+            ayuda: 'Vacío, se arma con el nombre del área',
+          },
+          enlace: { tipo: 'enlace', reserva: 'descripcion' },
           imagen: { tipo: 'imagen', ancho: 600, alto: 800 },
           icono: { tipo: 'opcion', opciones: CLAVES_ICONO, defecto: 'balanza' },
         },
+      },
+      textoConsulta: {
+        tipo: 'texto', max: 30,
+        nombre: 'Boton de las tarjetas',
+        ayuda: 'Texto del boton de WhatsApp dentro de la tarjeta abierta',
       },
       /*
        * Colores del texto. Selector LIBRE por decisión del cliente (D4): no

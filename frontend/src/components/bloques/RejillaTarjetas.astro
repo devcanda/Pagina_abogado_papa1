@@ -6,15 +6,33 @@
  * `scroll-snap` nativo: se arrastra igual en móvil, pasa a rejilla en
  * escritorio y no añade ni un byte de script.
  */
-import { trazoIcono } from '../../bloques/iconos.js';
+import { enlaceWhatsApp, whatsapp } from '../../data/contacto.js';
+import CaraTarjetaArea from './CaraTarjetaArea.astro';
 
 const { datos = {}, variantes = {} } = Astro.props;
 const {
   etiqueta = '', titulo = '', destacado = '', texto = '',
   textoBoton = '', enlaceBoton = '/areas/', palabraFondo = '', tarjetas = [],
+  textoConsulta = 'Consultar ahora',
   colorTitulo = '',
   colorTexto = '',
 } = datos;
+
+/*
+ * Una tarjeta CON descripción se abre sobre sí misma en vez de enlazar
+ * (spec 013). Las seis áreas de la portada llevaban a `/areas/derecho-*`, seis
+ * páginas que no existen: seis 404 en la portada.
+ *
+ * El reparto se decide aquí y no en el panel para que añadir el campo no
+ * cambiara ninguna otra rejilla del sitio: sin descripción, todo sigue igual.
+ *
+ * El botón solo se pinta si hay número de WhatsApp configurado. Sin número,
+ * `enlaceWhatsApp()` devolvería `https://wa.me/?text=…`, que es un enlace que
+ * no lleva a ninguna parte, y un botón muerto es peor que no tener botón.
+ */
+const hayWhatsApp = Boolean(whatsapp);
+const mensajeDe = (area) =>
+  area.mensaje || `Hola, deseo una consulta sobre ${area.nombre}.`;
 
 /*
  * Colores del texto, elegidos desde el panel. Van en línea porque tienen que
@@ -31,7 +49,16 @@ const { columnas = '3' } = variantes;
 
 ---
 
-<section class="relative overflow-hidden bg-marino-900 py-20 lg:py-28">
+<!--
+  `data-superficie="oscura"` no estaba y ahora hace falta: desde que las
+  tarjetas se abren, dentro hay un `<summary>` que se enfoca con el teclado y
+  un botón en el panel, y el anillo de foco azul del proyecto no se ve sobre
+  navy. `global.css` ya contempla `summary` en esa regla.
+
+  No afecta al pie: la regla que le quita el margen mira
+  `main > *:last-child[data-superficie]`, y esta sección no es la última.
+-->
+<section class="relative overflow-hidden bg-marino-900 py-20 lg:py-28" data-superficie="oscura">
   <!-- Palabra de fondo: solo decorativa, recortada por la sección. -->
   <span
     class="palabra-fondo -bottom-6 left-1/2 -translate-x-1/2 text-[18vw] text-white/[0.04]"
@@ -52,64 +79,158 @@ const { columnas = '3' } = variantes;
       )}
     </div>
 
-    <!-- Tira desplazable en móvil, rejilla en escritorio. -->
+    <!--
+      Tira desplazable en móvil, rejilla en escritorio.
+
+      `items-start` quedó de cuando el panel crecía hacia abajo. Ya no hace
+      falta —el panel flota y la ficha no cambia de alto—, pero se queda
+      porque no cuesta nada y protege el día que una tarjeta lleve contenido
+      de otra altura.
+    -->
     <ul
       class:list={[
-        '-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4',
+        '-mx-4 flex snap-x snap-mandatory items-start gap-5 overflow-x-auto px-4 pb-4',
         'sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0',
         columnas === '2' ? 'xl:grid-cols-2' : 'xl:grid-cols-3',
       ]}
     >
       {tarjetas.map((area) => (
         <li class="w-[70vw] shrink-0 snap-start sm:w-auto">
-          <a
-            href={area.enlace}
-            class="group relative flex aspect-4/5 flex-col justify-end overflow-hidden
-                   bg-marino-800 p-5 transition-transform hover:-translate-y-1"
-          >
-            <img
-              src={area.imagen}
-              alt=""
-              width="600"
-              height="800"
-              class="absolute inset-0 size-full object-cover opacity-45
-                     transition-all duration-500 group-hover:scale-105 group-hover:opacity-60"
-              loading="lazy"
-              decoding="async"
-            />
-            <span
-              class="absolute inset-0 bg-gradient-to-t from-marino-900 via-marino-900/55 to-transparent"
-              aria-hidden="true"
-            ></span>
-
-            <span
-              class="relative mb-auto inline-flex size-11 items-center justify-center
-                     rounded-full bg-white/10 text-white backdrop-blur-sm"
-            >
-              <svg class="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d={trazoIcono(area.icono)} />
-              </svg>
-            </span>
-
-            <span class="relative flex items-end justify-between gap-3">
-              <span class="font-display text-xl font-bold leading-tight text-white">
-                {area.nombre}
-              </span>
-              <span
-                class="inline-flex size-9 shrink-0 items-center justify-center rounded-full
-                       bg-white text-marino-900 transition-colors
-                       group-hover:bg-rojo-500 group-hover:text-white"
-                aria-hidden="true"
+          {area.descripcion ? (
+            <details class="tarjeta-area group/ficha relative">
+              <summary
+                class="tarjeta-cara group relative flex aspect-4/5 cursor-pointer flex-col
+                       justify-end overflow-hidden bg-marino-800 p-5
+                       transition-transform hover:-translate-y-1"
               >
-                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2.5" stroke-linecap="round">
-                  <path d="M5 12h14m-6-6 6 6-6 6" />
-                </svg>
-              </span>
-            </span>
-          </a>
+                <CaraTarjetaArea area={area} abre />
+              </summary>
+
+              {/*
+                El panel FLOTA sobre la tarjeta; no la estira (petición del
+                cliente). Va en absoluto sobre la cara, así que el alto de la
+                ficha no cambia al abrirla y la rejilla no se mueve.
+
+                Trae SU PROPIO fondo macizo. Detrás hay una foto al 45% y un
+                degradado: un texto pequeño sobre eso es una moneda al aire,
+                el mismo problema que resuelve el velo de la cabecera.
+              */}
+              {/*
+                `marino-800`, el mismo navy que ya tiene la tarjeta debajo de
+                la foto, y NO el `marino-900` de la sección: con el color de
+                la sección la ficha abierta pierde sus bordes y parece un
+                agujero en la rejilla en vez de un panel encima.
+              */}
+              <div class="tarjeta-panel flex flex-col gap-3 bg-marino-800 p-5">
+                <p class="text-[0.8125rem] leading-snug text-marino-100/90">
+                  {area.descripcion}
+                </p>
+                {hayWhatsApp && (
+                  <a
+                    href={enlaceWhatsApp(mensajeDe(area))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn-primario-oscuro w-full !px-3 !text-[0.8125rem]"
+                    aria-label={`${textoConsulta} sobre ${area.nombre} por WhatsApp (se abre en otra pestaña)`}
+                  >
+                    {textoConsulta}
+                  </a>
+                )}
+              </div>
+            </details>
+          ) : (
+            <a
+              href={area.enlace}
+              class="group relative flex aspect-4/5 flex-col justify-end overflow-hidden
+                     bg-marino-800 p-5 transition-transform hover:-translate-y-1"
+            >
+              <CaraTarjetaArea area={area} />
+            </a>
+          )}
         </li>
       ))}
     </ul>
   </div>
 </section>
+
+<style>
+  /*
+   * La ficha se abre sin JavaScript (spec 013).
+   *
+   * `<details>` es lo único del HTML que conmuta al pulsarlo, y el sitio
+   * publico envia 0 KB de script. De regalo, el teclado funciona solo: un
+   * `<summary>` se enfoca y se activa con Enter y con Espacio, sin un
+   * `tabindex` ni un `role` escritos a mano.
+   */
+  /*
+   * ── El panel FLOTA; la tarjeta NO crece ────────────────────────────────
+   *
+   * Petición del cliente: abrir una ficha no puede estirar el bloque que la
+   * contiene. El panel va en absoluto sobre la cara, así que la ficha mide lo
+   * mismo abierta que cerrada y la rejilla no se mueve ni un píxel.
+   *
+   * El problema que eso trae es cómo CERRARLA: lo único que conmuta un
+   * `<details>` es su `<summary>`, y el panel lo tapa. Se resuelve por dos
+   * caminos a la vez, y los dos hacen falta:
+   *
+   *   1. El rótulo de abajo se pinta POR ENCIMA del panel (`z-index` en
+   *      `CaraTarjetaArea`). Sigue a la vista, con su flecha girada, y
+   *      pulsarlo cierra la ficha.
+   *   2. El panel no intercepta el ratón salvo en su texto y su botón, así
+   *      que **pulsar en cualquier hueco del panel también cierra**, porque
+   *      el clic llega al `<summary>` que hay debajo.
+   */
+  .tarjeta-area {
+    overflow: hidden;
+  }
+
+  .tarjeta-panel {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    /* Deja pasar el clic al `<summary>`; los hijos lo recuperan. */
+    pointer-events: none;
+  }
+
+  .tarjeta-panel > * {
+    pointer-events: auto;
+  }
+
+  /*
+   * El salto del paso del ratón se anula con la ficha abierta.
+   *
+   * Un `transform` sobre el `<summary>` crea contexto de apilamiento, y
+   * entonces el rótulo deja de poder subir por encima del panel: se iría
+   * detrás justo al pasar el ratón. Además, una ficha ya abierta no debería
+   * seguir ofreciéndose como «pulsa para ver más».
+   */
+  .tarjeta-area[open] .tarjeta-cara:hover {
+    transform: none;
+  }
+
+
+  /*
+   * Hay que quitar el triangulito por DOS caminos, y los dos hacen falta.
+   *
+   * `list-style: none` es el estandar y lo respetan Chrome y Firefox;
+   * `::-webkit-details-marker` es lo unico que entiende Safari, que no aplica
+   * `display: list-item` al summary. Con solo uno de los dos, el triangulo
+   * aparece encima de la foto en uno de los dos motores.
+   */
+  .tarjeta-cara {
+    list-style: none;
+  }
+
+  .tarjeta-cara::-webkit-details-marker {
+    display: none;
+  }
+
+  /*
+   * El giro de la flecha NO se declara aqui, sino en `CaraTarjetaArea.astro`.
+   *
+   * Los estilos de un componente de Astro estan ACOTADOS: la regla solo
+   * alcanza a los elementos que ese componente pinta. La flecha la pinta el
+   * parcial, asi que una regla escrita aqui no la toca y la flecha se quedaba
+   * sin girar, sin que nada avisara. Pasó.
+   */
+</style>

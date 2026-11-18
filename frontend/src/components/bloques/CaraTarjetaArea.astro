@@ -1,0 +1,109 @@
+---
+/**
+ * La cara de una tarjeta de área: foto de fondo, icono, nombre y flecha.
+ *
+ * Vive aparte porque la misma cara se usa en DOS envoltorios distintos
+ * (spec 013): dentro de un `<summary>` cuando la tarjeta se abre sobre sí
+ * misma, y dentro de un `<a>` cuando lleva a una página. Duplicarla sería
+ * garantizar que un día una de las dos se quede atrás.
+ *
+ * No trae las clases del envoltorio: las pone quien la usa, porque son
+ * distintas en cada caso.
+ */
+import { trazoIcono } from '../../bloques/iconos.js';
+
+const { area, abre = false } = Astro.props;
+---
+
+<img
+  src={area.imagen}
+  alt=""
+  width="600"
+  height="800"
+  class="absolute inset-0 size-full object-cover opacity-45
+         transition-all duration-500 group-hover:scale-105 group-hover:opacity-60"
+  loading="lazy"
+  decoding="async"
+/>
+<span
+  class="absolute inset-0 bg-gradient-to-t from-marino-900 via-marino-900/55 to-transparent"
+  aria-hidden="true"
+></span>
+
+<span
+  class="relative mb-auto inline-flex size-11 items-center justify-center
+         rounded-full bg-white/10 text-white backdrop-blur-sm"
+>
+  <svg class="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d={trazoIcono(area.icono)} />
+  </svg>
+</span>
+
+{/*
+  El rótulo se queda POR ENCIMA del panel flotante (spec 013). Es lo que
+  mantiene visible de qué área se está leyendo y, sobre todo, lo que permite
+  cerrar la ficha: es parte del `<summary>`, así que pulsarlo la conmuta. Sin
+  él, el panel taparía el único control que cierra un `<details>`.
+*/}
+<span class="tarjeta-rotulo relative flex items-end justify-between gap-3">
+  <span class="font-display text-xl font-bold leading-tight text-white">
+    {area.nombre}
+  </span>
+  {/*
+    La flecha gira 90° al abrir la ficha, así que deja de apuntar «hacia
+    otra página» y pasa a apuntar «hacia abajo», que es donde está lo que
+    se acaba de desplegar. Es la única señal de estado que tiene la tarjeta.
+  */}
+  <span
+    class:list={[
+      'inline-flex size-9 shrink-0 items-center justify-center rounded-full',
+      'bg-white text-marino-900 transition-colors',
+      'group-hover:bg-rojo-500 group-hover:text-white',
+      abre && 'tarjeta-flecha transition-transform',
+    ]}
+    aria-hidden="true"
+  >
+    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.5" stroke-linecap="round">
+      <path d="M5 12h14m-6-6 6 6-6 6" />
+    </svg>
+  </span>
+</span>
+
+<style>
+  /*
+   * La flecha gira cuando la ficha esta abierta.
+   *
+   * El `details` lo pinta el componente de arriba, asi que su selector va en
+   * `:global()`: los estilos de Astro estan acotados por componente y sin eso
+   * la regla no encuentra a quien mirar. El objetivo —la flecha— si es de
+   * este componente, asi que esa parte se acota sola.
+   */
+  :global(details.tarjeta-area[open]) .tarjeta-flecha {
+    transform: rotate(90deg);
+  }
+
+  /*
+   * El rótulo se pinta por encima del panel flotante.
+   *
+   * `z-index` necesita un contexto de apilamiento estable, y el `<summary>`
+   * crea uno EN CUANTO se le aplica un `transform` —el pequeño salto del paso
+   * del ratón—. Si eso ocurre con la ficha abierta, el rótulo queda atrapado
+   * dentro del summary y se va detrás del panel. Por eso el salto se anula
+   * cuando la ficha está abierta; ademas, una ficha abierta no deberia
+   * seguir ofreciendose como «pulsa para ver mas».
+   */
+  .tarjeta-rotulo {
+    z-index: 2;
+  }
+
+  /*
+   * Es lo unico que se mueve en esta tarjeta, y se apaga con «menos
+   * movimiento». Abrir y cerrar sigue funcionando: `<details>` no anima.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .tarjeta-flecha {
+      transition: none;
+    }
+  }
+</style>

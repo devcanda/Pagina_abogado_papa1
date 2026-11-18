@@ -17,6 +17,7 @@ import { compilar } from '../services/compilacion.service.js';
 import { BLOQUES, sanearDatos, sanearVariantes } from '../../../frontend/src/bloques/registro.js';
 import { vistaEntrar } from './vistas.js';
 import { vistaBloques } from './vistaBloques.js';
+import { reservaSuperada } from './formulario.js';
 import { asyncHandler } from '../utils/errors.js';
 
 export const panelRouter = Router();
@@ -247,10 +248,21 @@ function conciliar(campos, enviado, guardado, clavesDeMedios) {
       continue;
     }
 
-    const reservaSuperada = campo.reserva
-      && Array.isArray(guardado?.[campo.reserva])
-      && guardado[campo.reserva].length;
-    if (reservaSuperada && antes !== undefined) salida[clave] = antes;
+    /*
+     * La regla de «reserva superada» se IMPORTA; no se escribe aquí.
+     *
+     * Aquí había una copia que solo entendía reservas superadas por un ARRAY
+     * —`laminas`—, justo lo que el comentario de `reservaSuperada()` avisa
+     * que pasaría: «duplicada, un día dejarían de coincidir». Ese día llegó
+     * con la spec 013, donde el `enlace` de cada tarjeta es reserva de su
+     * `descripcion`, que es una CADENA: el formulario no envía el enlace y
+     * esta copia no sabía conservarlo, así que guardar lo borraba.
+     *
+     * No reventó antes con la figura del perito, que también es reserva de
+     * una cadena, porque ese campo es `tipo: 'imagen'` y la rama de imágenes
+     * va antes y ya conserva lo guardado. Fue suerte, no diseño.
+     */
+    if (reservaSuperada(campo, guardado) && antes !== undefined) salida[clave] = antes;
   }
 
   return salida;
