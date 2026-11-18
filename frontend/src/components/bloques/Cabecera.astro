@@ -175,7 +175,17 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
       sección es la de la más alta y no pega un salto al cambiar.
     -->
     <div class="cabecera-pila grid">
-      {aPintar.map((lamina, i) => (
+      {aPintar.map((lamina, i) => {
+        /*
+         * La etiqueta del titular se decide aquí: `h1` para la primera lámina
+         * y `h2` para las demás. Ver el comentario largo junto a `<Titular>`.
+         *
+         * Va como variable con mayúscula inicial porque Astro trata en
+         * minúscula los nombres de etiqueta literales; con `titular` en
+         * minúscula pintaría un elemento `<titular>` inventado.
+         */
+        const Titular = i === 0 ? 'h1' : 'h2';
+        return (
         <div
           class="cabecera-lamina grid items-center gap-8 py-14 md:grid-cols-2 md:py-20 lg:py-24"
           role={esCarrusel ? 'group' : undefined}
@@ -274,13 +284,33 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
               </p>
             )}
 
-            <h1
+            {/*
+              Solo la PRIMERA lámina lleva `<h1>`; las otras dos van en `<h2>`
+              (spec 014).
+
+              Antes las tres eran `<h1>`. Para quien usa lector de pantalla
+              nunca fue un problema —las inactivas van `visibility: hidden` y
+              salen del árbol de accesibilidad, así que solo se anuncia una—,
+              pero **en el HTML había tres**, y un rastreador los lee todos,
+              incluidos los dos ocultos.
+
+              Que haya varios `<h1>` no está penalizado; lo que no conviene es
+              que dos de ellos estén OCULTOS y digan cosas distintas de lo que
+              el visitante ve. Con esto la página declara un solo tema.
+
+              Se eligió `<h2>` y no un `<p>`: así el titular de las láminas 2 y
+              3 **sigue siendo un encabezado** cuando esa lámina está a la
+              vista, que es lo que un lector de pantalla espera encontrar.
+
+              No cambia un píxel: las clases son las mismas.
+            */}
+            <Titular
               class="font-display text-[2.6rem] font-bold leading-[1.08] tracking-tight
                      text-white sm:text-6xl lg:text-7xl"
               style={color(lamina.colorTitulo)}
             >
               {lamina.titulo}
-            </h1>
+            </Titular>
 
             <p class="mt-6 text-base leading-relaxed text-marino-100/85 sm:text-lg"
                style={color(lamina.colorTexto)}>
@@ -320,7 +350,8 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
             )}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
 
     {esCarrusel && (

@@ -34,8 +34,57 @@ export const horario = {
 
 export const email = 'contacto@candamilabogados.com';
 
-export const direccion = 'Cra. 31 #24-54, Céspedes, Tuluá';
+/**
+ * La dirección, EN PIEZAS.
+ *
+ * Los datos estructurados que lee Google no quieren una cadena: quieren
+ * `streetAddress`, `addressLocality` y `addressRegion` por separado. Antes
+ * solo existía la cadena entera, así que para el esquema habría que haberla
+ * vuelto a escribir troceada —y tendríamos dos direcciones que un día
+ * discreparían, que es el agujero del NAP que este archivo existe para
+ * cerrar—.
+ *
+ * Así que la cadena se COMPONE de las piezas, no al revés.
+ */
+export const direccionPartes = {
+  via: 'Cra. 31 #24-54',
+  barrio: 'Céspedes',
+  localidad: 'Tuluá',
+};
+
+export const direccion = `${direccionPartes.via}, ${direccionPartes.barrio}, ${direccionPartes.localidad}`;
 export const ciudad = 'Tuluá, Valle del Cauca';
+
+/**
+ * Coordenadas de la oficina.
+ *
+ * Son las mismas que lleva `mapa` aquí abajo en sus parámetros `!3d`
+ * (latitud) y `!4d` (longitud): no es otro dato, es el mismo escrito de otra
+ * forma, igual que `horasCompactas`. Se declaran aparte porque sacarlas de
+ * la URL con una expresión regular se rompería en silencio el día que
+ * alguien pegue un enlace de Google con otro formato.
+ *
+ * Si cambia la oficina, cambian las dos cosas o el mapa y los datos
+ * estructurados señalarán sitios distintos.
+ */
+export const coordenadas = { latitud: 4.0857749, longitud: -76.1938101 };
+
+/**
+ * El nombre EXACTO de la ficha de Google, que es el que va en los datos
+ * estructurados.
+ *
+ * El sitio usa hoy tres variantes —«Candamil Asociados Abogados» 34 veces,
+ * «Candamil Abogados» 18 y «Candamil y Asociados Abogados» 4—, y para la
+ * búsqueda local eso es NAP incoherente: Google casa la ficha del negocio
+ * con la web comparando nombre, dirección y teléfono. El que manda es el de
+ * la ficha, que se lee en la URL de `mapa`.
+ *
+ * Unificar lo que se VE es una decisión de marca del cliente y no se toca
+ * aquí; lo que sí se puede es que la declaración que lee la máquina sea la
+ * correcta y liste las otras como `alternateName`.
+ */
+export const nombreLegal = 'Candamil y Asociados Abogados';
+export const nombresAlternativos = ['Candamil Abogados', 'Candamil Asociados Abogados'];
 
 /*
  * `direccion` YA TERMINA en «Tuluá», así que pegarle `ciudad` detrás deja

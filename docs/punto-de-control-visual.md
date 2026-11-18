@@ -156,6 +156,31 @@ exactamente lo que convierte un punto de control en decoración.
 
 ## Historial de regeneraciones
 
+### 18-11-2026 (tarde) — solo el pie, spec 014
+
+El pie pasó de tres enlaces legales a dos: `/tratamiento-de-datos/` no existía
+y **la página de `/politica-de-privacidad/` ya ES la Política de Tratamiento
+de la Información**, así que había dos etiquetas para el mismo documento.
+
+Es el ejemplo de un diff que se explica solo y por eso se acepta:
+
+| Vista | Diferencia |
+|---|---|
+| portada / corporativa / 404 escritorio | **2438 píxeles exactos, el mismo número en las tres** |
+| portada y corporativa móvil | 36 px menos de alto |
+| las dos landings | **0 píxeles** |
+
+Que el número sea idéntico en tres páginas distintas dice que lo que cambió
+es lo que comparten: el pie. Y que las landings den cero lo confirma, porque
+son las únicas que no lo llevan. Si el número hubiera salido distinto en cada
+página, habría habido algo más que mirar.
+
+Los cambios de SEO de esa misma tanda —sitemap, `<h1>` único, descripciones,
+datos estructurados, retirada del `preconnect`— se compararon ANTES y dieron
+**0 píxeles en las siete vistas**: viven en el `<head>` o en la semántica, y
+no mueven nada.
+
+
 ### 18-11-2026 — las siete vistas, a petición del cliente
 
 La línea base era del **22-10-2026** y llevaba semanas inválida. El cliente

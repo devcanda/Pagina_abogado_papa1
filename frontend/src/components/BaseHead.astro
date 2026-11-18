@@ -13,8 +13,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 // esperan esas plataformas.
 const esRaster = imagen && !imagen.toLowerCase().endsWith('.svg');
 const imagenAbsoluta = new URL(esRaster ? imagen : '/img/og-imagen.png', Astro.site).href;
-
-const origenApi = new URL(import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000').origin;
 ---
 
 <meta charset="utf-8" />
@@ -59,5 +57,18 @@ const origenApi = new URL(import.meta.env.PUBLIC_API_URL ?? 'http://localhost:30
   crossorigin
 />
 
-<!-- Abre la conexión con la API antes de que el navegador la necesite. -->
-<link rel="preconnect" href={origenApi} crossorigin />
+<!--
+  Aquí había un `preconnect` a la API y se ha RETIRADO (spec 014).
+
+  El sitio es estático: el contenido se consulta durante `astro build` y el
+  navegador del visitante **no llama a la API nunca**. El `preconnect` abría
+  una conexión que nadie iba a usar.
+
+  Y en el sitio compilado salía como `http://localhost:3000`, porque es el
+  valor por defecto de `PUBLIC_API_URL`: el navegador de cada visitante
+  intentaba conectarse a SU PROPIA máquina en el puerto 3000. Inofensivo,
+  pero estaba en las seis páginas y delataba el montaje de desarrollo.
+
+  Si algún día el navegador sí tuviera que hablar con la API —un formulario,
+  el bot de triage—, este es el sitio donde vuelve a hacer falta.
+-->

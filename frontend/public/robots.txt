@@ -1,4 +1,13 @@
 User-agent: *
 Allow: /
 
+# El panel de contenido no es contenido: lo sirve el proceso Node, exige
+# sesión y no tiene nada que un buscador deba indexar. Se declara igualmente
+# porque un 302 repetido a la pantalla de acceso ensucia el informe de
+# rastreo de Search Console.
+Disallow: /panel/
+
+# Este archivo EXISTE desde la spec 014. Durante meses apuntó a una URL que
+# devolvía 404 porque la integración que lo genera no estaba instalada: le
+# estábamos mandando a Google a una página de error en lo primero que lee.
 Sitemap: https://candamilabogados.com/sitemap-index.xml

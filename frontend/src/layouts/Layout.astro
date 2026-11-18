@@ -21,6 +21,7 @@ import BotonWhatsApp from '../components/BotonWhatsApp.astro';
 import Logo from '../components/Logo.astro';
 import Navbar from './partials/Navbar.astro';
 import Footer from './partials/Footer.astro';
+import { esquemaBufete, esquemaSitio, esquemaMigas } from '../data/schema.js';
 
 const {
   // Registro de la tabla `paginas`. Si llega, rellena todo lo demás.
@@ -55,14 +56,48 @@ const ctaSoloMovil = !esLanding;
 // corporativas por los mismos términos: se excluyen salvo orden contraria.
 const excluirDeIndice = noIndex || esLanding;
 
-const schema = {
-  '@context': 'https://schema.org',
-  '@type': 'LegalService',
-  name: 'Candamil Abogados',
-  url: Astro.site?.href,
-  areaServed: 'CO',
-  telephone: import.meta.env.PUBLIC_TELEFONO,
-};
+/*
+ * ── Datos estructurados (spec 014) ─────────────────────────────────────────
+ *
+ * Aquí había un `LegalService` de cuatro campos, repetido idéntico en las
+ * siete páginas y con el teléfono leído de `PUBLIC_TELEFONO` saltándose
+ * `contacto.js`. Ahora se arma en `data/schema.js`, desde la fuente única.
+ *
+ * Qué emite cada página:
+ *
+ *   · Portada y `/contacto/`  → la entidad ENTERA. Son las dos que describen
+ *     al negocio: una lo presenta y la otra da la dirección y el horario.
+ *     Comparten `@id`, así que para Google es una sola entidad, no dos.
+ *   · Las demás corporativas  → MIGAS de pan, que es lo que aporta una página
+ *     interior: un rastro legible en el resultado en vez de la URL cruda.
+ *   · Las landings            → NADA. Van `noindex`; declararle datos
+ *     estructurados a una página que le pedimos a Google que no indexe es
+ *     trabajo para nadie.
+ */
+const ruta = Astro.url.pathname;
+const esPortada = ruta === '/';
+const describeNegocio = esPortada || ruta.startsWith('/contacto');
+
+/*
+ * El rótulo de las migas se SACA DEL TÍTULO de la página, quedándose con lo
+ * que hay antes de la barra: «Contacto | Candamil Asociados Abogados» da
+ * «Contacto».
+ *
+ * Se podría haber escrito una lista de ruta → nombre, pero sería una segunda
+ * lista de las páginas del sitio que un día discreparía de la del menú y de
+ * la del pie. Aquí no hay nada que mantener: la página ya declara cómo se
+ * llama.
+ */
+const migas = esPortada ? [] : [
+  { nombre: 'Inicio', ruta: '/' },
+  { nombre: titulo.split('|')[0].trim(), ruta },
+];
+
+const esquemas = excluirDeIndice ? [] : [
+  ...(describeNegocio ? [esquemaBufete(Astro.site)] : []),
+  ...(esPortada ? [esquemaSitio(Astro.site)] : []),
+  ...(!esPortada && migas.length > 1 ? [esquemaMigas(Astro.site, migas)] : []),
+];
 ---
 
 <!doctype html>
@@ -75,7 +110,13 @@ const schema = {
       noIndex={excluirDeIndice}
     />
     <slot name="head" />
-    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    {/*
+      Un bloque por esquema, no uno con varios dentro de un array: si un
+      consumidor del dato se atraganta con uno, los demas siguen leyendose.
+    */}
+    {esquemas.map((e) => (
+      <script type="application/ld+json" set:html={JSON.stringify(e)} />
+    ))}
   </head>
 
   <body class="flex min-h-dvh flex-col">

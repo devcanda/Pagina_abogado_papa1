@@ -1,0 +1,226 @@
+---
+/**
+ * Términos y condiciones de uso (`/terminos-y-condiciones/`).
+ *
+ * ESTA PÁGINA YA ESTABA ENLAZADA DESDE EL PIE Y NO EXISTÍA. El pie se repite
+ * en las seis páginas del sitio, así que era un 404 multiplicado por seis.
+ *
+ * ── Qué hace este documento y qué NO ──────────────────────────────────────
+ * No es la política de datos: esa es `/politica-de-privacidad/` y aquí solo
+ * se remite a ella. Lo que este documento cubre es lo que a un despacho le
+ * importa de verdad cuando publica contenido jurídico en abierto:
+ *
+ *   · Que lo que se lee aquí es DIVULGATIVO y no es asesoría para un caso.
+ *   · Que leerlo o escribir por WhatsApp **no crea relación abogado-cliente**,
+ *     que es la confusión más cara de todas: alguien que cree tener abogado,
+ *     deja correr un término y lo pierde.
+ *   · Que no conviene mandar documentos sensibles por un canal abierto antes
+ *     de que exista encargo.
+ *   · De quién son los textos, las fotos y el logotipo.
+ *
+ * ── Página ESTÁTICA, no fila de `paginas` ─────────────────────────────────
+ * Igual que la política: un texto legal no debe poder cambiarse por descuido
+ * desde el panel. Versionado en git, con fecha y autor, que es lo que hay que
+ * poder demostrar si alguien reclama.
+ *
+ * ── Lo que falta y solo puede dar el cliente ──────────────────────────────
+ * El NIT, marcado con `PENDIENTE` para que se VEA. No se inventa: un dato
+ * tributario falso en un documento legal es peor que la marca.
+ *
+ * **Redactado para que lo revise y lo firme el abogado titular.** Aquí se ha
+ * preparado el andamiaje y los apartados que la práctica colombiana espera;
+ * la revisión jurídica es suya.
+ */
+import Layout from '../../layouts/Layout.astro';
+import {
+  telefonoLegible,
+  telefonoMarcable,
+  email,
+  direccion,
+  departamento,
+  pais,
+  nombreLegal,
+} from '../../data/contacto.js';
+
+const ACTUALIZADA = '18 de noviembre de 2026';
+
+const metadata = {
+  titulo: 'Términos y condiciones de uso | Candamil Abogados',
+  descripcion:
+    'Condiciones de uso del sitio de Candamil y Asociados Abogados: carácter '
+    + 'divulgativo del contenido, ausencia de relación abogado-cliente y propiedad intelectual.',
+};
+---
+
+<Layout titulo={metadata.titulo} descripcion={metadata.descripcion}>
+  <section class="bg-marino-900 py-14 text-white sm:py-16" data-superficie="oscura">
+    <div class="contenedor">
+      <p class="etiqueta-seccion-clara">Aviso legal</p>
+      <h1 class="titular-claro mt-2 max-w-3xl text-3xl sm:text-4xl">
+        Términos y condiciones de uso
+      </h1>
+      <p class="mt-4 text-sm text-marino-200">
+        Última actualización: {ACTUALIZADA}
+      </p>
+    </div>
+  </section>
+
+  {/* `data-superficie="clara"` pega el pie al contenido. Ver `global.css`. */}
+  <section class="bg-humo py-14 sm:py-20" data-superficie="clara">
+    <div class="contenedor">
+      <div class="prosa mx-auto max-w-3xl">
+        <p>
+          Estas condiciones regulan el acceso y el uso de este sitio web. Al
+          navegar por él usted las acepta. Si no está de acuerdo con alguna,
+          le pedimos que no lo utilice.
+        </p>
+
+        <h2>1. Quién es el titular de este sitio</h2>
+        <p>
+          <strong>{nombreLegal}</strong>, con domicilio en {direccion},
+          {' '}{departamento}, {pais}.
+        </p>
+        <ul>
+          <li>Correo: <a href={`mailto:${email}`}>{email}</a></li>
+          <li>
+            Teléfono y WhatsApp:
+            {' '}<a href={`tel:${telefonoMarcable}`}>{telefonoLegible}</a>
+          </li>
+        </ul>
+        <p>
+          <strong>
+            PENDIENTE: incluir aquí el NIT o el número de documento del
+            titular.
+          </strong>{' '}
+          La identificación plena de quien publica es exigible y, además, es lo
+          primero que comprueba quien quiere saber con quién está tratando.
+        </p>
+
+        <h2>2. El contenido es divulgativo, no es asesoría jurídica</h2>
+        <p>
+          Los textos de este sitio explican materias jurídicas en general. Están
+          escritos para orientar, no para resolver un caso concreto: <strong>no
+          constituyen asesoría jurídica</strong> y no deben tomarse como base
+          para actuar ni para dejar de hacerlo.
+        </p>
+        <p>
+          El derecho cambia, y lo que vale para un caso no vale para otro que
+          se le parezca. Antes de tomar cualquier decisión con consecuencias
+          legales, consulte su situación concreta con un abogado.
+        </p>
+
+        <h2>3. Leer este sitio o escribirnos no crea relación abogado-cliente</h2>
+        <p>
+          Es el punto más importante de este documento, y conviene decirlo sin
+          rodeos: <strong>la relación profesional nace únicamente del encargo
+          aceptado por escrito</strong>, con sus honorarios acordados. Ni
+          navegar por el sitio, ni pulsar un botón, ni enviarnos un mensaje de
+          WhatsApp, un correo o una llamada crean por sí mismos esa relación.
+        </p>
+        <p>
+          Lo decimos porque la confusión contraria sale cara: alguien que cree
+          que ya tiene abogado puede dejar correr un término de caducidad o de
+          prescripción y perder el derecho que venía a reclamar.
+        </p>
+        <p>
+          Mientras no haya encargo aceptado, tampoco nace el deber de
+          seguimiento de su asunto ni el control de sus plazos.
+        </p>
+
+        <h2>4. Qué conviene no enviarnos todavía</h2>
+        <p>
+          WhatsApp, el correo electrónico y el teléfono son canales cómodos,
+          pero no son canales cifrados de extremo a extremo bajo nuestro
+          control. Para un primer contacto basta con describir el asunto en
+          términos generales.
+        </p>
+        <p>
+          <strong>No envíe documentos, historias clínicas, contratos ni datos
+          de terceros antes de que exista un encargo aceptado.</strong> Cuando
+          lo haya, le indicaremos el canal adecuado para hacerlo.
+        </p>
+        <p>
+          El deber de confidencialidad del abogado cubre lo que usted nos
+          cuente, exista o no encargo. Lo que esta advertencia protege es otra
+          cosa: el camino por el que viaja la información.
+        </p>
+
+        <h2>5. Propiedad intelectual</h2>
+        <p>
+          Los textos, el diseño, las fotografías y el logotipo de este sitio
+          son propiedad de {nombreLegal} o se usan con autorización de su
+          titular. Puede leerlos, imprimirlos y citarlos indicando la fuente y
+          enlazando a la página original.
+        </p>
+        <p>
+          No está permitido reproducirlos con fines comerciales, modificarlos
+          ni presentarlos como propios. <strong>El logotipo no puede alterarse,
+          recortarse ni recolorearse</strong> en ningún caso.
+        </p>
+        <p>
+          Las marcas de terceros que aparecen en el sitio —entidades
+          certificadoras, clientes y redes sociales— pertenecen a sus
+          respectivos titulares y se muestran únicamente a título
+          identificativo. Si alguna entidad desea que se retire la suya, basta
+          con que nos escriba.
+        </p>
+
+        <h2>6. Enlaces y contenidos de terceros</h2>
+        <p>
+          Este sitio enlaza a servicios de terceros e incrusta contenidos
+          suyos: el mapa de Google, vídeos de YouTube, publicaciones de TikTok
+          y la página de Facebook del despacho. Esos contenidos se rigen por
+          las condiciones de cada plataforma, sobre las que este despacho no
+          tiene control.
+        </p>
+        <p>
+          Qué datos recibe cada uno de esos terceros, y cómo evitarlo, se
+          explica en la{' '}
+          <a href="/politica-de-privacidad/">política de tratamiento de datos</a>.
+        </p>
+
+        <h2>7. Disponibilidad del sitio</h2>
+        <p>
+          Procuramos que el sitio esté disponible y actualizado, pero no
+          podemos garantizar que funcione sin interrupciones. Puede dejar de
+          estar accesible por mantenimiento, por fallos del proveedor de
+          alojamiento o por causas ajenas.
+        </p>
+        <p>
+          <strong>Si tiene un asunto con plazo, no confíe en el sitio
+          web.</strong> Llame al teléfono que figura arriba.
+        </p>
+
+        <h2>8. Protección de datos personales</h2>
+        <p>
+          Este sitio no tiene formularios y navegar por él no exige facilitar
+          ningún dato. Lo que ocurre con la información que usted comparta al
+          contactarnos se explica en la{' '}
+          <a href="/politica-de-privacidad/">política de tratamiento de datos
+          personales</a>, adoptada conforme a la{' '}
+          <strong>Ley 1581 de 2012</strong>.
+        </p>
+
+        <h2>9. Ley aplicable y jurisdicción</h2>
+        <p>
+          Estas condiciones se rigen por la ley colombiana. Cualquier
+          controversia sobre el uso de este sitio se someterá a los jueces de
+          la República de Colombia.
+        </p>
+
+        <h2>10. Cambios en estas condiciones</h2>
+        <p>
+          Pueden actualizarse. La versión vigente es siempre la publicada en
+          esta página, con la fecha de actualización que figura al principio.
+        </p>
+
+        <h2>11. Contacto</h2>
+        <p>
+          Para cualquier cuestión sobre estas condiciones puede escribirnos a{' '}
+          <a href={`mailto:${email}`}>{email}</a> o llamar al{' '}
+          <a href={`tel:${telefonoMarcable}`}>{telefonoLegible}</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+</Layout>

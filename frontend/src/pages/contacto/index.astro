@@ -36,10 +36,19 @@ import {
  */
 const metadata = {
   titulo: 'Contacto | Candamil Asociados Abogados',
+  /*
+   * 134 caracteres. Medía 219 y Google corta alrededor de 160: el horario y
+   * el segundo teléfono se quedaban fuera del fragmento, ocupando sitio sin
+   * llegar a verse.
+   *
+   * Se usa `departamento` y NO `ciudad`, porque `direccion` ya termina en
+   * «Tuluá» y pegarle `ciudad` detrás dejaba «Tuluá… Tuluá, Valle del Cauca».
+   * Sigue compuesta desde la fuente única: el día que cambie la dirección,
+   * cambia también lo que lee Google.
+   */
   descripcion:
-    `Nuestra oficina en ${ciudad}: ${direccion}. Contáctenos por WhatsApp, `
-    + `teléfono (${telefono} / ${telefonoFijo}) o correo electrónico. `
-    + `${horario.dias}, de ${horario.horas}.`,
+    `Bufete de abogados en ${direccion} (${departamento}). Consulta por `
+    + `WhatsApp o al ${telefonoLegible}, de lunes a viernes.`,
 };
 
 /* Sin numero de reserva escrito a mano: seria un segundo NAP. */

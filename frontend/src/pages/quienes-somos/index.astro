@@ -18,7 +18,12 @@ import {
 const metadata = {
   titulo: 'Quiénes somos | Candamil Asociados Abogados',
   descripcion:
-    `Firma jurídica fundada por Diego Antonio Candamil Rengifo en ${ciudad}, ${departamento}. `
+    /*
+     * `ciudad` YA vale «Tuluá, Valle del Cauca», así que pegarle
+     * `departamento` detrás publicaba «Tuluá, Valle del Cauca, Valle del
+     * Cauca» en el fragmento de Google. Estuvo así hasta la spec 014.
+     */
+    `Firma jurídica fundada por Diego Antonio Candamil Rengifo en ${ciudad}. `
     /*
      * 26 años, no «más de 20». Es el mismo número que la chapa de la portada
      * y que la biografía de esta página, y sale de «Desde el año 2000»: los
@@ -28,7 +33,9 @@ const metadata = {
      * dejarla seis años por debajo era vender el bufete a la baja justo
      * donde más se mira.
      */
-    + '26 años de experiencia en derecho laboral, civil, familia, salud y seguridad social.',
+    // Sin «de experiencia»: son 15 caracteres que no añaden nada y dejaban
+    // la descripción en 169, por encima de los ~160 que Google enseña.
+    + '26 años en derecho laboral, civil, familia, salud y seguridad social.',
 };
 
 const redes = redesActivas();

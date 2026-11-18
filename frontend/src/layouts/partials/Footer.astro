@@ -34,8 +34,20 @@ const columnas = [
   {
     titulo: 'Legal',
     enlaces: [
-      { href: '/politica-de-privacidad/', texto: 'Política de privacidad' },
-      { href: '/tratamiento-de-datos/', texto: 'Tratamiento de datos' },
+      /*
+       * DOS documentos, no tres (spec 014).
+       *
+       * Aquí había también «Tratamiento de datos» apuntando a
+       * `/tratamiento-de-datos/`, que no existe. Y no hacía falta crearla:
+       * **la página de `/politica-de-privacidad/` YA ES la Política de
+       * Tratamiento de la Información** —así se titula dentro—, redactada
+       * conforme a la Ley 1581 de 2012.
+       *
+       * Ofrecer dos etiquetas para el mismo documento no es más garantista:
+       * es hacer dudar a quien busca cuál de los dos es el bueno. Se deja uno
+       * solo, y la etiqueta nombra lo que de verdad es.
+       */
+      { href: '/politica-de-privacidad/', texto: 'Tratamiento de datos' },
       { href: '/terminos-y-condiciones/', texto: 'Términos y condiciones' },
     ],
   },
