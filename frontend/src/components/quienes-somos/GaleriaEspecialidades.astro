@@ -1,0 +1,157 @@
+---
+/**
+ * Galería interactiva de especialidades con miniaturas — 0 KB de JavaScript.
+ *
+ * Basada en el bloque `.mkd-image-slider.with-thumbs` de la página original
+ * `/quienes-somos/`, implementada únicamente con radios ocultos y `:has()`.
+ * Permite alternar entre Asesoría Penal, Derecho a la Salud y Derecho Laboral
+ * mediante clic o flechas del teclado.
+ */
+const laminas = [
+  {
+    id: 'esp-1',
+    titulo: 'Asesoría Penal',
+    tituloCorto: 'Penal',
+    descripcion:
+      'Defensa técnica y representación en procesos penales, audiencias preliminares y juicio oral, protegiendo sus derechos con rigor y total reserva.',
+    imagen: '/img/area-penal.webp',
+    alt: 'Especialidad en Asesoría y Defensa Penal',
+  },
+  {
+    id: 'esp-2',
+    titulo: 'Derecho a la Salud',
+    tituloCorto: 'Salud',
+    descripcion:
+      'El derecho a la salud es fundamental. Ofrecemos asesoría y representación legal para proteger tus derechos en casos de negligencia médica, acceso a tratamientos y disputas con aseguradoras.',
+    imagen: '/img/area-tutela.webp',
+    alt: 'Especialidad en Derecho a la Salud y Acciones de Tutela',
+  },
+  {
+    id: 'esp-3',
+    titulo: 'Especialista en Derecho Laboral',
+    tituloCorto: 'Laboral',
+    descripcion:
+      'El derecho laboral regula las relaciones entre empleadores y trabajadores, asegurando condiciones justas y derechos protegidos.',
+    imagen: '/img/caso-1.webp',
+    alt: 'Especialista en Derecho Laboral y Seguridad Social',
+  },
+];
+---
+
+<div class="galeria-especialidades" role="region" aria-label="Especialidades destacadas del bufete">
+  {laminas.map((lamina, idx) => (
+    <input
+      type="radio"
+      name="especialidad-qs"
+      id={lamina.id}
+      class="sr-only galeria-radio"
+      checked={idx === 0}
+      aria-label={lamina.titulo}
+    />
+  ))}
+
+  {/* Visor principal */}
+  <div class="galeria-escenario overflow-hidden rounded-2xl border border-humo-200 bg-marino-900 shadow-lg">
+    {laminas.map((lamina, idx) => (
+      <figure class="galeria-lamina flex flex-col" data-lamina={idx + 1}>
+        <div class="aspect-16/10 w-full overflow-hidden bg-marino-900">
+          <img
+            src={lamina.imagen}
+            alt={lamina.alt}
+            width="700"
+            height="440"
+            class="size-full object-cover"
+            loading={idx === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+          />
+        </div>
+        <figcaption class="flex flex-1 flex-col justify-center bg-marino-900 p-5 text-white sm:p-6" data-superficie="oscura">
+          <h3 class="font-display text-xl font-bold leading-snug text-white">
+            {lamina.titulo}
+          </h3>
+          <p class="mt-2 text-sm leading-relaxed text-marino-100/90">
+            {lamina.descripcion}
+          </p>
+        </figcaption>
+      </figure>
+    ))}
+  </div>
+
+  {/* Selector por miniaturas (solo visible donde :has() funciona) */}
+  <div class="galeria-miniaturas mt-4 hidden grid-cols-3 gap-3" aria-hidden="true">
+    {laminas.map((lamina, idx) => (
+      <label
+        for={lamina.id}
+        data-thumb={idx + 1}
+        class="galeria-thumb group relative cursor-pointer overflow-hidden rounded-xl border-2
+               border-humo-200 bg-white transition-all duration-200 hover:border-marino-500"
+      >
+        <div class="aspect-16/10 w-full overflow-hidden bg-marino-900">
+          <img
+            src={lamina.imagen}
+            alt=""
+            width="240"
+            height="150"
+            class="size-full object-cover opacity-80 transition-all duration-300 group-hover:scale-105 group-hover:opacity-100"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <span class="block truncate px-2 py-1.5 text-center text-xs font-semibold text-tinta">
+          {lamina.tituloCorto}
+        </span>
+      </label>
+    ))}
+  </div>
+</div>
+
+<style>
+  @supports selector(:has(*)) {
+    .galeria-escenario {
+      display: grid;
+    }
+
+    .galeria-lamina {
+      grid-area: 1 / 1;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 320ms ease, visibility 0s linear 320ms;
+    }
+
+    .galeria-especialidades:has(#esp-1:checked) .galeria-lamina[data-lamina='1'],
+    .galeria-especialidades:has(#esp-2:checked) .galeria-lamina[data-lamina='2'],
+    .galeria-especialidades:has(#esp-3:checked) .galeria-lamina[data-lamina='3'] {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      z-index: 1;
+      transition: opacity 320ms ease, visibility 0s linear 0s;
+    }
+
+    .galeria-miniaturas {
+      display: grid;
+    }
+
+    .galeria-especialidades:has(#esp-1:checked) .galeria-thumb[data-thumb='1'],
+    .galeria-especialidades:has(#esp-2:checked) .galeria-thumb[data-thumb='2'],
+    .galeria-especialidades:has(#esp-3:checked) .galeria-thumb[data-thumb='3'] {
+      border-color: var(--color-marino-600);
+      box-shadow: 0 0 0 2px rgb(25 91 169 / 0.25);
+    }
+
+    .galeria-especialidades:has(#esp-1:checked) .galeria-thumb[data-thumb='1'] img,
+    .galeria-especialidades:has(#esp-2:checked) .galeria-thumb[data-thumb='2'] img,
+    .galeria-especialidades:has(#esp-3:checked) .galeria-thumb[data-thumb='3'] img {
+      opacity: 1;
+    }
+
+    /* Si el radio recibe foco por teclado, resalta visualmente la miniatura correspondiente */
+    .galeria-especialidades:has(#esp-1:focus-visible) .galeria-thumb[data-thumb='1'],
+    .galeria-especialidades:has(#esp-2:focus-visible) .galeria-thumb[data-thumb='2'],
+    .galeria-especialidades:has(#esp-3:focus-visible) .galeria-thumb[data-thumb='3'] {
+      outline: 2px solid var(--color-marino-600);
+      outline-offset: 2px;
+    }
+  }
+</style>

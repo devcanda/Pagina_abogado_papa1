@@ -10,9 +10,11 @@ import { listarPaginas, obtenerPagina } from '../lib/api.js';
 export async function getStaticPaths() {
   const paginas = await listarPaginas();
 
-  // "inicio" queda fuera: la portada tiene su propio diseño en index.astro y
-  // ambas rutas generarían el mismo /index.html.
-  const resto = paginas.filter((resumen) => resumen.slug !== 'inicio');
+  // "inicio" y "quienes-somos" quedan fuera: tienen su propio diseño dedicado
+  // en index.astro y quienes-somos/index.astro; mantenerlas aquí generaría
+  // rutas duplicadas en el build.
+  const exclusiones = new Set(['inicio', 'quienes-somos']);
+  const resto = paginas.filter((resumen) => !exclusiones.has(resumen.slug));
 
   // Pedimos el contenido completo de cada una en el build; son pocas páginas
   // y así el HTML sale listo sin una segunda ronda de peticiones.

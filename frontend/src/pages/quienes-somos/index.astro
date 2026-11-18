@@ -1,0 +1,223 @@
+---
+/**
+ * Página corporativa: Quiénes somos (`/quienes-somos/`).
+ *
+ * Rescata el contenido histórico, linaje jurídico, especialidades y biografía
+ * del fundador de https://candamilabogados.com/quienes-somos/, renovado bajo
+ * el sistema visual de Candamil Abogados y con 0 KB de JavaScript de cliente.
+ */
+import Layout from '../../layouts/Layout.astro';
+import GaleriaEspecialidades from '../../components/quienes-somos/GaleriaEspecialidades.astro';
+import {
+  enlaceWhatsApp,
+  redesActivas,
+  ciudad,
+  departamento,
+} from '../../data/contacto.js';
+
+const metadata = {
+  titulo: 'Quiénes somos | Candamil Asociados Abogados',
+  descripcion:
+    `Firma jurídica fundada por Diego Antonio Candamil Rengifo en ${ciudad}, ${departamento}. `
+    + 'Más de 20 años de experiencia en derecho laboral, civil, familia, salud y seguridad social.',
+};
+
+const redes = redesActivas();
+---
+
+<Layout titulo={metadata.titulo} descripcion={metadata.descripcion}>
+  <!-- Encabezado principal -->
+  <section class="relative overflow-hidden bg-marino-900 py-14 text-white sm:py-20" data-superficie="oscura">
+    <span
+      class="palabra-fondo -bottom-6 left-1/2 -translate-x-1/2 text-[15vw] text-white/[0.03]"
+      aria-hidden="true"
+    >
+      Candamil
+    </span>
+
+    <div class="contenedor relative text-center">
+      <!-- Separador decorativo con balanza (guiño al original) -->
+      <div class="mx-auto mb-5 flex max-w-xs items-center justify-center gap-3" aria-hidden="true">
+        <span class="h-px flex-1 bg-marino-500/60" />
+        <svg class="size-6 text-marino-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v18" />
+          <path d="M8 21h8" />
+          <path d="M5 7h14" />
+          <path d="M5 7l-2.5 6a2.5 2.5 0 0 0 5 0Z" />
+          <path d="M19 7l-2.5 6a2.5 2.5 0 0 0 5 0Z" />
+        </svg>
+        <span class="h-px flex-1 bg-marino-500/60" />
+      </div>
+
+      <h1 class="titular-claro mx-auto max-w-3xl text-3xl sm:text-4xl lg:text-5xl">
+        <span class="destacado-claro">Candamil</span> Asociados Abogados
+      </h1>
+
+      <p class="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-marino-100/85 sm:text-lg">
+        Tradición jurídica, formación especializada y acompañamiento directo en Tuluá y todo el Valle del Cauca.
+      </p>
+    </div>
+  </section>
+
+  <!-- Sección 1: Galería de especialidades + Historia y linaje ("Quiénes somos") -->
+  <section class="border-b border-humo-200 bg-humo py-16 sm:py-20 lg:py-24" aria-labelledby="titulo-quienes-somos">
+    <div class="contenedor">
+      <div class="grid grid-cols-1 items-start gap-12 lg:grid-cols-2 lg:gap-14">
+        <!-- Columna izquierda: Slider con miniaturas (0 KB JS) -->
+        <div>
+          <GaleriaEspecialidades />
+        </div>
+
+        <!-- Columna derecha: Historia, linaje y promesa de valor -->
+        <div class="lg:pt-2">
+          <h2 id="titulo-quienes-somos" class="titular text-3xl sm:text-4xl">
+            Quiénes <span class="destacado">somos</span>
+          </h2>
+
+          <p class="mt-6 text-base leading-relaxed text-tinta">
+            Somos una firma jurídica de abogados especialistas en derecho civil-familia,
+            laboral y seguridad social. Su creador y fundador
+            <strong class="font-semibold text-marino-900">DIEGO ANTONIO CANDAMIL RENGIFO</strong>,
+            descendiente del linaje de los ilustres togados: por una parte
+            <strong class="font-semibold text-tinta">ANTONIO CANDAMIL VILLEGAS</strong> (Q.E.D.),
+            egresado de la Universidad Nacional, ex juez de la República; al igual que
+            <strong class="font-semibold text-tinta">Heriberto Rengifo</strong>, abuelo línea
+            materna, egresado de la Universidad Externado de Colombia.
+          </p>
+
+          <p class="mt-4 text-base leading-relaxed text-tinta-suave">
+            Firma conformada por un grupo de profesionales con más de 15 años de experiencia
+            en las diferentes áreas, que prestan un servicio integral de asesorías y
+            acompañamiento en los distintos debates jurídicos a nuestros clientes, no solo en
+            Tuluá, Valle, sino en todo el Departamento.
+          </p>
+
+          <div class="mt-7 border-l-4 border-marino-600 pl-5">
+            <p class="etiqueta-seccion leading-relaxed tracking-[0.14em]">
+              Somos abogados altamente capacitados para atender y defender todas sus necesidades
+            </p>
+            <p class="font-display mt-2 text-xl font-bold leading-snug text-marino-900 sm:text-2xl">
+              Protegemos su patrimonio garantizando que los casos sean de éxito.
+            </p>
+          </div>
+
+          <div class="mt-8 flex flex-wrap items-center gap-4">
+            <a
+              href={enlaceWhatsApp('Necesito una consulta')}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-primario"
+            >
+              Contáctanos
+            </a>
+            <a href="/areas/" class="btn-secundario">
+              Ver áreas de práctica
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección 2: Perfil del abogado titular ("Diego A. Candamil R. Abogado Especialista") -->
+  <section class="bg-white py-16 sm:py-20 lg:py-24" aria-labelledby="titulo-abogado">
+    <div class="contenedor">
+      <div class="mx-auto mb-12 max-w-2xl text-center">
+        <div class="mx-auto mb-5 flex max-w-xs items-center justify-center gap-3" aria-hidden="true">
+          <span class="h-px flex-1 bg-marino-200" />
+          <svg class="size-5 text-marino-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v18" />
+            <path d="M8 21h8" />
+            <path d="M5 7h14" />
+            <path d="M5 7l-2.5 6a2.5 2.5 0 0 0 5 0Z" />
+            <path d="M19 7l-2.5 6a2.5 2.5 0 0 0 5 0Z" />
+          </svg>
+          <span class="h-px flex-1 bg-marino-200" />
+        </div>
+
+        <h2 id="titulo-abogado" class="titular text-3xl sm:text-4xl">
+          <span class="text-marino-600">Diego A. Candamil R.</span> Abogado Especialista
+        </h2>
+
+        <p class="mt-4 text-base text-tinta-suave sm:text-lg">
+          Contácteme para recibir asesoría legal profesional y personalizada. ¡Estoy aquí para ayudar!
+        </p>
+      </div>
+
+      <!-- Ficha editorial del fundador -->
+      <article
+        class="mx-auto grid max-w-4xl grid-cols-1 overflow-hidden rounded-2xl border border-humo-200
+               bg-white shadow-lg md:grid-cols-[20rem_1fr]"
+      >
+        <div class="relative aspect-9/11 w-full bg-marino-900 md:aspect-auto md:h-full">
+          <img
+            src="/img/hero-abogado.webp"
+            alt="Diego Antonio Candamil Rengifo, Abogado Especialista"
+            width="900"
+            height="1100"
+            class="size-full object-cover object-top"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+
+        <div class="flex flex-col justify-between p-7 sm:p-10">
+          <div>
+            <div class="border-b border-humo-200 pb-5">
+              <h3 class="font-display text-2xl font-bold text-marino-900">
+                Diego A. Candamil R.
+              </h3>
+              <p class="mt-1 text-sm font-semibold text-marino-600">
+                Abogado Especialista
+              </p>
+            </div>
+
+            <div class="mt-6">
+              <h4 class="etiqueta-seccion mb-3">Biografía</h4>
+              <p class="text-base leading-relaxed text-tinta">
+                Abogado con más de 20 años de experiencia, especializado en derecho laboral.
+                Desde el año 2000, ofreciendo asesoría legal de alta calidad, destacándose por
+                su amplio conocimiento en áreas como salud, avalúos, cartera y más.
+                Comprometido con la defensa de los derechos laborales y la resolución efectiva
+                de conflictos legales.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-humo-200 pt-6">
+            <div class="flex flex-wrap gap-3">
+              <a
+                href={enlaceWhatsApp('Hola Dr. Diego Candamil, deseo agendar una consulta.')}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-primario text-sm"
+              >
+                Agendar consulta
+              </a>
+              <a href="/contacto/" class="btn-secundario text-sm">
+                Datos de contacto
+              </a>
+            </div>
+
+            {redes.length > 0 && (
+              <ul class="flex items-center gap-2" aria-label="Redes del bufete">
+                {redes.map((red) => (
+                  <li>
+                    <a
+                      href={red.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex rounded-lg border border-humo-200 px-3 py-1.5 text-xs font-semibold capitalize text-marino-700 hover:bg-marino-50"
+                    >
+                      {red.nombre}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+</Layout>
