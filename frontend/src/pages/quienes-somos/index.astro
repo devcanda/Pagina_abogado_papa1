@@ -19,7 +19,16 @@ const metadata = {
   titulo: 'Quiénes somos | Candamil Asociados Abogados',
   descripcion:
     `Firma jurídica fundada por Diego Antonio Candamil Rengifo en ${ciudad}, ${departamento}. `
-    + 'Más de 20 años de experiencia en derecho laboral, civil, familia, salud y seguridad social.',
+    /*
+     * 26 años, no «más de 20». Es el mismo número que la chapa de la portada
+     * y que la biografía de esta página, y sale de «Desde el año 2000»: los
+     * dos van atados y no se toca uno sin el otro.
+     *
+     * Esta descripción es lo que se lee en el RESULTADO de Google, así que
+     * dejarla seis años por debajo era vender el bufete a la baja justo
+     * donde más se mira.
+     */
+    + '26 años de experiencia en derecho laboral, civil, familia, salud y seguridad social.',
 };
 
 const redes = redesActivas();
@@ -175,7 +184,7 @@ const redes = redesActivas();
             <div class="mt-6">
               <h4 class="etiqueta-seccion mb-3">Biografía</h4>
               <p class="text-base leading-relaxed text-tinta">
-                Abogado con más de 20 años de experiencia, especializado en derecho laboral.
+                Abogado con más de 26 años de experiencia, especializado en derecho laboral.
                 Desde el año 2000, ofreciendo asesoría legal de alta calidad, destacándose por
                 su amplio conocimiento en áreas como salud, avalúos, cartera y más.
                 Comprometido con la defensa de los derechos laborales y la resolución efectiva

@@ -189,7 +189,7 @@ export const planesServicios = [
     id: 'consulta-urgente',
     nombre: 'Consulta Urgente',
     etiqueta: 'Respuesta Inmediata',
-    precio: '$100.000',
+    precio: '$120.000',
     unidad: '/ consulta',
     descripcion: 'Para situaciones que no dan espera: capturas, citaciones a fiscalía, denuncias inmediatas o violencia intrafamiliar.',
     caracteristicas: [
@@ -199,13 +199,13 @@ export const planesServicios = [
       'Revisión previa de antecedentes de urgencia',
     ],
     destacado: false,
-    whatsappMensaje: 'Hola, necesito contratar una Consulta Jurídica Urgente ($100.000).',
+    whatsappMensaje: 'Hola, necesito contratar una Consulta Jurídica Urgente ($120.000).',
   },
   {
     id: 'asesoria-mensual',
     nombre: 'Asesoría Continua',
     etiqueta: 'Plan Recomendado',
-    precio: '$120.000',
+    precio: '$150.000',
     unidad: '/ mes',
     descripcion: 'Acompañamiento legal constante para personas naturales, comerciantes y pequeñas empresas que requieren respaldo.',
     caracteristicas: [
@@ -215,13 +215,13 @@ export const planesServicios = [
       'Acompañamiento preventivo permanente',
     ],
     destacado: true,
-    whatsappMensaje: 'Hola, deseo suscribirme al Plan de Asesoría Continua ($120.000/mes).',
+    whatsappMensaje: 'Hola, deseo suscribirme al Plan de Asesoría Continua ($150.000/mes).',
   },
   {
     id: 'redaccion-documentos',
     nombre: 'Redacción Jurídica',
     etiqueta: 'Trámites y Contratos',
-    precio: '$150.000',
+    precio: '$180.000',
     unidad: '/ documento',
     descripcion: 'Elaboración técnica de documentos para trámites ante entidades públicas, particulares o debates comerciales.',
     caracteristicas: [
@@ -231,6 +231,6 @@ export const planesServicios = [
       'Respuesta y entrega escrita con sustento legal',
     ],
     destacado: false,
-    whatsappMensaje: 'Hola, requiero el servicio de Redacción de Documentos ($150.000/dcto).',
+    whatsappMensaje: 'Hola, requiero el servicio de Redacción de Documentos ($180.000/dcto).',
   },
 ];

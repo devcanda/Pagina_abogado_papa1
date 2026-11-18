@@ -18,7 +18,15 @@ const columnas = [
     titulo: 'Bufete',
     enlaces: [
       { href: '/quienes-somos/', texto: 'Quiénes somos' },
-      { href: '/equipo/', texto: 'Equipo' },
+      /*
+       * «Equipo» FUERA (18-11-2026, petición del cliente): no se va a
+       * manejar. `/equipo/` no existe, así que el enlace daba un 404 en el
+       * pie de TODAS las páginas —el pie se repite en las seis—, y el bloque
+       * de equipo de la portada ya se había retirado hace tiempo.
+       *
+       * Se borra en vez de comentarse, al revés que «Blog jurídico»: aquel
+       * está aparcado y volverá; de este el cliente dijo que no lo necesita.
+       */
       { href: '/blog/', texto: 'Blog jurídico' },
       { href: '/contacto/', texto: 'Contacto' },
     ],

@@ -1,0 +1,77 @@
+-- ───────────────────────────────────────────────────────────────────────────
+-- 030 · Se BORRA el bloque «Cifras y preguntas frecuentes»
+--
+-- Petición del cliente (18-11-2026): «bórralas, que no las necesito».
+--
+-- Estaba apagado desde la migración `012`, cuando el bloque de redes sociales
+-- ocupó su sitio. El proyecto tiene por norma que **ocultar no es borrar**,
+-- precisamente para que volver sea un clic; aquí el cliente pidió lo otro, y
+-- se hace.
+--
+-- ── Lo que se pierde ───────────────────────────────────────────────────────
+-- Las respuestas a «¿cuánto cuesta la primera consulta?» y «¿cómo se acuerdan
+-- los honorarios?»: texto que quita el freno de llamar a un abogado y que
+-- posiciona en buscadores. Llevaba dos migraciones apagado, así que no estaba
+-- aportando nada en la página.
+--
+-- **Ojo con una incoherencia que esto deja al aire:** la meta descripción de
+-- la portada sigue prometiendo «Primera consulta sin costo», y la única
+-- página que lo explicaba era esta. La promesa no se ha retirado; solo ha
+-- dejado de estar explicada.
+--
+-- Las cifras («20+ años de ejercicio», «850 casos», «92% de fallos
+-- favorables») **no se echan de menos**: la primera contradecía los 26 años
+-- que dice hoy el resto del sitio, y las otras dos son afirmaciones que
+-- nadie ha verificado.
+--
+-- ── El contenido queda AQUÍ, para que el borrado sea reversible ────────────
+-- Un `DELETE` en una base no se deshace; un archivo en el repositorio, sí.
+-- Por eso el JSON entero se copia abajo tal como estaba el día del borrado.
+-- Para recuperarlo: descomentar el INSERT del final y ajustar el `orden`.
+--
+-- {
+--   "etiqueta": "Lo que suelen preguntarnos",
+--   "titulo": "Respuestas claras",
+--   "destacado": "antes de contratar.",
+--   "cifras": [
+--     { "valor": "20+",  "texto": "Años de ejercicio" },
+--     { "valor": "850",  "texto": "Casos resueltos" },
+--     { "valor": "92%",  "texto": "Fallos favorables" },
+--     { "valor": "48h",  "texto": "Respuesta inicial" }
+--   ],
+--   "preguntas": [
+--     { "pregunta": "¿Cuánto cuesta la primera consulta?",
+--       "respuesta": "Nada. Evaluamos su caso sin costo y le decimos con
+--         franqueza si es viable. Si no lo es, se lo decimos igual: no
+--         cobramos por abrir un proceso que no va a prosperar." },
+--     { "pregunta": "¿Cómo se acuerdan los honorarios?",
+--       "respuesta": "Por escrito y antes de iniciar cualquier trámite. Según
+--         el caso, puede ser una suma fija, un porcentaje del resultado o una
+--         combinación. Usted sabe desde el primer día qué va a pagar." },
+--     { "pregunta": "¿Quién lleva mi proceso?",
+--       "respuesta": "Un abogado titular, de principio a fin. No delegamos
+--         audiencias ni la relación con el cliente en practicantes." },
+--     { "pregunta": "¿Cuánto puede tardar?",
+--       "respuesta": "Depende del despacho y de la contraparte, y desconfíe
+--         de quien le dé una fecha exacta. Lo que sí podemos darle es el
+--         rango realista para casos como el suyo y mantenerle informado de
+--         cada actuación." }
+--   ]
+-- }
+--
+-- ── Sobre el `orden` ───────────────────────────────────────────────────────
+-- Este bloque compartía el orden 5 con el de redes sociales, que lo sustituyó
+-- en su sitio. Al irse NO hay que renumerar nada: el orden solo se usa para
+-- ordenar, y un hueco no molesta. Renumerar tocaría filas que nadie ha pedido
+-- tocar.
+--
+-- El TIPO `cifrasYPreguntas` se queda en el registro y su componente también:
+-- lo que sobra es este bloque, no la posibilidad de volver a usarlo.
+-- ───────────────────────────────────────────────────────────────────────────
+BEGIN;
+
+DELETE FROM bloques
+WHERE tipo = 'cifrasYPreguntas'
+  AND rotulo = 'Cifras y preguntas frecuentes';
+
+COMMIT;
