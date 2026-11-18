@@ -1,0 +1,283 @@
+---
+/**
+ * Política de tratamiento de datos personales (`/politica-de-privacidad/`).
+ *
+ * ESTA PÁGINA YA ESTABA ENLAZADA Y NO EXISTÍA. El pie de las corporativas y el
+ * pie mínimo de cada landing apuntan aquí desde siempre; la ruta devolvía 404.
+ * Un enlace roto a la política de datos no es un fallo de maquetación: es el
+ * documento que la Ley 1581 de 2012 obliga a poner a disposición del titular.
+ *
+ * Va como página ESTÁTICA y no como fila de `paginas`, al revés que
+ * «Quiénes somos». Un texto legal no debe poder cambiarse por descuido desde
+ * el panel: se versiona en git, con fecha y con autor, que es justo lo que hay
+ * que poder demostrar si alguien reclama.
+ *
+ * El contenido se escribió MIRANDO lo que el sitio hace hoy, no de plantilla:
+ *  · No hay un solo `<form>` en el sitio compilado. Hoy nadie deja datos aquí;
+ *    el contacto sale a WhatsApp, al teléfono o al correo.
+ *  · No hay analítica de ningún tipo (ni Analytics, ni Tag Manager, ni píxel).
+ *  · Sí hay cuatro incrustaciones de terceros: Google Maps, YouTube, TikTok y
+ *    la página de Facebook. Esas sí ven la IP del visitante y ponen cookies.
+ *  · `leads` y `chat_logs` existen en la base y el bot de triage está previsto,
+ *    así que el apartado 2 los describe en futuro, no en presente.
+ *
+ * Lo que FALTA y solo puede dar el cliente está marcado con `PENDIENTE` en el
+ * texto para que se vea: NIT y plazo de conservación. No se inventan.
+ */
+import Layout from '../../layouts/Layout.astro';
+import {
+  telefono,
+  telefonoLegible,
+  telefonoMarcable,
+  email,
+  direccion,
+  departamento,
+  pais,
+} from '../../data/contacto.js';
+
+const ACTUALIZADA = '17 de noviembre de 2026';
+
+const metadata = {
+  titulo: 'Política de tratamiento de datos personales | Candamil Abogados',
+  descripcion:
+    'Cómo Candamil y Asociados Abogados trata los datos personales de quienes '
+    + 'visitan este sitio o solicitan asesoría, conforme a la Ley 1581 de 2012.',
+};
+---
+
+<Layout titulo={metadata.titulo} descripcion={metadata.descripcion}>
+  <section class="bg-marino-900 py-14 text-white sm:py-16" data-superficie="oscura">
+    <div class="contenedor">
+      <p class="etiqueta-seccion-clara">Habeas Data</p>
+      <h1 class="titular-claro mt-2 max-w-3xl text-3xl sm:text-4xl">
+        Política de tratamiento de datos personales
+      </h1>
+      <p class="mt-4 text-sm text-marino-200">
+        Última actualización: {ACTUALIZADA}
+      </p>
+    </div>
+  </section>
+
+  {/*
+      `data-superficie="clara"` pega el pie al contenido. Sin él quedarían 80px
+      de blanco entre el final del texto y el pie. Ver la regla al final de
+      `global.css`.
+  */}
+  <section class="bg-humo py-14 sm:py-20" data-superficie="clara">
+    <div class="contenedor">
+      <div class="prosa mx-auto max-w-3xl">
+        <p>
+          Esta política explica qué datos personales recoge este sitio, para qué se
+          usan, con quién se comparten y qué puede hacer usted al respecto. Se
+          adopta en cumplimiento de la <strong>Ley 1581 de 2012</strong>, del
+          <strong>Decreto 1074 de 2015</strong> y de las demás normas colombianas
+          sobre protección de datos personales.
+        </p>
+
+        <h2>1. Quién es responsable de sus datos</h2>
+        <p>
+          <strong>Candamil y Asociados Abogados</strong>, con domicilio en
+          {' '}{direccion}, {departamento}, {pais}.
+        </p>
+        <ul>
+          <li>Correo: <a href={`mailto:${email}`}>{email}</a></li>
+          <li>Teléfono y WhatsApp: <a href={`tel:${telefonoMarcable}`}>{telefonoLegible}</a></li>
+          <li>Horario de atención: lunes a viernes, de 8:00 a 18:00</li>
+        </ul>
+        <p>
+          Cualquier solicitud relacionada con sus datos personales puede dirigirla
+          a ese correo o a ese número. Es el canal oficial para ejercer los
+          derechos que se describen en el apartado 6.
+        </p>
+
+        <h2>2. Qué datos recogemos</h2>
+        <p>
+          <strong>Este sitio no tiene formularios.</strong> Navegar por él no
+          requiere que usted facilite ningún dato personal. El contacto se
+          establece por los canales que aparecen en la página de contacto —
+          WhatsApp, llamada telefónica o correo electrónico —, y en ese momento
+          es usted quien decide qué información comparte.
+        </p>
+        <p>Cuando usted nos contacta por esos medios, podemos registrar:</p>
+        <ul>
+          <li>Su nombre y su número de teléfono.</li>
+          <li>Su correo electrónico, si nos escribe por esa vía.</li>
+          <li>
+            El área jurídica de su consulta y un resumen del asunto, en la medida
+            en que usted nos lo describa.
+          </li>
+          <li>La fecha de su solicitud y el estado de su gestión.</li>
+        </ul>
+        <p>
+          Si en el futuro se habilita en el sitio un asistente de clasificación de
+          consultas, se conservará también el contenido de esa conversación con la
+          misma finalidad y bajo esta misma política. Ese asistente
+          <strong> no presta asesoría jurídica</strong>: únicamente clasifica la
+          consulta y recoge los datos de contacto para que un abogado la atienda.
+        </p>
+        <p>
+          Además, como en cualquier sitio web, el servidor que lo aloja registra
+          datos técnicos de la conexión — dirección IP, fecha, hora y navegador —
+          con fines de seguridad y funcionamiento.
+        </p>
+        <p>
+          <strong>Este sitio no utiliza herramientas de analítica ni de
+          publicidad.</strong> No hay Google Analytics, ni Tag Manager, ni píxeles
+          de seguimiento de ninguna red.
+        </p>
+
+        <h2>3. Para qué usamos sus datos</h2>
+        <ul>
+          <li>Responder a su consulta y evaluar si podemos asumir su caso.</li>
+          <li>Contactarle por el medio que usted haya elegido.</li>
+          <li>Gestionar la relación profesional, si llega a existir.</li>
+          <li>Cumplir las obligaciones legales y contables del despacho.</li>
+        </ul>
+        <p>
+          <strong>No vendemos, alquilamos ni cedemos sus datos a terceros con
+          fines comerciales</strong>, ni le enviaremos comunicaciones comerciales
+          que usted no haya solicitado.
+        </p>
+
+        <h2>4. Su autorización</h2>
+        <p>
+          El tratamiento de sus datos requiere su autorización previa, expresa e
+          informada. Al escribirnos por WhatsApp, por teléfono o por correo
+          solicitando asesoría, usted autoriza que tratemos los datos que nos
+          facilite con las finalidades del apartado 3.
+        </p>
+        <p>
+          Esa autorización es revocable en cualquier momento, por los mismos
+          canales, salvo cuando exista un deber legal o contractual de conservar
+          la información.
+        </p>
+
+        <h2>5. Confidencialidad profesional</h2>
+        <p>
+          Lo que usted nos cuente sobre su caso está amparado, además, por el
+          <strong> secreto profesional del abogado</strong>. Esa protección es
+          independiente de esta política y, en la práctica, más estricta.
+        </p>
+
+        <h2>6. Sus derechos y cómo ejercerlos</h2>
+        <p>Como titular de los datos, usted tiene derecho a:</p>
+        <ul>
+          <li>Conocer, actualizar y rectificar sus datos personales.</li>
+          <li>Solicitar prueba de la autorización que otorgó.</li>
+          <li>Ser informado sobre el uso que se ha dado a sus datos.</li>
+          <li>
+            Presentar quejas ante la <strong>Superintendencia de Industria y
+            Comercio</strong> por infracciones a la normativa.
+          </li>
+          <li>
+            Revocar la autorización y solicitar la supresión de sus datos, cuando
+            no exista un deber legal o contractual que obligue a conservarlos.
+          </li>
+          <li>Acceder gratuitamente a los datos que hayan sido tratados.</li>
+        </ul>
+        <p>
+          Para ejercer cualquiera de ellos, escriba a
+          {' '}<a href={`mailto:${email}`}>{email}</a> indicando su nombre, un
+          medio de contacto y qué solicita. Responderemos:
+        </p>
+        <ul>
+          <li>
+            Las <strong>consultas</strong>, en un máximo de diez (10) días
+            hábiles, prorrogables por cinco (5) días hábiles más.
+          </li>
+          <li>
+            Los <strong>reclamos</strong>, en un máximo de quince (15) días
+            hábiles, prorrogables por ocho (8) días hábiles más.
+          </li>
+        </ul>
+
+        <h2>7. Servicios de terceros incrustados en este sitio</h2>
+        <p>
+          Algunas páginas muestran contenido alojado por terceros. Al cargarse,
+          <strong> esos terceros reciben su dirección IP y pueden instalar sus
+          propias cookies</strong>, con independencia de que usted interactúe o
+          no con el contenido. Cada uno trata esos datos bajo su propia política,
+          sobre la que este despacho no tiene control:
+        </p>
+        <ul>
+          <li>
+            <strong>Google Maps</strong>, en la página de contacto, para mostrar
+            la ubicación de la oficina.
+            {' '}<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer nofollow">Política de privacidad de Google</a>.
+          </li>
+          <li>
+            <strong>YouTube</strong> (en su modo sin cookies de seguimiento), para
+            mostrar vídeos del despacho.
+            {' '}<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer nofollow">Política de privacidad de Google</a>.
+          </li>
+          <li>
+            <strong>TikTok</strong>, para mostrar las publicaciones recientes del
+            perfil del despacho.
+            {' '}<a href="https://www.tiktok.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer nofollow">Política de privacidad de TikTok</a>.
+          </li>
+          <li>
+            <strong>Meta (Facebook)</strong>, para mostrar la página del despacho.
+            {' '}<a href="https://www.facebook.com/privacy/policy" target="_blank" rel="noopener noreferrer nofollow">Política de privacidad de Meta</a>.
+          </li>
+        </ul>
+        <p>
+          Los botones de <strong>WhatsApp</strong> no cargan nada de terceros: son
+          enlaces normales. Solo al pulsarlos se abre WhatsApp, y desde ese
+          momento la conversación se rige por la política de Meta.
+        </p>
+        <p>
+          Si prefiere que esos terceros no reciban ningún dato suyo, puede
+          bloquear sus scripts en su navegador. <strong>El sitio sigue siendo
+          plenamente utilizable</strong>: debajo de cada contenido incrustado hay
+          un enlace normal que cumple la misma función.
+        </p>
+
+        <h2>8. Cookies</h2>
+        <p>
+          Este sitio <strong>no instala cookies propias</strong> en los
+          visitantes. Las únicas cookies que pueden aparecer son las de los
+          terceros del apartado anterior.
+        </p>
+        <p>
+          El panel de administración del despacho sí usa una cookie de sesión,
+          estrictamente necesaria para mantener identificado a quien ha iniciado
+          sesión. No afecta a los visitantes del sitio.
+        </p>
+
+        <h2>9. Seguridad y conservación</h2>
+        <p>
+          Adoptamos medidas razonables para proteger la información frente a
+          accesos no autorizados, pérdida o alteración. Las contraseñas de acceso
+          al panel se almacenan cifradas de forma irreversible.
+        </p>
+        <p>
+          Sus datos se conservan mientras dure la relación profesional y, después,
+          durante el plazo que exijan las obligaciones legales del despacho.
+          <strong> PENDIENTE: indicar aquí el plazo concreto de conservación.</strong>
+        </p>
+
+        <h2>10. Menores de edad</h2>
+        <p>
+          Este sitio no está dirigido a menores de edad ni recoge datos de ellos de
+          forma consciente. Cuando un asunto afecte a un menor, su información se
+          tratará siempre a través de sus representantes legales y atendiendo a su
+          interés superior.
+        </p>
+
+        <h2>11. Cambios en esta política</h2>
+        <p>
+          Esta política puede actualizarse. La versión vigente es siempre la
+          publicada en esta página, con la fecha de actualización que figura al
+          principio.
+        </p>
+
+        <h2>12. Identificación tributaria</h2>
+        <p>
+          <strong>PENDIENTE: incluir el NIT o el número de documento del
+          responsable.</strong> La normativa exige identificar plenamente a quien
+          responde por el tratamiento de los datos.
+        </p>
+      </div>
+    </div>
+  </section>
+</Layout>
