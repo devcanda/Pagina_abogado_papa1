@@ -122,6 +122,28 @@ de foco a blanco: el azul de marca no se distingue sobre navy.
 
 `og:image` nunca puede ser un SVG: ninguna red social los renderiza.
 
+## La captación va por WHATSAPP, y el formulario está en reserva
+
+Decisión del cliente (18-11-2026): *«el proyecto está enfocado para hacer un
+llamado a la acción directo y por eso dirigimos directamente a WhatsApp»*.
+
+**El sitio no tiene ni un solo formulario**, y no es un descuido. Comprobado
+página por página: cero en las seis. Se contacta por WhatsApp, teléfono o
+correo.
+
+**El backend de captación está CONSTRUIDO y sin conectar**: tabla `leads`,
+`leads.routes.js`, su controlador y su repositorio, y el bot de triage entero
+(`triage.service.js`, `chat.routes.js`, `chat_logs`). **No es código muerto ni
+un pendiente que se olvidó**: es una pieza en reserva para el día que se
+quiera. Antes de «limpiar» nada de eso hay que preguntar.
+
+Conectarlo algún día no es una tarea, es una decisión: un formulario sin
+JavaScript obliga a una navegación completa a la API y una página de gracias;
+con JavaScript se rompen los 0 KB que el sitio público mantiene.
+
+La restricción legal sigue en pie y no depende de esto: **ningún lead se
+guarda sin `consentimiento_datos = TRUE`** (Ley 1581 de 2012).
+
 ## Contacto y llamadas a la acción
 
 **Fuente única: `frontend/src/data/contacto.js`.** Ningún componente vuelve a
@@ -365,6 +387,34 @@ Reglas que no se tocan:
   que los textos de las tres van parejos o aparece un hueco muerto bajo los
   botones.
 
+#### El número de caracteres NO predice el número de líneas
+
+Y un titular de más no es un titular más alto: es la **cabecera entera** más
+alta, porque las tres láminas comparten celda de rejilla y manda la más larga.
+
+Pasó el 18-11-2026 con «26 años con el mismo abogado al frente»: **38
+caracteres, los mismos que el titular de la lámina laboral**, y rompía en
+CUATRO líneas donde aquel rompe en tres. Dos palabras cargadas de emes
+—«mismo abogado»— no caben juntas, así que «mismo» se quedó solo y arrastró
+«frente» a una cuarta línea. La cabecera pasó de **750 a 828 px**, 78 px que
+empujan hacia abajo todo lo que viene después, en las tres láminas.
+
+| Titular | car | líneas |
+|---|---|---|
+| 26 años con el mismo abogado al frente | 38 | **4** |
+| 26 años dando la cara por sus derechos | 38 | 3 |
+| 26 años dando la cara por usted | 31 | 3 |
+
+El tope del registro (`titulo` max 90) evita que se TRUNQUE, no que rompa mal.
+**Antes de dar por bueno un titular hay que contar sus líneas en la página**,
+y el ancho crítico es de **1280 px para arriba**: a 1024 los tres ocupan
+cuatro líneas y a 390 los tres ocupan tres, así que ahí no se nota.
+
+Se cuentan dividiendo el alto del `<h1>` por su `line-height` **leído de la
+página**, no supuesto. Para probar varios candidatos sin tocar la base, se
+sustituye el texto del `<h1>` en el DOM y se mide: el taller tiene
+`probar-titulares.mjs` y `medir-hero.mjs` para eso.
+
 ### El relevo dura 1,2 s y es secuencial, no cruzado
 
 Las tres láminas ocupan la misma celda de rejilla, así que un fundido cruzado
@@ -389,6 +439,61 @@ algo más. Medido: 1,31 s.
   seguía ocurriendo. Pasó dos veces: con el relevo manual y con el pase
   automático. Con «menos movimiento» el pase no se ralentiza, **se apaga**: es
   justo el caso que esa preferencia existe para cubrir.
+
+### El relevo mueve el CONTENIDO, nunca la lámina
+
+Arreglado el 18-11-2026 a petición del cliente: *«cuando se cambia de uno a
+otro hacen una especie de salto y parece que la imagen se fuerza a expandirse
+a ocupar el espacio de los botones»*. No era una impresión suya; eran dos
+defectos, los dos medidos en la página.
+
+El `transform` del desplazamiento vivía en la lámina. Eso hacía dos cosas que
+no se querían:
+
+1. **La foto saltaba 64 px al TERMINAR el relevo.** Un `transform` crea bloque
+   contenedor para los descendientes absolutos, así que la capa de fondo se
+   anclaba a la LÁMINA mientras duraba el movimiento y volvía a la SECCIÓN al
+   acabar, cuando el `transform` vuelve a `none`. La lámina mide justo los
+   mandos menos que la sección, así que el alto de la capa pasaba de 750 a
+   814 px **en un solo fotograma**. Y como la imagen va con `object-fit:
+   cover`, no «crecía»: se **recortaba distinto**. Eso es lo que se veía como
+   un tirón de la foto hacia la fila de flechas.
+
+   Grabado fotograma a fotograma a 1440 px, antes del arreglo:
+
+   | t | alto de la capa |
+   |---|---|
+   | 0 – 1414 ms | 750 px |
+   | 1514 ms en adelante | **814 px** |
+
+2. **Asomaba una franja de la cuña por el canto derecho.** La capa mide
+   `100vw` justos; corrida 1,5rem dejaba **16 px de `colorCuna`** —más claro
+   que el fondo— al descubierto durante todo el cambio.
+
+**El arreglo es mover el `transform` al contenido** (`.cabecera-desliza`, la
+clase que llevan la columna de texto y la de la figura). La lámina se queda
+solo con el fundido y la visibilidad; la foto ya no se mueve ni cambia de
+tamaño: **se funde quieta**.
+
+- **La lámina no puede volver a llevar `transform` ni `position`.** Cualquiera
+  de las dos la convierte en bloque contenedor y devuelve el salto.
+- **Hay DOS juegos de fotogramas, no uno**: `cabecera-pase-N` (opacidad y
+  visibilidad, sobre la lámina) y `cabecera-desliza-N` (solo `transform`,
+  sobre el contenido). Los porcentajes, las duraciones y los retrasos tienen
+  que coincidir **al milisegundo**, o el texto llega antes o después que su
+  propia foto. Lo mismo vale para los retrasos por lámina, el congelado por
+  `:focus-within` y el bloque de `prefers-reduced-motion`: cada regla que
+  nombraba `.cabecera-lamina` necesita su pareja para `.cabecera-desliza`.
+- **El desplazamiento se aplica a las DOS columnas, no a un envoltorio.** La
+  rejilla de dos columnas vive en la lámina; meter un envoltorio obligaría a
+  mover la rejilla y a recuperar a mano el centrado vertical. Marcando las dos
+  columnas no cambia una sola medida de la maquetación.
+- **El estado en reposo no cambió NADA.** Comprobado: la captura de la lámina
+  2 a 1440 px es idéntica byte a byte antes y después (3 442 128 bytes). Solo
+  cambió lo que pasa entre una lámina y otra, que es lo que se pedía.
+- Comprobado además a 390, 768, 1024, 1440 y 1920 px: la capa de fondo
+  mantiene la misma caja durante todo el relevo, y el pase automático sigue
+  girando 1 → 2 → 3 → 1.
 
 ### Flechas
 
@@ -688,18 +793,31 @@ horizontal. **Está comprobado a 1280 y a 360 px.**
 
 - **`z-index: 0`, nunca `-1`.** Con `-1` la capa se iría por detrás del fondo de
   la propia sección y no se vería. Las dos columnas de contenido van en `z-10`.
-- **La capa se ancla a la LÁMINA, y no hay forma de evitarlo.** Durante un
-  tiempo aquí ponía lo contrario —que quitarle `position: relative` a la
-  lámina la anclaba al contenedor— y era falso: **la lámina lleva `transform`
-  para el relevo, y un `transform` crea bloque contenedor para los
-  descendientes absolutos aunque no haya `position`.** La capa terminaba donde
-  acaba el texto y los 4rem de la fila de mandos se quedaban sin foto, con el
-  color liso de la sección asomando: una franja justo bajo el carrusel, en las
-  tres láminas. Lo vio el cliente, no las pruebas.
-- **Se arregla ESTIRANDO la capa exactamente el alto de los mandos**
+- **La capa se ancla a la SECCIÓN, y eso depende de que la lámina no lleve
+  ni `position` ni `transform`.** Un `transform` crea bloque contenedor para
+  los descendientes absolutos aunque no haya `position`, así que mientras el
+  desplazamiento del relevo vivió en la lámina, la capa se anclaba a ELLA
+  durante el movimiento y a la sección al acabar. Como la lámina mide justo
+  los mandos menos que la sección, **la foto saltaba 64 px en un fotograma, al
+  terminar cada cambio**. Ver «El relevo mueve el CONTENIDO, nunca la lámina».
+  - Este punto ha estado escrito de tres maneras distintas y conviene saber
+    por qué. Primero decía que quitarle `position` a la lámina la anclaba al
+    contenedor: era falso, porque el `transform` anclaba igual. Luego decía
+    que no había forma de evitarlo: era cierto **mientras el `transform`
+    estuvo en la lámina**. Hoy no está, y por eso el ancla es la sección.
+  - Antes de ese arreglo, la capa terminaba donde acaba el texto y los 4rem
+    de la fila de mandos se quedaban sin foto, con el color liso de la
+    sección asomando. Lo vio el cliente, no las pruebas.
+- **La capa se estira exactamente el alto de los mandos**
   (`--cabecera-mandos: 4rem`, que usan los dos: la fila lo fija como `height`
   y la capa lo resta en `bottom`). El sobrante lo recorta la sección, que
   lleva `overflow-hidden`.
+  - **Anclada a la sección ya no hace falta para CUBRIR los mandos**, porque
+    la fila está dentro de la sección: con `inset: 0` quedarían tapados. El
+    `-4rem` se queda porque es el **encuadre**: las seis fotos se compusieron
+    mirando la banda que deja una capa de `sección + 4rem`. Quitarlo
+    encogería la capa 64 px y recortaría las seis de otra manera. Es un
+    parámetro de composición, no un margen de seguridad.
   - Tiene que ser **exacto, no generoso**: la imagen va con `object-fit:
     cover`, así que alargar la capa cambia el recorte y mueve el encuadre que
     se ajustó mirando. Al hacerlo, la banda visible a 1920 px pasó de
@@ -1603,6 +1721,126 @@ el archivo ya llegara recortado no habría nada que hacer.
 De 1040 a 721 px a 390, y de 1173 a 592 a 768. No es un fallo: la figura
 ocupaba más de la mitad del alto apilado.
 
+## Las seis fichas de áreas se ABREN; no llevan a ninguna página
+
+Petición del cliente (18-11-2026). Ver `specs/013-fichas-areas-con-panel/`.
+Migración `028`.
+
+Llevaban a `/areas/derecho-laboral/`, `-civil/`, `-familia/`, `-penal/`,
+`-inmobiliario/` y `-administrativo/`. **Ninguna existe**: eran seis 404 en la
+portada. Ahora la ficha se abre sobre sí misma con una descripción breve y un
+botón «Consultar ahora» que lleva a WhatsApp con el mensaje escrito.
+
+### Lo que se pierde, y se pierde a sabiendas
+
+**Posicionamiento de cola larga.** Una página por área es lo que compite por
+«abogado laboral Tuluá» o «restitución de inmueble Valle»; una ficha
+desplegable no es una URL y Google no la indexa aparte. Se expuso al cliente
+—crear las seis páginas o abrir la ficha— y eligió abrir la ficha, porque con
+el material que hay esas páginas saldrían flacas y una página flaca posiciona
+peor que ninguna.
+
+**No cierra la puerta:** el `enlace` de cada tarjeta se CONSERVA. Vaciar la
+descripción desde el panel devuelve el comportamiento anterior sin tocar
+código.
+
+### Sigue sin JavaScript
+
+`<details>` + `<summary>` nativos, como el menú móvil. De regalo, el teclado
+funciona solo: un `<summary>` se enfoca y se activa con Enter y con Espacio,
+sin un `tabindex` ni un `role` escritos a mano. Comprobado: `dist/` sigue con
+**0 archivos `.js`**.
+
+### El panel FLOTA sobre la tarjeta; el contenedor no se estira
+
+Petición del cliente, el mismo día. La primera versión abría el panel **en
+flujo**, debajo de la cara, y la ficha crecía: la rejilla se movía. El cliente
+lo rechazó y pidió texto flotante.
+
+Se le había advertido de dos problemas, y los dos eran reales. Así se
+resolvieron, que es lo que hay que leer antes de tocar esto:
+
+1. **«No cabe».** La tarjeta mide **219×273 px** de 1280 px para arriba, el
+   caso más apretado de los nueve anchos probados. Cabe bajando la
+   descripción a 13 px con interlineado ajustado y el botón a su altura
+   mínima. Medido en las **seis** fichas y a nueve anchos: ninguna desborda y
+   la holgura más corta entre el botón y el rótulo es de **56 px**. Si mañana
+   alguien alarga una descripción, esto es lo primero que se rompe.
+2. **«No se podría cerrar».** Lo único que conmuta un `<details>` es su
+   `<summary>`, y el panel lo tapa. Se resuelve por **dos caminos a la vez**,
+   y los dos hacen falta:
+   - **El rótulo de abajo se pinta POR ENCIMA del panel** (`z-index: 2` en
+     `.tarjeta-rotulo`, contra el `1` del panel). Sigue a la vista, con su
+     flecha ya girada, y pulsarlo cierra la ficha.
+   - **El panel no intercepta el ratón** (`pointer-events: none`, con
+     `auto` en sus hijos), así que pulsar en cualquier hueco del panel
+     **también cierra**: el clic atraviesa y llega al `<summary>`.
+
+- **El salto del paso del ratón se ANULA con la ficha abierta**, y no es
+  cosmético: un `transform` sobre el `<summary>` crea contexto de
+  apilamiento, y entonces el rótulo queda atrapado dentro y se va detrás del
+  panel justo al pasar el ratón por encima.
+- **El panel va en `marino-800`, el navy de la propia tarjeta, NO en el
+  `marino-900` de la sección.** Con el color de la sección la ficha abierta
+  pierde sus bordes y parece un agujero en la rejilla en vez de un panel
+  encima. Se probó y se cambió.
+- **La sección no cambia de alto al abrir.** Medido a siete anchos:
+  791 → 791 px en escritorio, 859 → 859 en móvil. Era justo lo que se pidió.
+- **`items-start` en la lista** quedó de la versión en flujo. Ya no hace
+  falta, pero no cuesta nada y protege el día que una tarjeta lleve contenido
+  de otra altura.
+- **La cara vive en `CaraTarjetaArea.astro`.** La misma cara va dentro de un
+  `<summary>` cuando la ficha se abre y dentro de un `<a>` cuando enlaza.
+  Duplicarla sería garantizar que un día una de las dos se quede atrás.
+- **Los estilos de Astro están ACOTADOS por componente, y eso ya mordió
+  aquí.** La regla que gira la flecha estaba escrita en `RejillaTarjetas` y la
+  flecha la pinta el parcial: no la alcanzaba, y la flecha no giraba sin que
+  nada avisara. Vive en el parcial, con el `<details>` en `:global()`.
+- **El triángulo del `<summary>` se quita por DOS caminos.** `list-style:
+  none` lo respetan Chrome y Firefox; `::-webkit-details-marker` es lo único
+  que entiende Safari. Con uno solo, el triángulo aparece sobre la foto en uno
+  de los dos motores.
+- **El panel trae su propio fondo** (`marino-800`). Detrás de la cara hay una
+  foto al 45 % y un degradado: un texto de 13 px sobre eso es una moneda al
+  aire, el mismo problema que resuelve el velo de la cabecera. Medido con
+  píxeles reales: **7,71:1** el texto y **6,77:1** el botón.
+- **El contraste NO se mide troceando `getComputedStyle` con una expresión
+  regular.** Tailwind 4 devuelve `color-mix(...)` u `oklab(...)`, y partir eso
+  da números inventados: la primera medición dio 1,60:1 donde hay 7,71:1. Se
+  pinta el color en un `<canvas>` de 1×1 y se lee el píxel, que es el color de
+  verdad.
+- **La sección declara `data-superficie="oscura"`.** No lo hacía. Ahora dentro
+  hay un `<summary>` que se enfoca y un botón, y el anillo de foco azul no se
+  ve sobre navy. `global.css` ya contempla `summary` en esa regla, y la que
+  pega el pie mira `main > *:last-child`, así que no la afecta.
+- **Sin `mensaje`, se arma con el nombre**: «Hola, deseo una consulta sobre
+  {nombre}.». Exigir seis mensajes escritos a mano para que el botón funcione
+  acaba con una tarjeta sin mensaje y un WhatsApp en blanco.
+- **Sin número de WhatsApp configurado, el botón no se pinta.** Un botón que
+  no lleva a ninguna parte es peor que no tener botón.
+- **El objetivo táctil del botón mide 48 px** a los siete anchos probados, por
+  encima de los 44 que fija el proyecto.
+
+### Y obligó a arreglar una duplicación que ya estaba avisada
+
+`enlace` es `reserva: 'descripcion'`. `conciliar()` en
+`backend/src/admin/rutas.js` llevaba **su propia copia** de la regla de
+«reserva superada», y esa copia solo entendía reservas superadas por un
+ARRAY. El comentario de `reservaSuperada()` avisa literalmente de que
+duplicarla haría que un día dejaran de coincidir: **ese día llegó aquí**, con
+una reserva superada por una CADENA. Con la copia estrecha, guardar desde el
+panel habría borrado el `enlace` de las seis tarjetas, que es justo el camino
+de vuelta.
+
+Se arregla importando la función compartida. No reventó antes con la figura
+del perito, que también es reserva de una cadena, porque ese campo es
+`tipo: 'imagen'` y la rama de imágenes va antes y ya conserva lo guardado.
+Fue suerte, no diseño.
+
+**Un campo nuevo en el registro obliga a REINICIAR la API**, igual que un tipo
+nuevo: el backend importa el registro al arrancar, y con el proceso viejo el
+panel no enseña los campos y `sanearDatos` los descarta al guardar.
+
 ## «Nuestros clientes» cierra la portada, y por eso ya no hay botón final
 
 Petición del cliente (17-11-2026). Ver `specs/009-nuestros-clientes/`.
@@ -1956,6 +2194,78 @@ aflojarlo:
   Cerrarlo del todo es llevar los datos de contacto a la base y que el sitio los
   consulte al compilar. **Está sin hacer**, y es la deuda que deja esta
   decisión.
+
+### Los iconos de redes salen de `contacto.js`, no de cada componente
+
+Petición del cliente (18-11-2026): en la barra superior van **Facebook,
+YouTube y TikTok**.
+
+`BarraContacto.astro` tenía su **propia lista** —Facebook, LinkedIn e
+Instagram, las tres apuntando a `#`—, que es exactamente el agujero que
+`contacto.js` se creó para cerrar: dos listas de redes acaban discrepando
+igual que discrepa un NAP repetido. **Este mismo documento daba por hecho que
+la barra leía `contacto.js`; no era verdad hasta ahora.** De paso, los tres
+`href="#"` eran enlaces que no llevaban a ninguna parte y que el lector de
+pantalla anunciaba como si llevaran.
+
+- **Los glifos viven en `frontend/src/data/iconos-redes.js`**, aparte de
+  `contacto.js`. Aquel guarda **dónde** está cada perfil —un dato del bufete,
+  que cambia— y esto **cómo** se dibuja cada marca, que no cambia nunca.
+  Mezclarlos obligaría a tocar el archivo de contacto para añadir un icono.
+- **Son las marcas OFICIALES**, no dibujos parecidos, por el mismo motivo que
+  el glifo de WhatsApp: lo que hace que alguien pulse uno de estos iconos es
+  reconocerlo de un vistazo.
+- **El orden de declaración de `redes` es el orden en que se pintan.**
+  `redesActivas()` recorre las claves tal como están escritas, así que mover
+  una línea mueve el icono en la barra y en el menú móvil.
+- **Una red sin glifo se descarta en silencio.** Es el caso de una clave
+  nueva para la que nadie añadió el dibujo: mejor que no salga a que salga un
+  hueco en blanco que nadie sabe pulsar.
+
+#### Los logotipos se ven; los enlaces aún no existen
+
+El cliente quiso ver los tres sellos antes de tener las direcciones de sus
+perfiles (18-11-2026). Las de la web anterior no sirven: en
+`docs/contenido-wordpress/` no hay un solo enlace a un perfil, solo un vídeo
+suelto de YouTube.
+
+**Sin URL se pinta un `<span>`, NUNCA un `<a href="#">`**, y esa es la parte
+que no hay que «simplificar» después. Un enlace vacío entra en el orden de
+tabulación y el lector de pantalla lo anuncia como enlace, así que quien
+navega sin ver pierde el tiempo en tres controles que no hacen nada —era
+exactamente lo que había en la barra antes de esta revisión—. El `<span>` se
+ve igual y no promete nada: va `aria-hidden` y **sin efecto de paso del
+ratón**, porque un elemento que se ilumina al pasar por encima está diciendo
+que se puede pulsar.
+
+El reparto lo hace `IconoRed.astro`, que vive aparte para no repetirlo en la
+barra y en el menú móvil: duplicado, un día uno de los dos se quedaría con el
+enlace muerto. **Pegar la URL en `redes` lo convierte en enlace solo**, sin
+tocar un solo componente.
+
+**`redesEnUso()` y `redesActivas()` no son lo mismo, y las dos hacen falta.**
+La primera son las que el bufete usa, tengan URL o no —es la que lee la
+cabecera—; la segunda, solo las configuradas, que es lo que quiere
+`/quienes-somos/`. Con una sola función no hay forma de distinguir «esta red
+no la tenemos» de «la tenemos pero aún no sé la URL», y las dos cosas se
+pintan distinto.
+
+#### El teléfono ya no se repite en la cabecera
+
+`Navbar.astro` leía `PUBLIC_TELEFONO` del `.env` por su cuenta: el mismo NAP
+duplicado que tenía `TextoConImagen.astro`. Sale de `contacto.js`.
+
+#### En móvil los iconos van en el MENÚ, no en la barra
+
+La barra superior va oculta por debajo de `md` —ocuparía un tercio de la
+pantalla visible sin aportar a la conversión— así que sin esto el teléfono se
+quedaba sin un solo acceso a las redes.
+
+Las medidas **no son las mismas en los dos sitios, y es a propósito**: en el
+menú móvil el objetivo es de **44px**, el mínimo que fija el proyecto para el
+dedo; en la barra de escritorio basta con **28px** (icono de 16 + `p-1.5`),
+que cubre los 24×24 que pide WCAG 2.5.8 para un puntero. Un objetivo de 44px
+en una franja de 12px de texto la haría crecer al doble de alto.
 
 ### El marco reserva su alto, o la fila se descuadra
 

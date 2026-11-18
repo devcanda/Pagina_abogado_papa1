@@ -27,15 +27,15 @@ rojo** sobre el resto en gris, para localizar el cambio de un vistazo.
 
 ## Las siete vistas
 
-| Vista | Resolución | Alto de página |
-|---|---|---|
-| portada-escritorio | 1440 | 5513 px |
-| portada-movil | 390 | 7851 px |
-| corporativa-escritorio | 1440 | 1227 px |
-| corporativa-movil | 390 | 1666 px |
-| landing-escritorio | 1440 | 1270 px |
-| landing-movil | 390 | 1161 px |
-| error-404 | 1440 | 1014 px |
+| Vista | Resolución | Alto de página | Antes (22-10-2026) |
+|---|---|---|---|
+| portada-escritorio | 1440 | **5100 px** | 5513 px |
+| portada-movil | 390 | **6420 px** | 7851 px |
+| corporativa-escritorio | 1440 | **2658 px** | 1227 px |
+| corporativa-movil | 390 | **4291 px** | 1666 px |
+| landing-escritorio | 1440 | 1270 px | 1270 px |
+| landing-movil | 390 | 1161 px | 1161 px |
+| error-404 | 1440 | **1037 px** | 1014 px |
 
 Las imágenes están en `docs/linea-base/`. **No se regeneran salvo que el cambio
 de diseño sea intencionado**, y entonces se regeneran en un paso aparte, para
@@ -153,3 +153,53 @@ node herramientas/visual.mjs capturar http://localhost:4340 docs/linea-base
 
 Y se anota aquí qué cambió y por qué. Regenerarla para "que deje de fallar" es
 exactamente lo que convierte un punto de control en decoración.
+
+## Historial de regeneraciones
+
+### 18-11-2026 — las siete vistas, a petición del cliente
+
+La línea base era del **22-10-2026** y llevaba semanas inválida. El cliente
+dio el diseño por bueno y pidió ajustarla.
+
+Antes de reemplazarla se comparó, que es el paso que no se puede saltar:
+**las siete vistas daban diferencias**, y por motivos conocidos uno a uno.
+No había ninguna sorpresa, que es la única condición para aceptar una base
+nueva.
+
+| Vista | Qué dio la comparación |
+|---|---|
+| portada-escritorio | 5513 → **5100 px** |
+| portada-movil | 7851 → **6420 px** |
+| corporativa-escritorio | 1227 → **2658 px** |
+| corporativa-movil | 1666 → **4291 px** |
+| landing-escritorio | 5918 px distintos (0,32 %) |
+| landing-movil | 4247 px distintos (0,94 %) |
+| error-404 | 1014 → **1037 px** |
+
+Lo que explica cada cambio, en orden de cuánto mueve:
+
+- **`/quienes-somos/` se duplicó de alto.** Es una página NUEVA (spec 012),
+  con la galería de especialidades y la ficha del abogado. La base vieja
+  retrataba la página anterior.
+- **La portada ENCOGIÓ**, y eso es lo que podría sorprender: se apagaron
+  «Casos resueltos» y la franja de cierre, se borró «Cifras y preguntas»,
+  y «Nuestros clientes» pasó de un muro de tres filas a una cinta de una.
+  En móvil son 1431 px menos.
+- **Las dos landings cambiaron sin cambiar de alto**: es la tipografía.
+  Playfair → Lora → Poppins mueve cada titular del sitio sin mover la
+  maquetación.
+- **El 404 creció 23 px** por la barra superior de contacto y el pie.
+
+**Comprobación de la base nueva:** recapturada y enfrentada a sí misma,
+**0 píxeles de diferencia en las siete vistas**. Una base que no se verifica
+contra sí misma puede traerse dentro un fallo de captura.
+
+**Ojo con lo que esta base YA NO retrata**, porque son las dos cosas más
+frágiles del sitio y ninguna cámara las ve:
+
+- El **relevo del carrusel**: la captura congela una lámina, no el cambio
+  entre dos. El salto de 64 px de la foto no habría salido aquí.
+- Las **fichas de áreas abiertas**: se capturan cerradas, que es su estado
+  inicial. El panel flotante no entra en la comparación.
+
+Para esas dos hay herramientas aparte en el taller.

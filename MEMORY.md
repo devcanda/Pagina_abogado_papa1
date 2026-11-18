@@ -75,6 +75,265 @@
 - **Ajustes del bloque del abogado** (17-11-2026, migracion `021`): 26 anos
   —cuadra con «desde el ano 2000», no tocar uno sin el otro—, titular nuevo,
   tres puntos en vez de dos y el boton «Agenda ahora» llevando a WhatsApp.
+- **La lamina laboral pregunta por la INDEMNIZACION** (18-11-2026, migracion
+  `024`). Decia «Lo que le deben por su trabajo, cobrado», que es una
+  afirmacion sobre el bufete; ahora es una pregunta dirigida a quien mira:
+  «Que le pagaron la indemnizacion completa?». **«Completa» es la palabra que
+  trabaja**: casi nadie sale de una empresa sin recibir algo y casi nadie sabe
+  si era lo que tocaba. El boton pasa a «Revisar mi liquidacion», que ademas
+  dejo de repetir el «Consulta ahora» de la lamina 2.
+- **No se promete un resultado.** Se ofrece revisar, decir cuanto falta y
+  reclamar. Un bufete no puede comprometer mas.
+- **Una migracion NO escribe `laminas->0`.** El orden de las laminas es
+  CONTENIDO y se cambia desde el panel: la `024` busca la lamina por su
+  `rotulo` y escribe en el indice que resulte. Es el patron a copiar.
+- **`WITH ORDINALITY` devuelve `bigint` y `jsonb -> int` NO lo acepta**
+  («operator does not exist: jsonb -> bigint»). Hay que castear a `::int`.
+- **La lamina del bufete pone los 26 ANOS por delante** (18-11-2026,
+  migraciones `025` y `026`). Decia «Mas de 20 anos» dentro del subtitulo:
+  se quedaba SEIS anos corto frente a la chapa de abajo, que ya decia 26, y
+  daba dos cifras distintas en la misma pantalla. Ahora el numero va en el
+  TITULAR y en cifra, porque el cliente pidio que se NOTE y en el subtitulo
+  se lee a medias.
+- **«26 anos dando la cara por usted».** «Dar la cara por alguien» es
+  responder por el delante de quien sea, que es literalmente lo que explica
+  el subtitulo: «quien le escucha el primer dia es quien le responde ante el
+  juez». El titular pone la imagen y el subtitulo la demuestra. Se descarto
+  «por sus derechos» porque repite la chapa («anos defendiendo sus
+  derechos»).
+- **Lo que construye confianza es decir lo que NO se promete.** El subtitulo
+  cierra con «que puede esperar de su caso y que no, sin promesas que nadie
+  puede cumplir». Boton: «Hablar con el abogado», que nombra lo que el
+  titular acaba de prometer. Las tres laminas quedan con botones distintos.
+- **26 y «desde el ano 2000» van ATADOS.** El ano esta en `/quienes-somos/` y
+  en «Sobre el bufete»; es de donde salen los 26. Tocar uno sin el otro deja
+  el sitio contradiciendose.
+- **EL NUMERO DE CARACTERES NO PREDICE EL NUMERO DE LINEAS**, y un titular de
+  mas es la CABECERA ENTERA mas alta. «26 anos con el mismo abogado al
+  frente» tiene 38 caracteres —los mismos que el de la lamina laboral— y
+  rompia en CUATRO lineas: «mismo abogado», dos palabras cargadas de emes, no
+  caben juntas. La cabecera paso de **750 a 828 px** en las tres laminas. El
+  tope del registro evita que se trunque, no que rompa mal. **Hay que contar
+  las lineas en la pagina, de 1280 px para arriba**, que es donde se nota (a
+  1024 los tres titulares ocupan cuatro lineas y a 390 los tres ocupan tres).
+  Herramientas del taller: `medir-hero.mjs` y `probar-titulares.mjs`, que
+  sustituye el texto del `<h1>` en el DOM sin tocar la base.
+- **LA CAPTACION ES POR WHATSAPP, A PROPOSITO** (18-11-2026, decision del
+  cliente). El sitio no tiene NI UN formulario y no es un olvido: «el
+  proyecto esta enfocado para hacer un llamado a la accion directo y por eso
+  dirigimos directamente a WhatsApp».
+  **Why:** un formulario anade un paso y una espera; WhatsApp abre la
+  conversacion en el momento. Ademas evita decidir como enviar un formulario
+  sin romper los 0 KB de JavaScript.
+  **How to apply:** el backend de `leads` y el bot de triage estan
+  CONSTRUIDOS y sin conectar —rutas, controladores, repositorios,
+  `triage.service.js`—. **No son codigo muerto ni un pendiente olvidado: son
+  una pieza en reserva.** Antes de «limpiarlos» hay que preguntar.
+- **El cliente prueba el PANEL aparte, en local** (18-11-2026). Lo que se
+  pule ahora es la vista del visitante; el panel se revisa despues de subir
+  al hosting. Por eso no se tocan sus pendientes salvo que los pida.
+- **Cierres del 18-11-2026:**
+  - **«20 anos» ya no existe en el sitio.** Migracion `029`: la meta
+    descripcion de la portada y el subtitulo de RESERVA de la cabecera; la
+    meta de `/quienes-somos/` iba en codigo. Todo dice 26.
+  - **Sigue «Mas de 25 anos avaluando»** en el bloque del perito, y se deja:
+    no es la misma cuenta —26 ejerciendo, algo mas de 25 avaluando, que es
+    una especialidad posterior—. Igualarlo es otra decision del cliente.
+  - **«Cifras y preguntas frecuentes» BORRADO** (migracion `030`). Estaba
+    apagado desde la `012`. **El JSON entero queda copiado dentro de la
+    migracion**: un DELETE no se deshace, un archivo del repositorio si.
+    Deja al aire que la meta de la portada sigue prometiendo «Primera
+    consulta sin costo» y ya no hay pagina que lo explique.
+  - **`/equipo/` fuera del pie.** Se BORRA, no se comenta, al reves que
+    «Blog juridico»: aquel esta aparcado y volvera; de este el cliente dijo
+    que no lo necesita. Enlaces rotos: de 8 a 7.
+- **LINEA BASE VISUAL REGENERADA el 18-11-2026**, con el diseno aprobado por
+  el cliente. Las siete vistas daban diferencias y todas tenian explicacion
+  conocida: `/quienes-somos/` es una pagina nueva, la portada ENCOGIO al
+  apagar y borrar bloques, y las landings cambiaron solo por la tipografia.
+  Verificada contra si misma: **0 pixeles en las siete**.
+  **Lo que la base NO retrata**: el relevo del carrusel (congela una lamina,
+  no el cambio) y las fichas de areas abiertas (se capturan cerradas). Las
+  dos cosas mas fragiles del sitio quedan fuera del punto de control.
+- **LAS SEIS FICHAS DE AREAS SE ABREN; no llevan a ninguna pagina**
+  (18-11-2026, spec 013, migracion `028`). Iban a `/areas/derecho-*`, seis
+  paginas que NO existen: seis 404 en la portada. Ahora la ficha despliega una
+  descripcion breve y un boton «Consultar ahora» a WhatsApp.
+  **Why:** el cliente eligio esto en vez de crear las seis paginas, porque con
+  el material que hay saldrian flacas. **Se pierde posicionamiento de cola
+  larga** —una ficha desplegable no es una URL y Google no la indexa aparte—,
+  y queda escrito porque es la clase de decision que alguien «arregla» sin
+  saber que se tomo.
+  **How to apply:** el `enlace` de cada tarjeta SE CONSERVA. Vaciar la
+  descripcion desde el panel devuelve el comportamiento anterior sin tocar
+  codigo.
+  - **Sigue sin JavaScript**: `<details>` + `<summary>`. `dist/` con 0 `.js`.
+    De regalo el teclado funciona solo (Enter y Espacio sobre el summary).
+  - **EL PANEL FLOTA; la tarjeta NO crece.** Peticion del cliente. La primera
+    version lo abria en flujo y la rejilla se movia. Medido: la seccion mide
+    791 px abierta y cerrada en escritorio, 859 en movil.
+  - **Los dos problemas que yo habia advertido eran reales, y asi se
+    resolvieron:**
+    - *«No cabe»*: la tarjeta mide 219x273 a 1280px. Cabe con la descripcion
+      a 13px e interlineado ajustado. Comprobado en las SEIS fichas y a nueve
+      anchos: ninguna desborda y quedan 56 px de holgura en el peor caso. Si
+      alguien alarga una descripcion, esto es lo primero que se rompe.
+    - *«No se puede cerrar»*: dos caminos a la vez, los dos necesarios. El
+      rotulo se pinta POR ENCIMA del panel (`z-index`) y sigue cerrando al
+      pulsarlo; y el panel lleva `pointer-events: none` con `auto` en sus
+      hijos, asi que pulsar cualquier hueco atraviesa hasta el `<summary>`.
+  - **El salto del raton se ANULA con la ficha abierta.** Un `transform`
+    sobre el summary crea contexto de apilamiento y el rotulo se iria detras
+    del panel al pasar el raton.
+  - **El panel va en `marino-800`, no en el `marino-900` de la seccion**: con
+    el color de la seccion la ficha abierta parece un agujero en la rejilla.
+  - **`items-start` en la lista** quedo de la version en flujo; ya no hace
+    falta, pero no estorba.
+  - **Los estilos de Astro estan ACOTADOS por componente.** La regla que gira
+    la flecha estaba en `RejillaTarjetas` y la flecha la pinta
+    `CaraTarjetaArea`: no la alcanzaba y no giraba, sin aviso. Va en el
+    parcial, con el `<details>` en `:global()`.
+  - **El triangulo del summary se quita por DOS caminos**: `list-style: none`
+    (Chrome, Firefox) y `::-webkit-details-marker` (Safari).
+  - **NO medir contraste troceando `getComputedStyle` con una regex.**
+    Tailwind 4 devuelve `color-mix(...)`/`oklab(...)`; mi primera medicion dio
+    1,60:1 donde hay **7,71:1**. Se pinta el color en un canvas de 1x1 y se lee
+    el pixel. Herramienta: `contraste-ficha.mjs`.
+  - **Al leer un `transform` que esta en transicion hay que ESPERAR.** Leerlo
+    en el mismo instante en que se abre la ficha da la identidad y parece que
+    la regla no aplica. Me paso y casi «arreglo» algo que ya funcionaba.
+- **`conciliar()` duplicaba la regla de «reserva superada», y ya mordio.**
+  Su copia solo entendia reservas superadas por un ARRAY; el `enlace` de una
+  tarjeta es reserva de `descripcion`, que es una CADENA, asi que guardar
+  desde el panel habria BORRADO los seis enlaces. Ahora importa
+  `reservaSuperada()` de `formulario.js`, que es lo que su propio comentario
+  pedia. No reventó antes con el perito porque aquel campo es `tipo: 'imagen'`
+  y esa rama va antes: suerte, no diseno.
+- **Un CAMPO nuevo en el registro obliga a reiniciar la API**, igual que un
+  tipo nuevo. Con el proceso viejo el panel no lo enseña y `sanearDatos` lo
+  descarta al guardar.
+- **Tres ajustes del 18-11-2026, pedidos juntos:**
+  - `/quienes-somos/`: la biografia dice **«mas de 26 anos de experiencia»**
+    (antes 20). **La META DESCRIPCION de esa misma pagina sigue diciendo
+    «Mas de 20 anos»** y no se toco: es el texto del resultado de Google, no
+    de la pagina, y el cliente lleva el repaso de anos aparte.
+  - `/areas/`: las tres tarifas suben a **120.000 / 150.000 / 180.000**
+    (antes 100/120/150). **Cada precio esta DOS veces** en
+    `frontend/src/data/areas.js`: en `precio` y dentro de
+    `whatsappMensaje`. Cambiar solo el visible deja el mensaje de WhatsApp
+    cotizando el precio viejo, que en honorarios es peor que una errata.
+    Los seis comprobados en el sitio compilado, decodificando el `wa.me`.
+  - **«Blog juridico» sale del menu de la cabecera.** No es solo que falte
+    contenido: `/blog/` **no existe**, asi que el enlace daba 404 en todas
+    las paginas. Queda COMENTADO en `Navbar.astro`, no borrado: el dia que
+    haya blog es descomentar una linea.
+- **EL PIE TIENE DIEZ ENLACES ROTOS**, y es lo siguiente que hay que decidir
+  antes de publicar. Medido sobre `dist/`: `/blog/`, `/equipo/`,
+  `/tratamiento-de-datos/`, `/terminos-y-condiciones/` y las **seis** fichas
+  de area (`/areas/derecho-laboral/`, `-civil/`, `-familia/`, `-penal/`,
+  `-inmobiliario/`, `-administrativo/`). Solo existen `/`, `/areas/`,
+  `/contacto/`, `/quienes-somos/`, `/politica-de-privacidad/` y
+  `/demanda-laboral/`.
+  **Why:** un pie lleno de 404 le dice a Google que el sitio esta roto, y a
+  quien pulsa que el bufete no cuida sus cosas.
+  **How to apply:** son dos decisiones distintas: las fichas de area piden
+  **crear las paginas** (hay contenido en `areas.js`); `/equipo/` y `/blog/`
+  piden **quitar el enlace**, como se hizo en la cabecera.
+- **EL RELEVO DEL CARRUSEL MUEVE EL CONTENIDO, NUNCA LA LAMINA** (18-11-2026,
+  peticion del cliente: «hacen una especie de salto y parece que la imagen se
+  fuerza a expandirse a ocupar el espacio de los botones»). No era impresion
+  suya: eran dos defectos, los dos medidos.
+  - **La foto saltaba 64 px al TERMINAR el relevo.** El `transform` vivia en
+    la lamina; un `transform` crea bloque contenedor, asi que la capa de
+    fondo se anclaba a la LAMINA mientras duraba el movimiento y volvia a la
+    SECCION al acabar. Alto de 750 a 814 px en UN fotograma. Con
+    `object-fit: cover` eso no es crecer: es RECORTAR distinto.
+  - **Asomaba una franja de 16 px de la cuna por el canto derecho**, porque
+    la capa mide `100vw` justos y corrida 1,5rem no llegaba.
+  - **Arreglo:** el `transform` pasa a `.cabecera-desliza`, la clase de las
+    dos columnas de contenido. La lamina se queda con el fundido; la foto se
+    funde QUIETA. La lamina **no puede volver a llevar `transform` ni
+    `position`**.
+  - **Dos juegos de fotogramas, no uno**: `cabecera-pase-N` (opacidad y
+    visibilidad) y `cabecera-desliza-N` (solo transform). Tiempos y retrasos
+    tienen que coincidir al milisegundo, y cada regla que nombraba
+    `.cabecera-lamina` necesita su pareja para `.cabecera-desliza`.
+  - **El reposo no cambio NADA**: la captura de la lamina 2 a 1440 px es
+    identica byte a byte antes y despues (3 442 128 bytes). Por eso no hubo
+    que recomponer ninguna de las seis fotos.
+  - Herramientas del taller para esto: `grabar-relevo.mjs` (geometria
+    fotograma a fotograma durante un cambio) y `pase.mjs` (linea de tiempo
+    del pase automatico).
+- **El `-4rem` de la capa de fondo ya NO sirve para cubrir los mandos.**
+  Anclada a la seccion, la fila de mandos ya queda dentro. Se queda porque es
+  el ENCUADRE: las seis fotos se compusieron mirando la banda de
+  `seccion + 4rem`. Quitarlo las recorta a las seis de otra manera.
+- **El alcance es COLOMBIA, no solo Tulua** (18-11-2026, migracion `027`).
+  La lamina laboral decia «revisamos sus cuentas en Tulua y reclamamos lo que
+  falte»; el cliente pidio quitar «en Tulua» porque estrechaba el alcance
+  justo en la frase donde se ofrece el trabajo. 220 → 211 caracteres.
+  - **Se quita a sabiendas de lo que cuesta.** El nombre de la ciudad dentro
+    del texto es una senal de busqueda local, y el proyecto vigila eso. El
+    dano es limitado: la senal FUERTE es la direccion del pie y la ficha de
+    Google Maps, que no se tocan, y «Tulua» sigue en el subtitulo de la
+    lamina 2, en el rotulo de reserva de la cabecera, en el pie y en contacto.
+  - **Si algun dia se quieren las dos cosas**, la salida no es devolver «en
+    Tulua» ahi: es nombrar el alcance real («en todo el pais», «desde Tulua
+    para toda Colombia»), que amplia sin borrar la senal local.
+  - **Se quito con `replace()`, no reescribiendo la frase.** Asi sobrevive
+    cualquier edicion hecha desde el panel y solo desaparece el trozo pedido.
+    A cambio, si el trozo ya no estuviera la migracion no haria nada EN
+    SILENCIO: hay que comprobar despues de aplicarla.
+- **Los textos de las tres laminas van PAREJOS o sale un hueco muerto.** El
+  alto de la cabecera lo fija la mas larga. Hoy: titulares de 38, 31 y 42
+  caracteres; subtitulos de 211, 226 y 235. Los topes del registro son 90 y
+  240, y `sanearDatos` recorta sin avisar.
+- **Donde queda cada mencion de anos** (18-11-2026), para el repaso de
+  congruencia que el cliente dejo para el final:
+  | Sitio | Dice | Visible |
+  |---|---|---|
+  | Chapa de la portada | **26 anos** | si |
+  | Lamina 2 del slider | **26 anos** | si |
+  | Bloque del perito | «Mas de 25 anos avaluando» | si |
+  | Meta descripcion de `inicio` | «mas de 20 anos» | en buscadores |
+  | `/quienes-somos/` (meta y texto) | «Mas de 20 anos» | si |
+  | Reserva `subtitulo` de la cabecera | «mas de 20 anos» | no |
+  | `cifrasYPreguntas`, «Casos resueltos» | apagados | no |
+
+  Ninguna CONTRADICE a 26 —«mas de 20» es cierto—, pero las de 20 venden el
+  bufete seis anos por debajo de lo que tiene.
+- **Las redes de la barra superior son FACEBOOK, YOUTUBE y TIKTOK**
+  (18-11-2026, peticion del cliente), y ya NO estan declaradas en
+  `BarraContacto.astro`. Tenia su propia lista —Facebook, LinkedIn e
+  Instagram, las tres con `href="#"`—, que es el agujero que `contacto.js` se
+  creo para cerrar. **La documentacion daba por hecho que la barra leia
+  `contacto.js`; no era verdad hasta ahora.**
+- **Los glifos viven en `frontend/src/data/iconos-redes.js`**, aparte de
+  `contacto.js`: aquel guarda DONDE esta cada perfil —dato del bufete, que
+  cambia— y esto COMO se dibuja cada marca, que no cambia. Son las marcas
+  oficiales, no dibujos parecidos, por lo mismo que el glifo de WhatsApp.
+- **El ORDEN DE DECLARACION de `redes` es el orden en que se pintan.** Mover
+  una linea mueve el icono en la barra y en el menu movil.
+- **Los tres logotipos SE VEN pero no enlazan a nada todavia** (peticion del
+  cliente: aun no tiene las direcciones). Sin URL se pinta un `<span>`, **NO
+  un `<a href="#">"`**: un enlace vacio entra en el orden de tabulacion y el
+  lector de pantalla lo anuncia como enlace, que es justo lo que habia antes.
+  El `<span>` va `aria-hidden` y sin efecto de paso del raton, porque algo
+  que se ilumina al pasar por encima dice que se puede pulsar.
+  **Pegar la URL en `redes` lo convierte en enlace solo**, sin tocar ningun
+  componente. El reparto lo hace `IconoRed.astro`.
+- **`redesEnUso()` y `redesActivas()` NO son lo mismo y las dos hacen falta.**
+  La primera son las que el bufete usa, tengan URL o no —es la de la
+  cabecera—; la segunda, solo las configuradas. Con una sola funcion no hay
+  forma de distinguir «esta red no la tenemos» de «la tenemos pero aun no se
+  la URL», y se pintan distinto.
+- **El menu MOVIL lleva ahora los iconos de redes.** La barra superior va
+  oculta por debajo de `md`, asi que sin eso el telefono se quedaba sin un
+  solo acceso a las redes. Objetivo de 44px, el minimo del proyecto; en la
+  barra de escritorio son 28px, que es lo que pide WCAG 2.5.8 (24x24).
+- **`Navbar.astro` declaraba el TELEFONO por su cuenta** leyendo el `.env`:
+  el mismo NAP duplicado que tenia `TextoConImagen.astro`. Sale de
+  `contacto.js`.
 - **El pie de la cifra dice «anos defendiendo sus derechos»** (18-11-2026,
   migracion `023`). Decia «anos de ejercicio», que describe la carrera del
   abogado; el nuevo describe lo que recibe el visitante. **Cabe JUSTO: el
