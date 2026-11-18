@@ -14,11 +14,37 @@
  * silueta de WhatsApp es universalmente reconocible y el significado del
  * botón no depende de leer el glifo: lo lleva el `aria-label`.
  *
- * Lo que sí se recupera es el BORDE. `#25D366` sobre blanco da 1.76:1 y sobre
- * el fondo humo 1.85:1, así que el botón se difuminaba contra la página. El
- * aro `#128C7E` —también verde oficial— lo delimita y es el único tono que
- * supera 3:1 sobre los tres fondos del sitio: 4.14:1 sobre blanco, 3.86:1
- * sobre humo y 3.77:1 sobre navy.
+ * Lo que sí se recupera es el BORDE. `#25D366` sobre blanco da 1.98:1 y sobre
+ * el fondo humo 1.86:1, así que el botón se difuminaba contra la página.
+ *
+ * EL ARO ES INVISIBLE DESDE EL 17-11-2026, Y ES UNA DEUDA CONSCIENTE.
+ *
+ * Historia, porque sin ella alguien lo «arreglará»:
+ *  1. Era `#128C7E`, el verde oscuro oficial de WhatsApp, puesto para dar al
+ *     botón un contorno medible.
+ *  2. El cliente lo veía AZUL, y no se lo imaginaba: `#128C7E` es un teal
+ *     —verde azulado— y, junto al verde puro del relleno, el ojo lee esa
+ *     diferencia como azul.
+ *  3. Se probó `#198F4A`, verde sin rastro de azul y con EXACTAMENTE el mismo
+ *     contraste (misma luminancia): 4.14:1 blanco, 3.88:1 humo, 3.77:1 navy.
+ *  4. El cliente pidió que el aro fuese del MISMO verde del relleno, es decir,
+ *     que no se viera borde ninguno. Es lo que hay ahora.
+ *
+ * Lo que eso cuesta, expuesto y aceptado: `#25D366` sobre blanco da 1.98:1 y
+ * sobre el fondo humo 1.86:1, muy por debajo del 3:1 que WCAG 1.4.11 pide a
+ * un control. **Sobre esos dos fondos el botón ya no tiene contorno medible**
+ * y se difumina contra la página. Sobre navy no hay problema (7.86:1).
+ *
+ * Lo único que queda separándolo del fondo claro es la SOMBRA
+ * (`shadow-lg shadow-black/25`). No es un borde y no cumple el criterio, pero
+ * es lo que impide que el botón se pegue visualmente a la página: si alguien
+ * la quita «por limpieza», sobre blanco no quedará absolutamente nada.
+ *
+ * El aro se conserva en el marcado, del color del relleno, en vez de
+ * borrarse: así la caja del botón no cambia de tamaño y volver atrás es
+ * cambiar un valor, no reconstruir la clase.
+ *
+ * Va a la IZQUIERDA desde el 17-11-2026, petición del cliente.
  */
 const { mensaje } = Astro.props;
 
@@ -34,8 +60,8 @@ const enlace = enlaceWhatsApp(mensaje);
     rel="noopener noreferrer nofollow"
     data-cta="whatsapp-flotante"
     aria-label="Escribir por WhatsApp (se abre en otra pestaña)"
-    class="group fixed bottom-6 right-6 z-50 hidden size-14 items-center justify-center
-           rounded-full bg-[#25D366] text-white ring-2 ring-[#128C7E]
+    class="group fixed bottom-6 left-6 z-50 hidden size-14 items-center justify-center
+           rounded-full bg-[#25D366] text-white ring-2 ring-[#25D366]
            shadow-lg shadow-black/25
            transition-transform hover:scale-105 focus-visible:outline-2
            focus-visible:outline-offset-2 focus-visible:outline-marino-600
@@ -52,9 +78,14 @@ const enlace = enlaceWhatsApp(mensaje);
     </svg>
 
     <!-- Etiqueta que aparece al acercar el cursor: aclara qué hace el botón
-         sin ocupar sitio mientras no haga falta. -->
+         sin ocupar sitio mientras no haga falta.
+
+         Se abre hacia la DERECHA porque el botón está pegado al borde
+         izquierdo. Con `right-full` —como estaba cuando el botón vivía a la
+         derecha— la etiqueta saldría fuera de la pantalla y no se vería
+         ninguna. -->
     <span
-      class="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-lg
+      class="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg
              bg-marino-900 px-3 py-2 text-sm font-semibold text-white opacity-0
              shadow-lg transition-opacity group-hover:opacity-100
              group-focus-visible:opacity-100"
