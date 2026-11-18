@@ -196,6 +196,11 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
             El truco de `100vw` con `translateX(-50%)` la saca del contenedor
             centrado y la lleva de borde a borde; la sección recorta el
             sobrante porque lleva `overflow-hidden`.
+
+            La capa NO se desplaza en el relevo: solo se funde. Lo que se
+            mueve es `.cabecera-desliza`, que envuelve el texto y la figura.
+            Mide `100vw` justos, así que corrida 1,5rem dejaba asomar 16 px de
+            la cuña por el canto derecho durante todo el cambio.
           */}
           {lamina.imagenFondo && (
             <div class="cabecera-fondo" aria-hidden="true">
@@ -247,7 +252,7 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
             con el logotipo de la cabecera y con las secciones de abajo. Es una
             decisión de diseño pedida, no un descuido.
           */}
-          <div class="relative z-10 max-w-xl xl:-ml-12 2xl:-ml-20">
+          <div class="cabecera-desliza relative z-10 max-w-xl xl:-ml-12 2xl:-ml-20">
             {lamina.etiqueta && (
               <p
                 class="mb-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-rojo-300"
@@ -300,7 +305,7 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
           </div>
 
           <!-- La foto es decorativa: el titular de al lado comunica lo mismo. -->
-          <div class="relative z-10 hidden justify-center md:flex">
+          <div class="cabecera-desliza relative z-10 hidden justify-center md:flex">
             {lamina.imagen && (
               <img
                 src={lamina.imagen}
@@ -440,21 +445,29 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
    * la propia sección y no se vería. Las dos columnas de contenido van en
    * `z-10` para quedar por encima.
    *
+   * ── A quién se ancla, y por qué importa tanto ───────────────────────────
+   * A la SECCIÓN. La capa va dentro de la lámina en el documento, pero la
+   * lámina no lleva `position` ni `transform`, así que no es bloque
+   * contenedor y el ancla sube hasta la sección, que sí lleva `relative`.
+   *
+   * **La lámina no puede volver a llevar ninguna de las dos cosas.** Un
+   * `transform` crea bloque contenedor para los descendientes absolutos
+   * aunque no haya `position`, y entonces la capa se re-ancla a la lámina,
+   * que mide justo los mandos menos que la sección. Ya pasó: mientras el
+   * desplazamiento del relevo vivió en la lámina, la capa saltaba de 750 a
+   * 814 px en un fotograma, al terminar el movimiento. Por eso el
+   * desplazamiento vive ahora en `.cabecera-desliza`.
+   *
    * ── Hasta dónde llega por abajo ──────────────────────────────────────────
-   * Esta capa se ancla a la LÁMINA, se quiera o no: la lámina lleva
-   * `transform` para el relevo, y un `transform` crea bloque contenedor para
-   * los descendientes absolutos aunque no haya `position: relative`. Quitarle
-   * el `position` a la lámina no cambia nada; ya se intentó.
+   * Anclada a la sección, la capa ya cubriría los mandos con `inset: 0`: la
+   * fila de mandos está DENTRO de la sección. El `-4rem` sobra para eso.
    *
-   * La lámina acaba donde acaba el texto, así que la capa dejaba los 4rem de
-   * la fila de mandos sin foto y debajo asomaba la franja de la sección: una
-   * banda de otro color justo bajo las flechas. Por eso la capa se ESTIRA
-   * hacia abajo exactamente lo que miden los mandos. El sobrante lo recorta
-   * la sección, que lleva `overflow-hidden`.
-   *
-   * Tiene que ser EXACTO, no un número generoso: la imagen va con
-   * `object-fit: cover`, así que alargar la capa cambia el recorte y mueve el
-   * encuadre que se ajustó mirando.
+   * **Se queda porque es el ENCUADRE, no un apaño de cobertura.** Las seis
+   * fotos de fondo se compusieron mirando la banda que deja una capa de
+   * `sección + 4rem` con `object-fit: cover`; a 1920 px es `y 133-947` del
+   * lienzo. Ponerlo a cero encogería la capa 64 px y recortaría las seis de
+   * otra manera —cabezas y pies incluidos—, así que no se toca sin
+   * recomponerlas y volver a medirlas.
    */
   /*
    * `display: contents` para que el `<picture>` no cuente como caja.
@@ -577,12 +590,40 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
      * El desplazamiento lateral de 1,5rem acompaña al fundido. Sin él, un
      * cambio de más de un segundo parece que la página se ha quedado colgada
      * en vez de que algo está pasando.
+     *
+     * ── Quién se desplaza y quién NO ─────────────────────────────────────
+     * El desplazamiento es del CONTENIDO (`.cabecera-desliza`), nunca de la
+     * lámina. La foto de fondo se limita a fundirse, quieta. No es una
+     * cuestión de gusto: mientras el `transform` vivió en la lámina produjo
+     * dos defectos a la vez, los dos medidos en la página.
+     *
+     *   1. **La foto pegaba un salto de 64 px al terminar el relevo.** Un
+     *      `transform` crea bloque contenedor para los descendientes
+     *      absolutos, así que la capa de fondo se anclaba a la LÁMINA
+     *      mientras duraba el movimiento y a la SECCIÓN al acabar, cuando
+     *      el `transform` vuelve a `none`. Como la lámina mide justo los
+     *      mandos menos que la sección, su alto pasaba de 750 a 814 px de
+     *      golpe, en un fotograma. Y la imagen va con `object-fit: cover`,
+     *      así que no «crecía»: se RECORTABA distinto. Eso es lo que se veía
+     *      como un tirón de la foto hacia la fila de flechas.
+     *
+     *   2. **Asomaba una franja de la cuña por el canto derecho.** La capa
+     *      mide `100vw` justos; corrida 1,5rem dejaba 16 px de `colorCuna`
+     *      —más claro que el fondo— al descubierto durante todo el relevo.
+     *
+     * Las dos desaparecen en cuanto la lámina deja de llevar `transform`:
+     * la capa pasa a estar SIEMPRE anclada a la sección, con el mismo alto y
+     * la misma posición de principio a fin.
+     *
+     * **La lámina no puede volver a llevar `transform` ni `position`.** Lo
+     * uno o lo otro la convierte en bloque contenedor y devuelve el salto.
+     * El encuadre de las seis fotos está ajustado contra el alto que da el
+     * anclaje a la sección.
      */
     .cabecera-pila > .cabecera-lamina {
       grid-area: 1 / 1;
       opacity: 0;
       visibility: hidden;
-      transform: translateX(-1.5rem);
       /*
        * `visibility` se retrasa hasta el final del fundido. Si cambiara al
        * instante, la lámina saliente desaparecería de golpe en vez de
@@ -590,8 +631,12 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
        */
       transition:
         opacity 0.5s ease,
-        transform 0.5s ease,
         visibility 0s linear 0.5s;
+    }
+
+    .cabecera-pila > .cabecera-lamina > .cabecera-desliza {
+      transform: translateX(-1.5rem);
+      transition: transform 0.5s ease;
     }
 
     /*
@@ -606,12 +651,18 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
     .cabecera:has(.cabecera-radio:nth-of-type(3):checked) .cabecera-lamina:nth-child(3) {
       opacity: 1;
       visibility: visible;
-      transform: none;
       /* Entra con 0,45 s de retraso: deja irse a la saliente antes de llegar. */
       transition:
         opacity 0.95s ease 0.45s,
-        transform 0.95s ease 0.45s,
         visibility 0s linear 0s;
+    }
+
+    /* El mismo retraso para el contenido, que es lo único que se desplaza. */
+    .cabecera:has(.cabecera-radio:nth-of-type(1):checked) .cabecera-lamina:nth-child(1) > .cabecera-desliza,
+    .cabecera:has(.cabecera-radio:nth-of-type(2):checked) .cabecera-lamina:nth-child(2) > .cabecera-desliza,
+    .cabecera:has(.cabecera-radio:nth-of-type(3):checked) .cabecera-lamina:nth-child(3) > .cabecera-desliza {
+      transform: none;
+      transition: transform 0.95s ease 0.45s;
     }
 
     /*
@@ -627,6 +678,13 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
       .cabecera:has(.cabecera-radio:nth-of-type(1):checked) .cabecera-lamina:nth-child(1),
       .cabecera:has(.cabecera-radio:nth-of-type(2):checked) .cabecera-lamina:nth-child(2),
       .cabecera:has(.cabecera-radio:nth-of-type(3):checked) .cabecera-lamina:nth-child(3) {
+        transition: none;
+      }
+
+      .cabecera-pila > .cabecera-lamina > .cabecera-desliza,
+      .cabecera:has(.cabecera-radio:nth-of-type(1):checked) .cabecera-lamina:nth-child(1) > .cabecera-desliza,
+      .cabecera:has(.cabecera-radio:nth-of-type(2):checked) .cabecera-lamina:nth-child(2) > .cabecera-desliza,
+      .cabecera:has(.cabecera-radio:nth-of-type(3):checked) .cabecera-lamina:nth-child(3) > .cabecera-desliza {
         transform: none;
         transition: none;
       }
@@ -652,6 +710,9 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
     .cabecera:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(1) {
       opacity: 1;
       visibility: visible;
+    }
+
+    .cabecera:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(1) > .cabecera-desliza {
       transform: none;
     }
 
@@ -673,7 +734,8 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
      * congelado por `:focus-within` depende de lo mismo, y volvería a romperse
      * en silencio si alguien abrevia estas declaraciones.
      */
-    .cabecera[data-laminas]:not(:has(.cabecera-radio:checked)) .cabecera-lamina {
+    .cabecera[data-laminas]:not(:has(.cabecera-radio:checked)) .cabecera-lamina,
+    .cabecera[data-laminas]:not(:has(.cabecera-radio:checked)) .cabecera-lamina > .cabecera-desliza {
       animation-timing-function: ease-in-out;
       animation-iteration-count: infinite;
     }
@@ -695,16 +757,29 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
       animation-duration: 15s;
       animation-delay: -0.95s;
     }
+    /*
+     * El desplazamiento va en su propio juego de fotogramas, sobre el
+     * contenido. Mismos tiempos y mismos retrasos que el fundido: si los dos
+     * no coinciden al milisegundo, el texto llega antes o después que su
+     * propia foto.
+     */
+    .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-lamina > .cabecera-desliza {
+      animation-name: cabecera-desliza-3;
+      animation-duration: 15s;
+      animation-delay: -0.95s;
+    }
     .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-punto::before {
       animation-name: cabecera-punto-3;
       animation-duration: 15s;
       animation-delay: -0.95s;
     }
     .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(2),
+    .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(2) > .cabecera-desliza,
     .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-punto:nth-of-type(2)::before {
       animation-delay: 4.05s;
     }
     .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(3),
+    .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(3) > .cabecera-desliza,
     .cabecera[data-laminas='3']:not(:has(.cabecera-radio:checked)) .cabecera-punto:nth-of-type(3)::before {
       animation-delay: 9.05s;
     }
@@ -715,12 +790,18 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
       animation-duration: 10s;
       animation-delay: -0.95s;
     }
+    .cabecera[data-laminas='2']:not(:has(.cabecera-radio:checked)) .cabecera-lamina > .cabecera-desliza {
+      animation-name: cabecera-desliza-2;
+      animation-duration: 10s;
+      animation-delay: -0.95s;
+    }
     .cabecera[data-laminas='2']:not(:has(.cabecera-radio:checked)) .cabecera-punto::before {
       animation-name: cabecera-punto-2;
       animation-duration: 10s;
       animation-delay: -0.95s;
     }
     .cabecera[data-laminas='2']:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(2),
+    .cabecera[data-laminas='2']:not(:has(.cabecera-radio:checked)) .cabecera-lamina:nth-child(2) > .cabecera-desliza,
     .cabecera[data-laminas='2']:not(:has(.cabecera-radio:checked)) .cabecera-punto:nth-of-type(2)::before {
       animation-delay: 4.05s;
     }
@@ -737,6 +818,7 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
      * por los botones de la cabecera, que es un problema de uso, no de gusto.
      */
     .cabecera:focus-within .cabecera-lamina,
+    .cabecera:focus-within .cabecera-desliza,
     .cabecera:focus-within .cabecera-punto::before {
       animation-play-state: paused;
     }
@@ -746,12 +828,14 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
     }
 
     /*
-     * La capa de fondo cubre también la fila de mandos.
+     * El alto de la capa de fondo incluye la fila de mandos.
      *
      * Va aquí y no fuera a propósito: sin `:has()` los mandos no se pintan
-     * —no hay forma de cambiar de lámina— y entonces no hay franja que
-     * cubrir. Estirar la capa ahí la sacaría 4rem por debajo del contenido
-     * sin motivo y movería el encuadre de la foto.
+     * —no hay forma de cambiar de lámina— y entonces la sección es más baja.
+     * Estirar la capa ahí movería el encuadre de la foto sin motivo.
+     *
+     * El valor es el que fija el encuadre de las seis fotos; ver el comentario
+     * largo de `.cabecera-fondo`. No es un margen de seguridad.
      */
     .cabecera-fondo {
       bottom: calc(-1 * var(--cabecera-mandos));
@@ -778,6 +862,7 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
      */
     @media (prefers-reduced-motion: reduce) {
       .cabecera[data-laminas]:not(:has(.cabecera-radio:checked)) .cabecera-lamina,
+      .cabecera[data-laminas]:not(:has(.cabecera-radio:checked)) .cabecera-lamina > .cabecera-desliza,
       .cabecera[data-laminas]:not(:has(.cabecera-radio:checked)) .cabecera-punto::before {
         animation-name: none;
       }
@@ -797,21 +882,46 @@ const idLamina = (i) => `lamina-${sufijo}-${i}`;
    * en plena salida.
    */
   @keyframes cabecera-pase-3 {
-    0% { opacity: 0; visibility: visible; transform: translateX(1.5rem); }
-    6.333% { opacity: 1; visibility: visible; transform: none; }
-    30.333% { opacity: 1; visibility: visible; transform: none; }
-    33.667% { opacity: 0; visibility: visible; transform: translateX(-1.5rem); }
-    33.767% { opacity: 0; visibility: hidden; transform: translateX(1.5rem); }
-    100% { opacity: 0; visibility: hidden; transform: translateX(1.5rem); }
+    0% { opacity: 0; visibility: visible; }
+    6.333% { opacity: 1; visibility: visible; }
+    30.333% { opacity: 1; visibility: visible; }
+    33.667% { opacity: 0; visibility: visible; }
+    33.767% { opacity: 0; visibility: hidden; }
+    100% { opacity: 0; visibility: hidden; }
+  }
+
+  /*
+   * El desplazamiento va APARTE, sobre el contenido, con los mismos
+   * porcentajes. La foto de fondo no se mueve: se funde quieta. Mezclar las
+   * dos cosas en un solo juego de fotogramas obligaría a ponerlo sobre la
+   * lámina, y un `transform` ahí vuelve a anclar la capa de fondo a la lámina
+   * a mitad del relevo —el salto de 64 px—.
+   */
+  @keyframes cabecera-desliza-3 {
+    0% { transform: translateX(1.5rem); }
+    6.333% { transform: none; }
+    30.333% { transform: none; }
+    33.667% { transform: translateX(-1.5rem); }
+    33.767% { transform: translateX(1.5rem); }
+    100% { transform: translateX(1.5rem); }
   }
 
   @keyframes cabecera-pase-2 {
-    0% { opacity: 0; visibility: visible; transform: translateX(1.5rem); }
-    9.5% { opacity: 1; visibility: visible; transform: none; }
-    45.5% { opacity: 1; visibility: visible; transform: none; }
-    50.5% { opacity: 0; visibility: visible; transform: translateX(-1.5rem); }
-    50.6% { opacity: 0; visibility: hidden; transform: translateX(1.5rem); }
-    100% { opacity: 0; visibility: hidden; transform: translateX(1.5rem); }
+    0% { opacity: 0; visibility: visible; }
+    9.5% { opacity: 1; visibility: visible; }
+    45.5% { opacity: 1; visibility: visible; }
+    50.5% { opacity: 0; visibility: visible; }
+    50.6% { opacity: 0; visibility: hidden; }
+    100% { opacity: 0; visibility: hidden; }
+  }
+
+  @keyframes cabecera-desliza-2 {
+    0% { transform: translateX(1.5rem); }
+    9.5% { transform: none; }
+    45.5% { transform: none; }
+    50.5% { transform: translateX(-1.5rem); }
+    50.6% { transform: translateX(1.5rem); }
+    100% { transform: translateX(1.5rem); }
   }
 
   /*
