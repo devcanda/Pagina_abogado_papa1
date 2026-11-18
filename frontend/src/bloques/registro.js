@@ -209,6 +209,26 @@ export const BLOQUES = {
       texto: { tipo: 'parrafo', max: 600 },
       puntos: { tipo: 'lista', max: 5, ayuda: 'Cada punto lleva una marca de verificación' },
       imagen: { tipo: 'imagen', ancho: 700, alto: 900 },
+      /*
+       * Quién sale en la foto. Los tres campos son OPCIONALES: sin ellos el
+       * bloque se pinta como antes, así que añadirlos no cambió ninguna
+       * página.
+       *
+       * `nombre` y `cargo` hacen DOS cosas a la vez, y por eso no se dedujo
+       * ninguna de las dos del texto:
+       *  · Se pintan en la chapa que monta sobre la foto. Un retrato sin
+       *    nombre al lado obliga a adivinar a quién se está mirando, y en la
+       *    web de un bufete lo que se contrata es a una persona.
+       *  · Componen el texto alternativo de la imagen cuando `altImagen` está
+       *    vacío. La foto iba con `alt=""` —decorativa— y no lo es: para
+       *    quien usa lector de pantalla, el retrato del abogado desaparecía.
+       *
+       * `altImagen` queda para cuando la foto NO sea un retrato (una sala, un
+       * edificio): entonces el nombre no la describe.
+       */
+      nombre: { tipo: 'texto', max: 40, ayuda: 'Quién sale en la foto' },
+      cargo: { tipo: 'texto', max: 60, ayuda: 'Su cargo o especialidad' },
+      altImagen: { tipo: 'texto', max: 120, ayuda: 'Descripción de la foto para lectores de pantalla. Si se deja vacío se usa el nombre y el cargo.' },
       cifra: { tipo: 'texto', max: 6, ayuda: 'Número de la insignia' },
       cifraPie: { tipo: 'texto', max: 30 },
       textoBoton: { tipo: 'texto', max: 30 },

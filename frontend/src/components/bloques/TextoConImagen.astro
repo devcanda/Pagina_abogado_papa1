@@ -1,19 +1,49 @@
 ---
 /**
- * Primer bloque bajo el hero: foto con insignia flotante a la izquierda,
+ * Primer bloque bajo el hero: foto con chapa flotante a la izquierda,
  * argumento del bufete a la derecha.
  *
- * La insignia montada sobre la esquina de la foto rompe la rejilla y es lo que
+ * La chapa montada sobre la esquina de la foto rompe la rejilla y es lo que
  * evita que el bloque se lea como dos columnas planas.
+ *
+ * ── Revisión del 17-11-2026 ────────────────────────────────────────────────
+ * El bloque presenta al abogado principal y NO DECÍA QUIÉN ERA: salía su
+ * retrato y el texto hablaba de «un abogado titular» en abstracto. Quien
+ * busca abogado quiere un nombre y una cara, no una categoría.
+ *
+ * La chapa pasa a llevar el nombre y el cargo ENCIMA de la cifra, separados
+ * por un filete. Es la caption del retrato: va pegada a la foto porque un
+ * nombre a media pantalla de distancia no identifica a nadie.
+ *
+ * De paso se corrigieron tres cosas que no se veían:
+ *  · El TELÉFONO lo declaraba este componente por su cuenta, leyendo el
+ *    `.env`. Eso es un NAP duplicado —el agujero que el proyecto ya cerró una
+ *    vez— y además salía pegado («+573165325335»). Ahora sale de
+ *    `contacto.js`, que es la fuente única, y se enseña legible.
+ *  · Los TICS y el icono del teléfono iban en ROJO. Con el botón también
+ *    rojo había tres rojos compitiendo y el botón dejaba de ser lo más
+ *    saliente de la sección, que es exactamente lo que la regla del proyecto
+ *    prohíbe. Van en azul: el acento que no es acción va en azul.
+ *  · La foto iba con `alt=""`. Un retrato no es decorativo: para quien usa
+ *    lector de pantalla el abogado desaparecía de la página.
  */
 const { datos = {}, variantes = {} } = Astro.props;
 const {
   etiqueta = '', titulo = '', destacado = '', texto = '',
   puntos = [], imagen = '', cifra = '', cifraPie = '',
+  nombre = '', cargo = '', altImagen = '',
   textoBoton = '', enlaceBoton = '/quienes-somos/',
   colorTitulo = '',
   colorTexto = '',
 } = datos;
+
+/*
+ * El texto alternativo se COMPONE del nombre y el cargo cuando no se ha
+ * escrito uno a mano. Si no hay ni nombre ni `altImagen`, se queda vacío: una
+ * foto sin descripción es mejor que una descripción inventada, y así el
+ * lector de pantalla la salta en vez de leer un relleno.
+ */
+const alt = altImagen || (nombre ? [nombre, cargo].filter(Boolean).join(', ') : '');
 
 /*
  * Colores del texto, elegidos desde el panel. Van en línea porque tienen que
@@ -24,10 +54,25 @@ const {
  * decisión del cliente (D4 de la spec 002). Un color ilegible aquí es un color
  * ilegible en la página.
  */
+import { telefonoLegible, telefonoMarcable, enlaceWhatsApp } from '../../data/contacto.js';
+
+/*
+ * `enlaceBoton` admite el valor especial `whatsapp`.
+ *
+ * El botón de este bloque lleva a WhatsApp (petición del cliente,
+ * 17-11-2026), y la alternativa era escribir el `https://wa.me/573165325335`
+ * dentro del contenido. Eso duplicaría el número: el agujero del NAP que el
+ * proyecto ya cerró una vez. Con el centinela, quien edita escribe la palabra
+ * `whatsapp` y el número sigue viviendo en un solo sitio.
+ *
+ * Un enlace externo se abre en otra pestaña y declara `rel`; uno interno, no.
+ */
+const esWhatsApp = enlaceBoton === 'whatsapp';
+const hrefBoton = esWhatsApp ? enlaceWhatsApp() : enlaceBoton;
+
 const estiloTitulo = colorTitulo ? { color: colorTitulo } : undefined;
 const estiloTexto = colorTexto ? { color: colorTexto } : undefined;
 const { ladoImagen = 'izquierda' } = variantes;
-const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
 ---
 
 <section class="contenedor py-20 lg:py-28">
@@ -36,7 +81,7 @@ const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
                       ladoImagen === 'derecha' && 'lg:order-last']}>
       <img
         src={imagen}
-        alt=""
+        alt={alt}
         width="700"
         height="900"
         class="w-full object-cover"
@@ -44,15 +89,42 @@ const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
         decoding="async"
       />
 
-      <!-- Insignia: monta sobre la esquina inferior izquierda de la foto. -->
-      <div class="absolute bottom-0 left-0 flex items-end gap-3 bg-white p-5 shadow-xl sm:p-6">
-        <span class="font-display text-6xl font-bold leading-none text-rojo-500 sm:text-7xl">
-          {cifra}
-        </span>
-        <span class="max-w-[5.5rem] pb-1.5 text-sm font-semibold leading-tight text-tinta-suave">
-          {cifraPie}
-        </span>
-      </div>
+      {/*
+          Chapa: monta sobre la esquina inferior izquierda de la foto.
+
+          Lleva el nombre arriba y la cifra abajo, separados por un filete.
+          El nombre va PRIMERO porque es lo que identifica a la persona del
+          retrato; la cifra es el argumento que lo respalda, y un argumento sin
+          sujeto no respalda nada.
+
+          Las dos mitades son independientes: sin nombre queda la cifra sola,
+          que es como estaba antes; sin cifra queda la chapa de identidad.
+      */}
+      {(nombre || cifra) && (
+        <div class="absolute bottom-0 left-0 bg-white p-5 shadow-xl sm:p-6">
+          {nombre && (
+            <div class:list={[cifra && 'mb-4 border-b border-humo-200 pb-4']}>
+              <p class="font-display text-lg font-bold leading-tight text-marino-900">
+                {nombre}
+              </p>
+              {cargo && (
+                <p class="mt-0.5 text-sm font-medium text-marino-600">{cargo}</p>
+              )}
+            </div>
+          )}
+
+          {cifra && (
+            <div class="flex items-end gap-3">
+              <span class="font-display text-6xl font-bold leading-none text-rojo-500 sm:text-7xl">
+                {cifra}
+              </span>
+              <span class="max-w-[5.5rem] pb-1.5 text-sm font-semibold leading-tight text-tinta-suave">
+                {cifraPie}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
 
     <div>
@@ -62,12 +134,24 @@ const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
         {titulo} {destacado && <span class="destacado">{destacado}</span>}
       </h2>
 
-      <p class="mt-6 text-tinta-suave" style={estiloTexto}>{texto}</p>
+      {/*
+          En TINTA, no en el gris suave.
+
+          Dos motivos y los dos son de coherencia. Es el texto principal del
+          bloque —lo que alguien ha venido a leer—, y el gris suave queda
+          para lo accesorio; y el registro ya declara `#373435` (tinta) como
+          color por defecto de este campo, asi que la clase decia una cosa y
+          el panel otra. Quien eligiera "el color por defecto" en el panel
+          veia cambiar el texto sin haber cambiado nada.
+      */}
+      <p class="mt-6 text-tinta" style={estiloTexto}>{texto}</p>
 
       <ul class="mt-7 space-y-3">
         {puntos.map((punto) => (
           <li class="flex items-start gap-3 text-sm font-medium text-tinta">
-            <svg class="mt-0.5 size-5 shrink-0 text-rojo-500" viewBox="0 0 24 24"
+            {/* AZUL, no rojo: el rojo del proyecto significa «acción» y lo
+                reserva el botón de conversión. Ver la nota de cabecera. */}
+            <svg class="mt-0.5 size-5 shrink-0 text-marino-600" viewBox="0 0 24 24"
                  fill="currentColor" aria-hidden="true">
               <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m-1.2 14.2-4-4 1.6-1.6 2.4 2.4 5.2-5.2 1.6 1.7z" />
             </svg>
@@ -77,15 +161,38 @@ const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
       </ul>
 
       <div class="mt-9 flex flex-wrap items-center gap-6">
-        {textoBoton && <a href={enlaceBoton} class="btn-primario">{textoBoton}</a>}
+        {textoBoton && (
+          <a
+            href={hrefBoton}
+            class="btn-primario"
+            target={esWhatsApp ? '_blank' : undefined}
+            rel={esWhatsApp ? 'noopener noreferrer nofollow' : undefined}
+          >
+            {textoBoton}
+          </a>
+        )}
+
+        {/*
+            El teléfono también va EN CAJA, no suelto (petición del cliente,
+            17-11-2026). Iba como un enlace de texto al lado de un botón, así
+            que parecía un pie de página más que una segunda vía de contacto.
+
+            Va perfilado y el de conversión relleno: la misma jerarquía que en
+            `/contacto/`, y por el mismo motivo —dos cajas igual de fuertes no
+            dicen cuál pulsar primero—.
+
+            El filete va en `box-shadow` y no en `border` para que las dos
+            cajas midan EXACTAMENTE lo mismo: un borde real suma 3px al alto y
+            quedarían desalineadas.
+        */}
         <a
-          href={`tel:${telefono}`}
-          class="flex items-center gap-2 text-sm font-bold text-marino-900 hover:text-rojo-600"
+          href={`tel:${telefonoMarcable}`}
+          class="btn bg-white text-marino-600 shadow-[inset_0_0_0_1.5px_var(--color-marino-600)] hover:bg-marino-50"
         >
-          <svg class="size-5 text-rojo-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <svg class="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z" />
           </svg>
-          {telefono}
+          {telefonoLegible}
         </a>
       </div>
     </div>
