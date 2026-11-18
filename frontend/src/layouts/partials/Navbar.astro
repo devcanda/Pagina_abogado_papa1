@@ -11,14 +11,26 @@ import BarraContacto from '../../components/BarraContacto.astro';
 import Logo from '../../components/Logo.astro';
 
 const enlaces = [
+  { href: '/', texto: 'Inicio' },
   { href: '/quienes-somos/', texto: 'Quiénes somos' },
   { href: '/areas/', texto: 'Áreas de práctica' },
-  { href: '/casos/', texto: 'Casos' },
   { href: '/blog/', texto: 'Blog jurídico' },
   { href: '/contacto/', texto: 'Contacto' },
 ];
 
 const rutaActual = Astro.url.pathname;
+
+/*
+ * La portada se compara EXACTA; las demás, por prefijo.
+ *
+ * El marcado de «la que estoy viendo» era `rutaActual.startsWith(href)`, y con
+ * «Inicio» en la lista eso se rompe solo: toda ruta empieza por `/`, así que
+ * la portada quedaría marcada como activa en TODAS las páginas y habría dos
+ * enlaces subrayados a la vez. El prefijo sigue haciendo falta en las demás,
+ * porque una subpágina (`/areas/laboral/`) debe marcar a su sección.
+ */
+const esActual = (href) =>
+  href === '/' ? rutaActual === '/' : rutaActual.startsWith(href);
 const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
 ---
 
@@ -47,7 +59,7 @@ const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
                    after:absolute after:inset-x-0 after:-bottom-px after:h-0.5
                    after:origin-left after:scale-x-0 after:bg-rojo-500 after:transition-transform
                    hover:after:scale-x-100 aria-[current=page]:after:scale-x-100"
-            aria-current={rutaActual.startsWith(enlace.href) ? 'page' : undefined}
+            aria-current={esActual(enlace.href) ? 'page' : undefined}
           >
             {enlace.texto}
           </a>
@@ -79,7 +91,16 @@ const telefono = import.meta.env.PUBLIC_TELEFONO ?? '';
       >
         {enlaces.map((enlace) => (
           <li>
-            <a href={enlace.href} class="block px-4 py-3 text-sm font-semibold text-tinta">
+            {/*
+                El móvil también marca la página actual. No lo hacía, y con
+                «Inicio» en la lista se nota más: un menú de cinco entradas sin
+                señal de dónde está uno obliga a recordarlo.
+            */}
+            <a
+              href={enlace.href}
+              class="block px-4 py-3 text-sm font-semibold text-tinta aria-[current=page]:text-marino-600"
+              aria-current={esActual(enlace.href) ? 'page' : undefined}
+            >
               {enlace.texto}
             </a>
           </li>
