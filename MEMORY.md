@@ -3,7 +3,7 @@
 ## Estado Actual
 - Arquitectura base completa y probada de extremo a extremo (spec `001`).
 - `backend/`: Express + PostgreSQL por capas (health, paginas, leads, chat).
-- `frontend/`: Astro 5 + Tailwind 4. 6 páginas, 44KB CSS, **0KB de JS**.
+- `frontend/`: Astro 5 + Tailwind 4. 7 páginas, 44KB CSS, **0KB de JS**.
 - `Layout.astro` elige Corporativo o Landing según `pagina.es_landing_page`.
 - **Portada**: hero, bufete, franja, áreas, cifras, perito, casos y cierre.
 - **Serif de titulares** (Playfair autoalojada); utilidades en `AGENTS.md`.
@@ -11,6 +11,13 @@
 - Base de desarrollo en Docker (`docker compose up -d`, puerto 5434).
 
 ## Decisiones y Aprendizajes
+- **Página `/quienes-somos/` implementada como ruta dedicada** (17-11-2026,
+  spec `012`): excluye `'quienes-somos'` en `[...slug].astro` junto a `'inicio'`,
+  rescata el linaje jurídico del fundador, biografía de Diego A. Candamil R.
+  (`hero-abogado.webp`) y galería de 3 especialidades con selector por
+  miniaturas en CSS puro (`GaleriaEspecialidades.astro`, radios + `:has()`,
+  0 KB de JS), corrigiendo la descripción incompleta de *Asesoría Penal* que
+  traía la web anterior.
 - **Página `/contacto/` implementada** (17-11-2026, spec `011`): rescata el
   contenido humano, horarios (`8:00 a. m. – 6:00 p. m.`, lunes a viernes),
   teléfono fijo (`602 226 1303`), celular/WhatsApp, correo y mapa oficial de
@@ -58,6 +65,88 @@
   asi se perdia: iba a 15px (por calcar el original) y en el gris secundario
   siendo el texto principal de su columna. Se subio a 16px y a `tinta`
   (11,54:1). El gris suave queda para lo accesorio.
+- **El bloque bajo el hero presenta AL ABOGADO, con su nombre** (17-11-2026,
+  migracion `020`). Antes salia su retrato y el texto hablaba de «un abogado
+  titular» en abstracto: **el bloque no decia quien era**. El texto pasa a
+  PRIMERA PERSONA, como la pagina de contacto. Los datos salen de la biografia
+  de la web anterior (`docs/contenido-wordpress/quienes-somos.md`): **Diego A.
+  Candamil R., abogado especialista, ejerciendo desde el ano 2000**. No se
+  inventaron.
+- **Ajustes del bloque del abogado** (17-11-2026, migracion `021`): 26 anos
+  —cuadra con «desde el ano 2000», no tocar uno sin el otro—, titular nuevo,
+  tres puntos en vez de dos y el boton «Agenda ahora» llevando a WhatsApp.
+- **El pie de la cifra dice «anos defendiendo sus derechos»** (18-11-2026,
+  migracion `023`). Decia «anos de ejercicio», que describe la carrera del
+  abogado; el nuevo describe lo que recibe el visitante. **Cabe JUSTO: el
+  registro declara `max: 30` y la frase mide 29.** `sanearDatos` recorta sin
+  avisar, asi que un caracter mas se publicaria cortado.
+  Medido en la pagina: el pie pasa a 3 lineas (59px) y sigue por debajo de la
+  cifra (72px en escritorio, 60 en movil), que es quien fija el alto de la
+  fila; la chapa NO crecio y el texto no desborda sus 88px.
+- **La portada se CONTRADICE en los anos y no se toco**: la chapa dice 26
+  mientras las tres laminas del hero y la meta descripcion dicen «Mas de 20»
+  (y la del perito, «Mas de 25»). Es contenido del cliente, no un fallo de
+  codigo; esta avisado y pendiente de su decision.
+- **El tercer punto ya NO promete consulta gratis** (18-11-2026, migracion
+  `022`). Decia «La primera valoracion de su caso no tiene costo.» y dice «De
+  el primer paso conociendo su panorama legal.». No es cosmetico: el bloque
+  deja de comprometer por escrito un precio, y el punto deja de competir con
+  el boton —invita a dar el paso en vez de anunciar una tarifa—.
+- **`enlaceBoton` admite el valor especial `whatsapp`.** El componente lo
+  resuelve con `enlaceWhatsApp()`. **No escribir el `wa.me/573165325335` en el
+  contenido**: duplicaria el numero, que es el agujero del NAP ya cerrado.
+- **El telefono de ese bloque va EN CAJA**, perfilado, junto al boton relleno.
+  El filete va en `box-shadow` y no en `border`: un borde real suma 3px al
+  alto y las dos cajas dejarian de medir lo mismo.
+- **`textoConImagen` gano `nombre`, `cargo` y `altImagen`**, los tres
+  opcionales. `nombre` y `cargo` se pintan en la chapa que monta sobre la foto
+  Y componen el texto alternativo cuando `altImagen` esta vacio: la foto iba
+  con `alt=""` y un retrato NO es decorativo.
+- **Los tics y el icono del telefono de ese bloque pasaron a AZUL.** Iban en
+  rojo, con el boton tambien rojo: tres rojos compitiendo y el boton dejaba de
+  ser lo mas saliente. El rojo es solo para la accion.
+- **Ese componente declaraba el TELEFONO por su cuenta** leyendo el `.env`:
+  NAP duplicado, y ademas lo pintaba pegado («+573165325335»). Ahora sale de
+  `contacto.js` y usa `telefonoLegible`.
+- **El boton decia «Conocer al equipo»** mientras el texto vendia «atencion
+  directa del titular, sin intermediarios», y el bloque de equipo esta
+  retirado de la portada. Dice «Conocer mi trayectoria».
+- **El texto corrido de ese bloque pasa a `text-tinta`.** La clase decia
+  `tinta-suave` mientras el registro declaraba `#373435` (tinta) como color por
+  defecto del campo: quien eligiera «el color por defecto» en el panel veia
+  cambiar el texto sin haber cambiado nada.
+- **Los titulares van en LORA desde el 17-11-2026**, no en Playfair Display
+  (peticion del cliente). Playfair es una didona: a 72px brilla, pero a 24-32px
+  —donde esta la mayoria de los titulares— sus remates de hilo se afinan y el
+  titular pierde cuerpo. Lora tiene trazo parejo y esta dibujada para pantalla.
+  Eje 400-700 (no se pierde peso: `font-bold` es 700), +1,4KB en total, los
+  woff2 de Playfair **borrados**.
+- **La LINEA BASE VISUAL de `docs/linea-base/` quedo invalida con el cambio de
+  fuente.** Las siete capturas van a dar diferencias en todas partes porque
+  cada titular del sitio se movio. Regenerarla **solo cuando el cliente de el
+  diseno por bueno**, y anotarlo en `docs/punto-de-control-visual.md`.
+- **El menu del header ya no tiene «Casos»** (17-11-2026). Apuntaba a `/casos/`,
+  que devuelve 404. **«Blog juridico» sigue roto igual**, y aparece en la
+  cabecera Y en el pie.
+- **`/politica-de-privacidad/` EXISTIA COMO ENLACE Y NO COMO PAGINA** hasta el
+  17-11-2026: el pie de las corporativas y el pie minimo de cada landing
+  apuntaban ahi y la ruta devolvia **404**. Ya esta escrita.
+- **La politica va como pagina ESTATICA, no como fila de `paginas`.** Un texto
+  legal no debe poder cambiarse por descuido desde el panel: se versiona en
+  git, con fecha y autor, que es lo que hay que poder demostrar si alguien
+  reclama. Es la diferencia con «Quienes somos», que si vive en la base.
+- **El contenido se escribio MIRANDO el sitio compilado, no de plantilla.**
+  Comprobado: cero `<form>` en `dist/`, cero analitica (ni Analytics, ni Tag
+  Manager, ni pixeles) y cuatro incrustaciones de terceros activas —Google
+  Maps, YouTube (nocookie), TikTok y Meta—. `leads` y `chat_logs` existen en la
+  base pero el bot no esta en el sitio, asi que el texto los describe EN
+  FUTURO. **Si se anade un formulario o analitica, hay que volver a esta
+  pagina.**
+- **PENDIENTE DEL CLIENTE en la politica: el NIT y el plazo de conservacion.**
+  Estan marcados con la palabra `PENDIENTE` dentro del texto publicado, a
+  proposito, para que se vean y no se olviden. **No inventarlos.**
+- **El texto legal lo tiene que revisar el abogado antes de publicar.** Lo
+  redacto Claude mirando la Ley 1581 de 2012; no es asesoria juridica.
 - **Las tres columnas de `/contacto/` van PLANAS, sin tarjeta** (17-11-2026).
   Marco, sombra y esquinas redondeadas eran una interpretacion; el original las
   pinta sobre el fondo gris. Rotulo en versales+negrita, botones al ancho de la

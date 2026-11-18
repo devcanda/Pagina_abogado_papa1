@@ -193,12 +193,43 @@ aproximación pierde justo eso. Está en `BotonWhatsApp.astro` y en
 
 | Uso | Familia | Token |
 |---|---|---|
-| Titulares | Playfair Display (serif variable) | `font-display` |
+| Titulares | **Lora** (serif variable) | `font-display` |
 | Texto corrido, interfaz | Pila del sistema | `font-sans` |
 
-La serif se autoaloja en `public/fonts/` (dos woff2 de 38KB, subconjunto latino,
-eje de peso 400–800, licencia SIL OFL). Va con `font-display: swap` y precarga
-en `BaseHead`. **No añadir más pesos ni familias sin medir el coste.**
+La serif se autoaloja en `public/fonts/` (dos woff2, subconjunto latino, eje de
+peso 400–700, licencia SIL OFL). Va con `font-display: swap` y precarga en
+`BaseHead`. **No añadir más pesos ni familias sin medir el coste.**
+
+### Lora sustituyó a Playfair Display el 17-11-2026
+
+Petición del cliente —«una fuente más agradable»— y el diagnóstico importa más
+que el cambio.
+
+**Playfair es una DIDONA**: trazos gruesos con remates de hilo. A 72 px, en el
+carrusel, es espectacular; a 24–32 px —donde está la mayoría de los titulares
+del sitio— esos hilos se afinan hasta casi desaparecer y el titular pierde
+cuerpo y se enfría. **No era un problema de gusto: era la letra trabajando
+fuera del tamaño para el que está dibujada.**
+
+Lora tiene el trazo mucho más parejo y está dibujada para pantalla, así que
+aguanta de 16 a 72 px sin adelgazar. Conserva la autoridad de una serif clásica
+y añade calidez.
+
+- **El eje de peso baja de 400–800 a 400–700, y no se pierde nada**:
+  `font-bold` es 700 y en el sitio no había ningún titular por encima.
+- **Pesa 1,4 KB más en total** (37,8 + 40,8 KB frente a 38,4 + 38,8).
+- **Los archivos de Playfair se BORRARON.** Dejarlos serviría para que alguien
+  los volviera a enganchar por error y para que el repositorio cargara 77 KB
+  que nadie pide.
+- **La cursiva sigue sin poder quitarse**: `FranjaTexto` y `FranjaCompromiso`
+  pintan en cursiva el área que rota.
+- **Georgia sigue siendo el respaldo**, y ahora encaja mejor: sus proporciones
+  se parecen más a las de Lora que a las de Playfair, así que el salto al
+  terminar la carga apenas se nota.
+- **La línea base visual de `docs/linea-base/` queda INVÁLIDA.** Un cambio de
+  familia mueve cada titular del sitio, así que las siete capturas van a dar
+  diferencias en todas partes. Hay que regenerarla cuando el cliente dé el
+  diseño por bueno, y anotarlo en `docs/punto-de-control-visual.md`.
 
 Utilidades de composición:
 - `titular` / `titular-claro` — titular de sección (claro = sobre fondo oscuro).
