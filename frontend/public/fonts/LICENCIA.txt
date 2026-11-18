@@ -1,5 +1,9 @@
-Playfair Display — Claus Eggers Sørensen
-SIL Open Font License 1.1 — https://openfontlicense.org
+Lora
+Copyright 2011 The Lora Project Authors (https://github.com/cyrealtype/Lora-Cyrillic)
 
-Permite uso comercial, incrustación en web y redistribución.
-Origen: Google Fonts (subconjunto "latin", eje de peso variable 400–800).
+Distribuida bajo la SIL Open Font License, version 1.1.
+Texto completo: https://openfontlicense.org/
+
+Permite el uso comercial, la incrustacion y el autoalojamiento.
+Archivos servidos: subconjunto latino, variable (peso 400-700), woff2.
+Obtenidos de Google Fonts el 17-11-2026.
